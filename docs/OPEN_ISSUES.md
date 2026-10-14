@@ -3,8 +3,18 @@
 One line per open issue, pointing at the board that holds it. The board is right if the two
 disagree. See `CLAUDE.md` for the maintenance rule.
 
-**Last updated:** 2026-10-14 · **0 open**.
+**Last updated:** 2026-10-14 · **7 open**, all on the `extraction` board.
 
 ## 1. By campaign
 
-No campaign has opened an issue yet.
+### 1.1 `extraction` ([board](../prompts/extraction/IMPLEMENTATION_STATE.md)) — planned 2026-10-14
+
+| Issue | Owner | Hook |
+|---|---|---|
+| `[00-the-root-is-the-packages-parent]` | 03 | The root is the package's parent, so installed it records into the venv |
+| `[00-the-recorded-distributions-are-sgks]` | 03 | Every manifest records SGK's two packages, and not the registry itself |
+| `[00-the-fingerprint-reads-a-clients-registry]` | 04 | `fingerprint_store` imports SGK's registry and fingerprints with SGK's format and its own layer C |
+| `[00-the-store-layer-reads-inside-a-fingerprint]` | 04 | The sidecar reader and the CLI walk `classes`, which D3 makes the fingerprinter's |
+| `[00-package-prose-names-sgk]` | 05 | Docstrings cite SGK's campaigns, and the CLI points at SGK's `main.py --inventory` |
+| `[00-the-shard-fixtures-reach-into-shardedpool]` | none | The carried shard fixtures set private `ShardedPool` attributes |
+| `[00-a-refusal-matches-datastorekit-message-text]` | none | An unreadable store is recognised by matching DatastoreKit's message text |
