@@ -1,9 +1,10 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-14 · **Status: LIVE — 2 of 8 prompts written (01, 02), 2 landed (01,
-`4e0d715`, reviewed; suite 3. 02, this commit, awaiting review; suite 108).** G1 holds on the source
-side at SGK `a45aefc`, and on the package side for 01's and 02's files; E1 holds (DatastoreKit `v0.4.0`). U1 taken at set-up on 2026-10-14;
-U2 and U3 taken the same day, for 01, and U4 for 02, as recommended (README §6.2).
+**Last updated:** 2026-10-14 · **Status: LIVE — 2 of 8 prompts written (01, 02), 2 landed and
+reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108).** G1 holds on the source side at SGK
+`a45aefc`, and on the package side for 01's and 02's files; E1 holds (DatastoreKit `v0.4.0`). U1
+taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, and U4 for 02, as recommended
+(README §6.2).
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -48,7 +49,7 @@ U2 and U3 taken the same day, for 01, and U4 for 02, as recommended (README §6.
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
 | 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | `4e0d715` | 0 → 3 |
-| 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed** 2026-10-14, awaiting review ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | this commit | 3 → 108 |
+| 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed and reviewed** 2026-10-14 ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | `8155445` | 3 → 108 |
 | 03 | `03-the-root-and-the-client-config.md` | Opus | not written | — | — |
 | 04 | `04-the-client-fingerprinter.md` | Opus | not written | — | — |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
@@ -60,7 +61,7 @@ U2 and U3 taken the same day, for 01, and U4 for 02, as recommended (README §6.
 The holds are for **method**, not scope: every charter is fixed in README §2.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`91b7a60`), used
-for 01.
+for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), used for 02.
 
 **Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
 with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
@@ -122,6 +123,79 @@ only, beyond the two files the brief named) changed nothing. Its observations ne
 `stores.py:1567`'s "(prompt 01's log)" is SGK's and is recorded under
 `[00-package-prose-names-sgk]`, which 05 owns. **Nothing opened**; the index stays at 7.
 
+**Orchestrator review of prompt 02 (2026-10-14).** Dispatched from `1f9b5b0` to one Sonnet
+subagent, with the note's §0: its facts, six corrections and readings of the prompt ((m2) fails
+more than the prompt names; `black` from the command line infers `py312`, `py313` where
+`black.Mode()` does not; the instances overlap in `test_store_copy_move.py`; how to replay 01's
+breakages; the suite's time; the pending mechanism kept) and its two recommendations (D-fmt counted
+from T to `black(T)`; `black` under the cannot-run guard). Reviewed against its commit `8155445`,
+with nothing landed after it. **Every check of the note's §3 passed**, and acceptance 1–3 are met.
+No stop condition fired.
+
+*At dispatch.* The note's gate and the prompt's held at `1f9b5b0`: the tree clean, this checkout
+the only worktree, no `var/`; `git diff --stat 4e0d715 HEAD -- runregistrykit docs pyproject.toml
+PROVENANCE.md` empty; the check exited 0 and the suite was 3. SGK's `HEAD` `14bcac0`, clean. No Ray
+process; `RAY_ADDRESS` unset.
+
+*The checks.*
+1. **Scope.** `8155445` touches 15 files, the prompt's §6 list. The three modules,
+   `tests/__init__.py`, `test_package_imports.py` and `pyproject.toml` are unchanged from
+   `4e0d715`; `CLAUDE.md` changes in its Tests bullet only. No `venv/`, `*.egg-info`, scratch file
+   or `var/`.
+2. **The files.** `git ls-files runregistrykit` is 01's five and the eight. An independent re-port
+   from `a45aefc` (`perl` for D-name and D-fix, `black.format_str(…, mode=black.Mode())`) gives
+   all eight committed files byte for byte (`cmp`).
+3. **Equivalence, by running.** From an `env -i` shell the check exits 0: 12 checked, D-name 106,
+   D-fix 5, D-fmt 12 in 3 hunks, 3 pending, 11 absent, 1 new. Its 467 lines of output equal the
+   log's (`diff`).
+4. **Equivalence, by reading.** The check read in full: the table's eight rows *ported by 02*, the
+   three 04 rows pending, every blob unchanged; SGK read only through `git -C`; `black` imported
+   under the guard and pinned to `25.1.0`; T by the two substitutions on every line; the package
+   compared with `black(T)`; D-fmt counted from T to `black(T)`; completeness on `RunRegistry` and
+   `StoreFixtures`; no line number in a rule; the frozen tree, the walk and the pending mechanism
+   as 01 made them; the docstring stating the rule and the pin.
+5. **The check bites.** All 21 diffs of the log extracted and replayed in `bash` (`--check`,
+   apply, `-R --check`, reverse), each exiting 1 and naming the line, row or file as the log
+   records, the tree clean after each: 02's (a)–(g); 01's (a)–(i), (h) applying with an offset; and
+   (m1)–(m3) and the two uncaught candidates. The orchestrator's own, not in the log:
+   `test_store_copy_move.py` `:73-76` collapsed back to T's single line (the package equal to T,
+   not to `black(T)`) exits 1; `import json` and `import os` swapped in `test_store_sidecar.py`
+   exits 1; the pin edited to `25.1.1` exits 2, `CANNOT RUN`.
+6. **The tests.** `Ran 108 tests in 14.0s`, OK; the per-module counts by loader are the note's.
+   `git status --short --ignored` the same before and after but for `__pycache__/`; no `var/`; no
+   Ray process before or after. `black --check runregistrykit docs`: 14 files unchanged.
+7. **The mutations.** (m1) failures=2, errors=1, in `TestPackageProvenance`; (m2) failures=4,
+   errors=8, across `test_store_copy_move`, `test_store_amend`, `test_store_sidecar` and
+   `test_store_command_line` (correction 1); (m3), `amend_sidecar` dropping its `amend` history entry
+   (`stores.py:2173`), failures=6, errors=9, in `test_store_amend` and
+   `test_store_amend_residuals`. Each as the log records; the suite 108 OK after each.
+8. **The issues.** `[02-the-ported-tests-name-sgk]` opened with impact and next step, owner 05; its
+   lines spot-checked in the package (`test_run_registry.py:21, 102, 125, 482, 662`,
+   `store_fixtures.py:36, 49-50, 53-54, 85`, `test_store_sidecar.py:36, 43, 349, 372, 500`,
+   `test_store_amend.py:203`, `shard_store_fixtures.py:37-38, 91, 131, 135`). The four narrowed
+   issues' package lines true at `8155445`; `[00-a-refusal-matches-datastorekit-message-text]`'s next
+   step now 04's.
+9. **The records.** The log has every section of README §5.1, the check's whole output, the
+   per-class counts, the instances accounted for, 3 → 108, and every diff. `PROVENANCE.md` and
+   `CLAUDE.md` as the prompt's §2.6. The index counted 8, as its header said.
+
+*Residue fixed in the follow-up.* "this commit" → `8155445` on this board, in the log and in
+`prompts/INDEX.md`; 02 marked reviewed here, in README §2 and its header, and in
+`prompts/INDEX.md`; one prose line of `PROVENANCE.md` and this board's header rewrapped; this
+paragraph and the notes line.
+
+*Opened by the review.* The log's observation that two sidecar-reader mutations pass the suite
+(`stores.py:579`, the `bool` guard on `sidecar_format`; `:589`, `fullmatch` → `match` on
+`store_id`) is a gap in what pins the reader's acceptance rules, which are part of the registry's
+interface, and 04 rewrites the reader's shape check. No test of 04's SGK sources pins either guard.
+Opened as `[02-the-sidecar-readers-guards-are-unpinned]`, owner 04; the index goes to 9.
+
+*Accepted as recorded.* The log's ten deviations (two STRUCTURALLY REQUIRED, eight IMPLEMENTATION
+CHOICE, no UNINTENDED DRIFT) change nothing the prompt fixes. Its other observations need no issue:
+`DEFAULT_STALE_AFTER` unpinned is the prompt's own note; `test_package_imports.py` naming
+`RunRegistry` and `StoreFixtures` on purpose is for 05's guard (U10) to allow, and 05's prompt will
+measure it.
+
 ### 1.1 Items
 
 | Item | Prompt | What | State |
@@ -146,7 +220,7 @@ only, beyond the two files the brief named) changed nothing. Its observations ne
 
 | Gate | Status |
 |---|---|
-| **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. **Package side holds for 01's files** 2026-10-14 (`4e0d715`): `docs/extraction/compare_with_source.py` exits 0: the 25 rows and the shard fixture's blob equal; `__init__.py`, `stores.py`, `__main__.py` and `tests/__init__.py` equal their sources but for 23 D-name lines (6, 13, 4, 0), none unclassified, none left unrenamed; 11 files pending (8 for 02, 3 for 04); 11 not imported and absent; 1 declared new file. **Package side for 02's eight files holds** 2026-10-14 (this commit): the check, extended, exits 0: 12 files checked (4 by 01, 8 by 02); each equals `black` of its renamed source; D-name 106, D-fix 5, D-fmt 12 lines in 3 hunks (all in `test_store_copy_move.py`); 3 files pending (04); 11 not imported and absent; 1 declared new file |
+| **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. **Package side holds for 01's files** 2026-10-14 (`4e0d715`): `docs/extraction/compare_with_source.py` exits 0: the 25 rows and the shard fixture's blob equal; `__init__.py`, `stores.py`, `__main__.py` and `tests/__init__.py` equal their sources but for 23 D-name lines (6, 13, 4, 0), none unclassified, none left unrenamed; 11 files pending (8 for 02, 3 for 04); 11 not imported and absent; 1 declared new file. **Package side for 02's eight files holds** 2026-10-14 (`8155445`): the check, extended, exits 0: 12 files checked (4 by 01, 8 by 02); each equals `black` of its renamed source; D-name 106, D-fix 5, D-fmt 12 lines in 3 hunks (all in `test_store_copy_move.py`); 3 files pending (04); 11 not imported and absent; 1 declared new file |
 | **E1** | **holds** 2026-10-14: DatastoreKit `v0.4.0` (`c8570e8`, tag object `8e7c1d7`) |
 | **G2** | not yet (SGK adopts `v0.1.0` in its `runregistry-extraction` 05–08) |
 | **G3** | not yet (CPBH adopts) |
@@ -155,10 +229,10 @@ only, beyond the two files the brief named) changed nothing. Its observations ne
 
 ## 3. Active and unresolved issues
 
-Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`, and 02
-opened an eighth. Line numbers are SGK's until 01 imports the code; 01 records each issue's package
-lines. **From 01 they are the same numbers** for the three modules: D-name replaced one line by one
-line and `black` changed nothing, so every line of them sits where it sat in SGK at `a45aefc` (01's
+Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
+opened an eighth, and the orchestrator's review of 02 a ninth. Line numbers are SGK's until 01
+imports the code; 01 records each issue's package lines. **From 01 they are the same numbers** for
+the three modules: D-name replaced one line by one line and `black` changed nothing, so every line of them sits where it sat in SGK at `a45aefc` (01's
 log; each line below read in the package). 02's package lines are for the ported tests, read in
 `runregistrykit/tests/`.
 
@@ -338,7 +412,7 @@ step, a test that reaches the match, is therefore 04's.
 **Opened:** 2026-10-14, by 02. **Owner:** 05.
 
 The ported tests and fixtures carry SGK's names, besides the `RunRegistry` and `StoreFixtures` that
-D-name and D-fix handle. Measured in the eight files at this commit (package lines):
+D-name and D-fix handle. Measured in the eight files at `8155445` (package lines):
 
 - *SGK's table and key type in the shard fixture:* `shard_store_fixtures.py:25-27`,
   `KEY_TYPE = "wavenumber"`, `REPLICATED = ["version", "wavenumber"]`, `SHARDED = {"GkSource": "k"}`,
@@ -367,6 +441,24 @@ scans `tests/`, fails on them. Renaming `TestLiveA3Shape` touches README §5 rul
 keeps its class name).
 
 *Next step.* 05, with its prose rewrite; the class name is put to the user there.
+
+### `[02-the-sidecar-readers-guards-are-unpinned]`
+
+**Opened:** 2026-10-14, by the orchestrator's review of 02, from 02's log (observations and its
+(m3) candidates). **Owner:** 04.
+
+Two of the sidecar reader's acceptance rules are pinned by no test. In `_registry_problems`
+(`runregistrykit/stores.py:574`), dropping the `isinstance(fmt, bool)` guard on `sidecar_format`
+(`:579`) or weakening `_STORE_ID.fullmatch` to `.match` on `store_id` (`:589`) leaves the suite at
+108 OK (02's log gives both as diffs). No test in SGK's three 04 modules at `a45aefc` pins either.
+
+*Impact.* What the reader accepts is part of the registry's interface (`CLAUDE.md`). Without a pin,
+a sidecar with `"sidecar_format": true` (equal to 1) or a `store_id` with trailing characters would
+be accepted after a change and nothing would fail; 04 rewrites the reader's shape check (U7), the
+place such a change would come from.
+
+*Next step.* 04: a test of the reader that each mutation fails, added before the shape check
+changes. Put to whoever writes 04.
 
 ## 4. Resolved issues
 

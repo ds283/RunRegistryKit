@@ -1,7 +1,7 @@
 # Log — prompt 02: port the core and shard-fixture tests
 
 **Subject:** Port the core and shard-fixture tests, and extend the equivalence check
-**Commit:** this commit (on `main`, after `1f9b5b0`)
+**Commit:** `8155445` (on `main`, after `1f9b5b0`)
 **Date:** 2026-10-14
 **Agent:** Claude Sonnet 5.5, dispatched by the orchestrator with its brief (the orchestrator's note
 §0)
@@ -100,7 +100,7 @@ whose reflows it accepts`, exit 2.
    choice to the agent. **IMPLEMENTATION CHOICE.**
 9. **The breakage diffs were taken against the index**, with the eight ported files and the
    extended check staged (not committed) while they were made, so a diff's `index` line for those
-   files is the blob this commit holds. Each was replayed and reversed as recorded with `git apply`
+   files is the blob `8155445` holds. Each was replayed and reversed as recorded with `git apply`
    in `bash`. **IMPLEMENTATION CHOICE.**
 10. **01's (h) (the table row) applied unchanged**, with no re-recording: its context is the
     *not imported* `test_killed_handler.py` row, which 02 does not change. 01's (a)–(i) all applied
@@ -685,7 +685,7 @@ unchanged."
 
 ## The deliberate-breakage record
 
-Each diff is exactly as applied, to the tree of this commit, by a script that checked it with `git
+Each diff is exactly as applied, to the tree of `8155445`, by a script that checked it with `git
 apply --check`, applied it, confirmed `git apply -R --check`, ran the check and the suite, reversed
 it with `git apply -R` and confirmed `git status --short` was as before. All were replayed in
 `bash`. None is committed. For (g) of 01, the file is new, so `-R` removes it.
@@ -1155,7 +1155,7 @@ index a70cfbd..d5ee742 100644
   records it before and after (README §5 rule 6).
 - `docs/extraction/compare_with_source.py` exits 0 with 3 pending files (04's); it needs `black`
   25.1.0 in the interpreter (`venv/` has it). **It is retired at 03's start** (README §4): from 03
-  the package changes in its own right, and the check describes this commit's tree, re-run from a
+  the package changes in its own right, and the check describes `8155445`'s tree, re-run from a
   worktree of it. 03 must not edit the ported tests beyond what its prompt says: the pinning test
   `test_the_recorded_names_are_the_two_packages` (`test_run_registry.py:393-396`) is the one 03's
   `[00-the-recorded-distributions-are-sgks]` changes.

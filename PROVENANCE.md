@@ -142,9 +142,9 @@ twelve files the two give the same output (measured), and `black --check runregi
 show it if they ever differed. It exits 0 only when all of that holds; the rules are stated in its
 docstring.
 
-The check holds through prompt 02, while the package is the import and the ported tests. It is retired at prompt 03's
-start, when the package begins to change in its own right; from then it describes 02's tree and is
-re-run from a worktree of 02's commit (README §4).
+The check holds through prompt 02, while the package is the import and the ported tests. It is
+retired at prompt 03's start, when the package begins to change in its own right; from then it
+describes 02's tree and is re-run from a worktree of 02's commit (README §4).
 
 ## The freeze
 
