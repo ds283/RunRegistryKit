@@ -17,8 +17,11 @@ import unittest
 from unittest import mock
 
 import runregistrykit
-
-REPO_ROOT = runregistrykit.REPO_ROOT
+from runregistrykit.tests.client_fixtures import (
+    PACKAGE_PARENT,
+    enter_client_root,
+    temporary_directory,
+)
 
 # A liveness check performed from a process whose own command line contains the target's name.
 # `--waiting-for <token>` is argv[1:3] so that it survives any command-line truncation `ps` may
@@ -117,12 +120,18 @@ class RegistryTestCase(unittest.TestCase):
         self._tmp = tempfile.TemporaryDirectory()
         self.root = self._tmp.name
         self.addCleanup(self._tmp.cleanup)
+        self.client = enter_client_root(self)
 
     def begin(self, slug="unit-test", **kwargs):
         kwargs.setdefault("purpose", "a test run, in a temporary directory")
         kwargs.setdefault("argv", ["unittest", slug])
         return runregistrykit.begin(
-            campaign="run-registry", prompt="01", slug=slug, root=self.root, **kwargs
+            campaign="run-registry",
+            prompt="01",
+            slug=slug,
+            root=self.root,
+            client_root=self.client,
+            **kwargs,
         )
 
     def a_dead_pid(self):
@@ -176,7 +185,7 @@ class TestSelfMatch(RegistryTestCase):
 
         checker = os.path.join(self.root, f"watch-{token}.py")
         with open(checker, "w") as handle:
-            handle.write(CHECKER.format(repo=REPO_ROOT))
+            handle.write(CHECKER.format(repo=PACKAGE_PARENT))
         done = subprocess.run(
             [sys.executable, checker, "--waiting-for", token, run.path],
             capture_output=True,
@@ -223,7 +232,7 @@ class TestManifest(RegistryTestCase):
     def test_manifest_is_on_disk_before_the_work_starts(self):
         script = os.path.join(self.root, "crasher.py")
         with open(script, "w") as handle:
-            handle.write(CRASHER.format(repo=REPO_ROOT, root=self.root))
+            handle.write(CRASHER.format(repo=PACKAGE_PARENT, root=self.root))
         done = subprocess.run(
             [sys.executable, script], capture_output=True, text=True, timeout=300
         )
@@ -278,12 +287,15 @@ class TestManifest(RegistryTestCase):
         # and this test must pass unchanged before and after.
         run = self.begin()
         self.assertIn("packages", run.manifest)
+        self.assertEqual(set(run.manifest["packages"]), {"runregistrykit"})
         self.assertEqual(
-            set(run.manifest["packages"]), set(runregistrykit.RECORDED_DISTRIBUTIONS)
+            run.manifest["packages"],
+            runregistrykit.package_provenance(("runregistrykit",)),
         )
-        self.assertEqual(run.manifest["packages"], runregistrykit.package_provenance())
         on_disk = runregistrykit.read_json(run.manifest_path)
-        self.assertEqual(on_disk["packages"], runregistrykit.package_provenance())
+        self.assertEqual(
+            on_disk["packages"], runregistrykit.package_provenance(("runregistrykit",))
+        )
 
 
 class StandInDistribution:
@@ -316,7 +328,7 @@ class TestPackageProvenance(unittest.TestCase):
         with mock.patch.object(
             runregistrykit.importlib.metadata, "distribution", distribution
         ):
-            return runregistrykit.package_provenance()
+            return runregistrykit.package_provenance(("datastorekit", "raypoolkit"))
 
     def one(self, stand_in):
         return self.provenance({"datastorekit": stand_in})["datastorekit"]
@@ -390,9 +402,22 @@ class TestPackageProvenance(unittest.TestCase):
             with self.subTest(label):
                 self.assertEqual(self.one(StandInDistribution("0.2.2", text)), expected)
 
-    def test_the_recorded_names_are_the_two_packages(self):
+    def test_the_recorded_names_are_the_registry_and_the_configs(self):
+        client = enter_client_root(
+            self, 'distributions = ["datastorekit", "raypoolkit"]\n'
+        )
+        run = runregistrykit.begin(
+            campaign="client-config",
+            prompt="03",
+            slug="recorded-names",
+            purpose="a test run, in a temporary directory",
+            argv=["unittest"],
+            root=temporary_directory(self),
+            client_root=client,
+        )
         self.assertEqual(
-            runregistrykit.RECORDED_DISTRIBUTIONS, ("datastorekit", "raypoolkit")
+            set(run.manifest["packages"]),
+            {"runregistrykit", "datastorekit", "raypoolkit"},
         )
 
 
@@ -681,7 +706,7 @@ class TestLister(RegistryTestCase):
             [sys.executable, "-m", "runregistrykit", "list", "--root", self.root],
             capture_output=True,
             text=True,
-            cwd=REPO_ROOT,
+            cwd=self.client,
             timeout=300,
         )
         self.assertEqual(done.returncode, 0, done.stderr)

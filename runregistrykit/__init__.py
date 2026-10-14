@@ -54,8 +54,7 @@ import sys
 import time
 from datetime import datetime, timezone
 
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_ROOT = os.path.join(REPO_ROOT, "var", "runs")
+from .client import CONFIG_FILE, ClientRoot, ConfigError, find_client_root
 
 TERMINAL_STATES = ("done", "failed", "killed")
 
@@ -95,7 +94,7 @@ def script_sha256(path) -> str:
         return hashlib.sha256(handle.read()).hexdigest()
 
 
-def git_provenance(cwd=REPO_ROOT) -> dict:
+def git_provenance(cwd) -> dict:
     """`git rev-parse HEAD` and whether the tree was clean, as they stood at launch."""
 
     def run(args):
@@ -112,14 +111,7 @@ def git_provenance(cwd=REPO_ROOT) -> dict:
     }
 
 
-# The distributions a run's manifest says it ran with: the two packages `prompts/dk-and-rpk-migration`
-# adopts (README §0, U4). From prompt 04 on a run executes code that is not in this repository's
-# tree, so the manifest records which release of it was installed, and R0, R1 and R2 each say what
-# they ran.
-RECORDED_DISTRIBUTIONS = ("datastorekit", "raypoolkit")
-
-
-def package_provenance(names=RECORDED_DISTRIBUTIONS) -> dict:
+def package_provenance(names) -> dict:
     """What is installed of each named distribution, as it stands at `begin()`.
 
     Maps each name to `None` when it is not installed, and otherwise to a dict with exactly:
@@ -169,20 +161,29 @@ def package_provenance(names=RECORDED_DISTRIBUTIONS) -> dict:
     return packages
 
 
+def _recorded_names(client) -> tuple:
+    """What a manifest's `packages` records: `runregistrykit` itself, always, then the client
+    config's `distributions`, without repeating `runregistrykit`."""
+    return ("runregistrykit",) + tuple(
+        name for name in client.distributions if name != "runregistrykit"
+    )
+
+
 # =================================================================================================
 # files
 
 
-def _repo_path(path) -> str:
-    """A repository-relative path where that is meaningful, an absolute one otherwise."""
+def _repo_path(path, root) -> str:
+    """A path relative to the record root ``root`` where that is meaningful, an absolute one
+    otherwise."""
     absolute = os.path.abspath(path)
-    if absolute.startswith(REPO_ROOT + os.sep):
-        return os.path.relpath(absolute, REPO_ROOT)
+    if absolute.startswith(root + os.sep):
+        return os.path.relpath(absolute, root)
     return absolute
 
 
-def _resolve(path) -> str:
-    return path if os.path.isabs(path) else os.path.join(REPO_ROOT, path)
+def _resolve(path, root) -> str:
+    return path if os.path.isabs(path) else os.path.join(root, path)
 
 
 def read_json(path):
@@ -290,10 +291,26 @@ def _not_a_ledger(path, number, line) -> ValueError:
 class Run:
     """One run directory. Construct it with `begin()`."""
 
-    def __init__(self, path):
+    def __init__(self, path, *, client_root=None):
         self.path = os.path.abspath(path)
         self.id = os.path.basename(self.path)
         self.manifest = read_json(self.manifest_path) or {}
+        # a `ClientRoot`, a directory to find one in, or None: located the first time a relative
+        # recorded path is resolved, or a fingerprint taken, and never before
+        self._client_root = client_root
+
+    @property
+    def client_root(self) -> ClientRoot:
+        """This run's client root, located from the working directory (or the ``client_root``
+        it was given) the first time it is needed."""
+        if not isinstance(self._client_root, ClientRoot):
+            self._client_root = find_client_root(client_root=self._client_root)
+        return self._client_root
+
+    def _recorded_path(self, recorded):
+        if os.path.isabs(recorded):
+            return recorded
+        return _resolve(recorded, self.client_root.root)
 
     # --- paths ---------------------------------------------------------------------------------
 
@@ -318,7 +335,7 @@ class Run:
         """The unit ledger, and nothing else. `record()` appends to this and `known()` reads it;
         neither ever looks at `results_path`."""
         recorded = self.manifest.get("checkpoint")
-        return _resolve(recorded) if recorded else None
+        return self._recorded_path(recorded) if recorded else None
 
     @property
     def results_path(self):
@@ -329,7 +346,7 @@ class Run:
         `finish(..., fingerprint=True)` takes its content fingerprint (store-fingerprint prompt
         04)."""
         recorded = self.manifest.get("results")
-        return _resolve(recorded) if recorded else None
+        return self._recorded_path(recorded) if recorded else None
 
     # --- status --------------------------------------------------------------------------------
 
@@ -409,12 +426,14 @@ class Run:
             }
         from .stores import _sidecar_refusal, fingerprint_store, read_sidecar
 
-        reading = read_sidecar(results)
+        client = self.client_root
+        reading = read_sidecar(results, client_root=client)
         taken = fingerprint_store(
             results,
             write=reading.ok,
             runs_root=os.path.dirname(self.path),
             taken_by=self,
+            client_root=client,
         )
         return {
             "fingerprint": taken["fingerprint"],
@@ -556,6 +575,8 @@ def begin(
     pid=None,
     root=None,
     when=None,
+    *,
+    client_root=None,
 ):
     """Create the run directory, write the immutable manifest, and write `status.json` as
     `running`. Call this **before** the work starts.
@@ -587,10 +608,17 @@ def begin(
     (`runregistrykit.stores.retire_store`) is refused before the run directory is created, because a
     retired name is never reused.
 
-    The second is `packages`, which is `package_provenance()`: what was installed of each package
-    the `dk-and-rpk-migration` campaign adopts, when the run began (its README §6.1, U4). It
-    exists so that a run says which package release it ran, instead of that being implied by
-    `requirements.txt` at its `HEAD`; no README §0 failure asked for it.
+    The second is `packages`, which is `package_provenance()` of `runregistrykit` and of the client
+    config's `distributions`: what was installed of each when the run began. It exists so that a
+    run says which package release it ran, instead of that being implied by `requirements.txt` at
+    its `HEAD`; no README §0 failure asked for it.
+
+    `root` is the runs root, and defaults to the client config's `runs_root`. The client root is
+    found by walking up from the directory of `script`, or from the working directory when no
+    script is given (`runregistrykit.client`), unless `client_root` names it; none found is a
+    `ConfigError`, raised before anything is created. Paths in the manifest are relative to the
+    record root where they lie under it, and `git_head` and `git_dirty` are those of the tree the
+    walk started in.
 
     `scope` is one line saying what the run covers, and is what tells a stranger whether the run
     is still relevant — the hand-written `handover-A3-baseline-lambdacdm.manifest.json` carried it
@@ -604,8 +632,12 @@ def begin(
     `None` means this package's default: the heartbeat is refreshed by `record()` and by an
     explicit `heartbeat()`, so it means "a unit completed", and nothing else.
     """
+    # the client root is located first, so that a refusal leaves nothing behind. The walk starts
+    # from the script, else the working directory; provenance is that start directory's
+    start = os.path.dirname(os.path.abspath(script)) if script else os.getcwd()
+    client = find_client_root(start=start, client_root=client_root)
     identifier = run_id(campaign, prompt, slug, when)
-    path = os.path.join(root or DEFAULT_ROOT, identifier)
+    path = os.path.join(root or client.runs_root, identifier)
     # the results store's sidecar is read before anything is created: a retired store is refused
     # (store-retirement README D6), complete or not, and no run directory is left behind
     results_store_id = None
@@ -613,7 +645,7 @@ def begin(
         # here, because `stores` imports this module
         from .stores import _tombstone_text, read_sidecar
 
-        reading = read_sidecar(results)
+        reading = read_sidecar(results, client_root=client)
         if reading.retired:
             raise RuntimeError(
                 f'Cannot begin run {identifier} with results "{results}": '
@@ -636,20 +668,20 @@ def begin(
         "prompt": str(prompt),
         "argv": list(sys.argv if argv is None else argv),
         "cwd": cwd or os.getcwd(),
-        "script": _repo_path(script) if script else None,
+        "script": _repo_path(script, client.root) if script else None,
         "script_sha256": script_sha256(script) if script else None,
         "unit": unit,
         "expected_units": expected_units,
-        "checkpoint": _repo_path(checkpoint) if checkpoint else None,
-        "results": _repo_path(results) if results else None,
+        "checkpoint": _repo_path(checkpoint, client.root) if checkpoint else None,
+        "results": _repo_path(results, client.root) if results else None,
         "results_store_id": results_store_id,
         "scope": scope,
         "heartbeat_means": heartbeat_means,
     }
-    manifest.update(git_provenance())
-    manifest["packages"] = package_provenance()
+    manifest.update(git_provenance(start))
+    manifest["packages"] = package_provenance(_recorded_names(client))
     write_json_atomic(os.path.join(path, "manifest.json"), manifest)
-    run = Run(path)
+    run = Run(path, client_root=client)
     run._update(
         state="running",
         units_done=0,
@@ -671,14 +703,18 @@ def _created_epoch(entry_path, manifest):
         return os.path.getmtime(entry_path)
 
 
-def list_runs(root=None, stale_after=DEFAULT_STALE_AFTER, now=None) -> list:
-    """Every run under `root`, newest first.
+def list_runs(
+    root=None, stale_after=DEFAULT_STALE_AFTER, now=None, *, client_root=None
+) -> list:
+    """Every run under `root`, newest first; with no `root`, under the client config's
+    `runs_root`, which is the one case that locates the client root.
 
     A directory with no manifest is reported, not skipped and not repaired: `var/runs/` holds run
     directories that predate this package, and they are evidence. Loose files beside the run
     directories are ignored. Nothing here writes or deletes anything.
     """
-    root = root or DEFAULT_ROOT
+    if not root:
+        root = find_client_root(client_root=client_root).runs_root
     entries = []
     try:
         names = os.listdir(root)

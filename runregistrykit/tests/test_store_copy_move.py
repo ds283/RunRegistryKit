@@ -72,14 +72,14 @@ class TestCopy(StoreTestCase):
             fields["copied_from"],
             {
                 "store_id": source["store_id"],
-                "datastore": runregistrykit._repo_path(src),
+                "datastore": runregistrykit._repo_path(src, self.client),
             },
         )
         self.assertEqual(fields["history"][:-1], source["history"])
         entry = fields["history"][-1]
         self.assertEqual(entry["operation"], "copy")
-        self.assertEqual(entry["from"], runregistrykit._repo_path(src))
-        self.assertEqual(entry["to"], runregistrykit._repo_path(dst))
+        self.assertEqual(entry["from"], runregistrykit._repo_path(src, self.client))
+        self.assertEqual(entry["to"], runregistrykit._repo_path(dst, self.client))
         self.assertEqual(
             (fields["datastore"], fields["name"]), ("pcopy.sqlite", "pcopy")
         )
@@ -110,7 +110,8 @@ class TestCopy(StoreTestCase):
         third = stores.copy_store(middle, last, "last", runs_root=self.root)
         self.assertEqual(third["copied_from"]["store_id"], second["store_id"])
         self.assertEqual(
-            third["copied_from"]["datastore"], runregistrykit._repo_path(middle)
+            third["copied_from"]["datastore"],
+            runregistrykit._repo_path(middle, self.client),
         )
         self.assertEqual(
             [e["operation"] for e in third["history"]], ["create", "copy", "copy"]
@@ -137,8 +138,8 @@ class TestMove(StoreTestCase):
                     (entry["operation"], entry["from"], entry["to"]),
                     (
                         "move",
-                        runregistrykit._repo_path(src),
-                        runregistrykit._repo_path(dst),
+                        runregistrykit._repo_path(src, self.client),
+                        runregistrykit._repo_path(dst, self.client),
                     ),
                 )
                 self.assertEqual(

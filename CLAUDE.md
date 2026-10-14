@@ -101,8 +101,10 @@ a prompt that says so. No reader of an older form is added.
 
 - **Tests** live in `runregistrykit/tests/` as `unittest` modules, and run from the repository root
   with `./venv/bin/python -m unittest discover -s runregistrykit/tests -t .`. They need
-  `datastorekit` and `ray` installed (Ray is never initialised) and the checkout to be a git work
-  tree (two tests read the checkout's commit). They **must not need a Ray cluster**, must not
+  `datastorekit` and `ray` installed (Ray is never initialised), `git` on `PATH` (they build
+  temporary git repositories and worktrees, each test's client root among them), and the checkout
+  to be a git work tree (one test, `test_manifest_carries_the_provenance_triple`, still reads the
+  checkout's commit). They **must not need a Ray cluster**, must not
   import a client, and must not create anything outside a `tempfile` directory: a test that needs
   a client root builds one there.
 - **Format with `black`** (no configuration) the files you change, before committing.

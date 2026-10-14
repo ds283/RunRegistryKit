@@ -284,7 +284,7 @@ class TestCreate(StoreTestCase):
         (entry,) = fields["history"]
         self.assertEqual(entry["operation"], "create")
         self.assertIsNone(entry["from"])
-        self.assertEqual(entry["to"], runregistrykit._repo_path(primary))
+        self.assertEqual(entry["to"], runregistrykit._repo_path(primary, self.client))
         self.assertEqual(len(entry["git_head"]), 40)
         self.assertIn(entry["git_dirty"], (True, False))
         self.assertTrue(stores.read_sidecar(primary).ok)
@@ -366,7 +366,7 @@ class TestAdopt(StoreTestCase):
         self.assertEqual(fields["purpose"], legacy["purpose"])
         (entry,) = fields["history"]
         self.assertEqual((entry["operation"], entry["from"]), ("adopt", None))
-        self.assertEqual(entry["to"], runregistrykit._repo_path(primary))
+        self.assertEqual(entry["to"], runregistrykit._repo_path(primary, self.client))
         self.assertTrue(stores.read_sidecar(primary).ok)
 
     def test_an_a3_shaped_sidecar_keeps_every_unknown_field(self):

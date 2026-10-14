@@ -127,11 +127,10 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from . import (
-    DEFAULT_ROOT,
     DEFAULT_STALE_AFTER,
-    REPO_ROOT,
     _repo_path,
     _resolve,
+    find_client_root,
     git_provenance,
     list_runs,
     now_iso,
@@ -180,9 +179,6 @@ _FIELD_OWNERS = {
 
 # a tombstone's `retired.state`: under way, then complete
 RETIREMENT_STATES = ("retiring", "retired")
-
-# where `retire_store` looks for sidecars that reference the store it retires, by default
-DEFAULT_STORES_ROOT = os.path.join(REPO_ROOT, "var", "datastores")
 
 # a move updates the sidecar under this name, in the destination directory, and renames it onto
 # the destination's sidecar name last
@@ -511,10 +507,13 @@ def _retired_problems(value) -> List[str]:
     return problems
 
 
-def _present(files, primary: Path) -> List[Path]:
+def _present(files, primary: Path, root) -> List[Path]:
     """Which of a tombstone's listed ``files`` exist, as entries of any kind, and the primary if
-    it exists and is not among them."""
-    present = [Path(_resolve(f)) for f in files if os.path.lexists(_resolve(f))]
+    it exists and is not among them. A relative listed file is resolved against the record root
+    ``root``."""
+    present = [
+        Path(_resolve(f, root)) for f in files if os.path.lexists(_resolve(f, root))
+    ]
     if os.path.lexists(primary) and os.path.realpath(primary) not in {
         os.path.realpath(p) for p in present
     }:
@@ -523,11 +522,11 @@ def _present(files, primary: Path) -> List[Path]:
 
 
 def _tombstone_problems(
-    retired: dict, primary: Path
+    retired: dict, primary: Path, root
 ) -> Tuple[List[str], Optional[str]]:
     """What a well-formed tombstone's files say: ``(problems, the incomplete retirement's text
     or None)``. A completed tombstone with nothing at its name has none."""
-    present = _present(retired["files"], primary)
+    present = _present(retired["files"], primary, root)
     names = ", ".join(f'"{p}"' for p in present)
     if retired["state"] == "retiring":
         if present:
@@ -646,12 +645,16 @@ def _registry_problems(fields: dict, primary: Path) -> List[str]:
     return problems
 
 
-def read_sidecar(primary) -> SidecarReading:
+def read_sidecar(primary, *, client_root=None) -> SidecarReading:
     """What sits at `sidecar_path(primary)`, and whether it describes ``primary``.
 
     Never writes, and never raises on bad content. A legacy `datastore` that is a path is read by
     its final component, never as a path, so a legacy sidecar copied beside a copy of its store
     reads as naming the sibling it sits beside.
+
+    It locates the client root (``client_root``, else from the working directory) only to
+    resolve the files a well-formed tombstone lists, which may be relative to the record root; a
+    `ConfigError` then comes through. Any other sidecar is read without one.
     """
     primary = Path(os.path.abspath(primary))
     path = sidecar_path(primary)
@@ -686,7 +689,10 @@ def read_sidecar(primary) -> SidecarReading:
         # and the primary is checked as for any sidecar
         incomplete = None
         if "retired" in fields and not _retired_problems(fields["retired"]):
-            tombstone, incomplete = _tombstone_problems(fields["retired"], primary)
+            client = find_client_root(client_root=client_root)
+            tombstone, incomplete = _tombstone_problems(
+                fields["retired"], primary, client.root
+            )
             problems.extend(tombstone)
         else:
             problems.extend(_primary_problems(primary))
@@ -768,12 +774,12 @@ def _update_sidecar(path: Path, fields: dict, primary: Path) -> None:
     write_json_atomic(str(path), fields)
 
 
-def _history_entry(operation, source, destination, provenance) -> dict:
+def _history_entry(operation, source, destination, provenance, root) -> dict:
     return {
         "operation": operation,
-        "from": _repo_path(source) if source is not None else None,
+        "from": _repo_path(source, root) if source is not None else None,
         # null only for a retirement, which has no destination
-        "to": _repo_path(destination) if destination is not None else None,
+        "to": _repo_path(destination, root) if destination is not None else None,
         "when": now_iso(),
         "git_head": provenance["git_head"],
         "git_dirty": provenance["git_dirty"],
@@ -794,10 +800,11 @@ def _refuse_interrupted_move(primary: Path, operation: str) -> None:
         )
 
 
-def create_sidecar(primary, purpose) -> dict:
+def create_sidecar(primary, purpose, *, client_root=None) -> dict:
     """Give the existing store ``primary``, which has no sidecar, a registry sidecar, and return
     it. It does not open the primary: whether the store is sound is the constructor's question,
     not the note's."""
+    client = find_client_root(client_root=client_root)
     primary = Path(os.path.abspath(primary))
     path = sidecar_path(primary)
 
@@ -807,7 +814,7 @@ def create_sidecar(primary, purpose) -> dict:
         )
 
     # a retired name is never reused, and the tombstone says so before anything else does
-    reading = read_sidecar(primary)
+    reading = read_sidecar(primary, client_root=client)
     if reading.retired:
         raise refuse(_tombstone_text(reading))
     problems = _primary_problems(primary)
@@ -830,13 +837,17 @@ def create_sidecar(primary, purpose) -> dict:
         "name": primary.stem,
         "purpose": purpose,
         "created": now_iso(),
-        "history": [_history_entry("create", None, primary, git_provenance())],
+        "history": [
+            _history_entry(
+                "create", None, primary, git_provenance(os.getcwd()), client.root
+            )
+        ],
     }
     _write_new_sidecar(path, fields, primary)
     return fields
 
 
-def adopt_sidecar(primary, purpose=None) -> dict:
+def adopt_sidecar(primary, purpose=None, *, client_root=None) -> dict:
     """Upgrade the legacy sidecar beside ``primary`` to a registry sidecar, in place, and return
     it. The only operation that rewrites a legacy file, and it runs only when a person asks.
 
@@ -844,8 +855,9 @@ def adopt_sidecar(primary, purpose=None) -> dict:
     the bare name and `name` to the stem, keeps `created` and `purpose` if present, keeps a legacy
     `copied_from` verbatim, and keeps every unknown field verbatim.
     """
+    client = find_client_root(client_root=client_root)
     primary = Path(os.path.abspath(primary))
-    reading = read_sidecar(primary)
+    reading = read_sidecar(primary, client_root=client)
     path = reading.path
 
     def refuse(reason):
@@ -890,7 +902,9 @@ def adopt_sidecar(primary, purpose=None) -> dict:
     fields["purpose"] = purpose
     if not _nonempty_string(fields.get("created")):
         fields["created"] = now_iso()
-    fields["history"] = [_history_entry("adopt", None, primary, git_provenance())]
+    fields["history"] = [
+        _history_entry("adopt", None, primary, git_provenance(os.getcwd()), client.root)
+    ]
     _update_sidecar(path, fields, primary)
     return fields
 
@@ -899,16 +913,20 @@ def adopt_sidecar(primary, purpose=None) -> dict:
 # which runs name a store
 
 
-def runs_naming(primaries, store_id=None, runs_root=None, stale_after=None) -> list:
-    """Every run under ``runs_root`` whose manifest names one of ``primaries`` by its `results`
-    (both `os.path.realpath`'d, since the file may no longer exist) or names ``store_id`` by its
-    `results_store_id`. A manifest without `results_store_id`, which every manifest written before
-    the field existed is, is matched by path alone. Runs with no manifest name nothing.
+def runs_naming(
+    primaries, store_id=None, runs_root=None, stale_after=None, *, client_root=None
+) -> list:
+    """Every run under ``runs_root`` (default the client config's `runs_root`) whose manifest
+    names one of ``primaries`` by its `results` (both `os.path.realpath`'d, since the file may no
+    longer exist; a relative `results` resolved against the record root) or names ``store_id`` by
+    its `results_store_id`. A manifest without `results_store_id`, which every manifest written
+    before the field existed is, is matched by path alone. Runs with no manifest name nothing.
     """
+    client = find_client_root(client_root=client_root)
     targets = {os.path.realpath(p) for p in primaries}
     found = []
     for entry in list_runs(
-        root=runs_root or DEFAULT_ROOT,
+        root=runs_root or client.runs_root,
         stale_after=DEFAULT_STALE_AFTER if stale_after is None else stale_after,
     ):
         if not entry["has_manifest"]:
@@ -916,7 +934,10 @@ def runs_naming(primaries, store_id=None, runs_root=None, stale_after=None) -> l
         manifest = read_json(os.path.join(entry["path"], "manifest.json")) or {}
         matched = []
         results = manifest.get("results")
-        if _nonempty_string(results) and os.path.realpath(_resolve(results)) in targets:
+        if (
+            _nonempty_string(results)
+            and os.path.realpath(_resolve(results, client.root)) in targets
+        ):
             matched.append("results")
         recorded = manifest.get("results_store_id")
         if store_id is not None and recorded == store_id:
@@ -933,11 +954,14 @@ def runs_naming(primaries, store_id=None, runs_root=None, stale_after=None) -> l
     return found
 
 
-def _running_runs_naming(operation, primaries, store_id, runs_root, exclude=None):
+def _running_runs_naming(
+    operation, primaries, store_id, runs_root, client, exclude=None
+):
     """Every run whose state is `running`, alive **or stale**, that names one of ``primaries`` or
     ``store_id``, except the run ``exclude`` (a `Run`, its caller). Refuses if the runs root is not
-    a directory, since then the check cannot be made."""
-    root = runs_root or DEFAULT_ROOT
+    a directory, since then the check cannot be made. ``client`` is the located `ClientRoot`.
+    """
+    root = runs_root or client.runs_root
     if not os.path.isdir(root):
         raise RuntimeError(
             f'Cannot {operation} "{primaries[0]}": the runs root "{root}" is not a directory, so '
@@ -946,7 +970,9 @@ def _running_runs_naming(operation, primaries, store_id, runs_root, exclude=None
     excluded = os.path.realpath(exclude.path) if exclude is not None else None
     return [
         entry
-        for entry in runs_naming(primaries, store_id, runs_root=root)
+        for entry in runs_naming(
+            primaries, store_id, runs_root=root, client_root=client
+        )
         if entry["state"] == "running" and os.path.realpath(entry["path"]) != excluded
     ]
 
@@ -959,12 +985,12 @@ def _describe_running(running) -> str:
     )
 
 
-def _refuse_if_in_use(operation, src, dst, store_id, runs_root) -> None:
+def _refuse_if_in_use(operation, src, dst, store_id, runs_root, client) -> None:
     """Refuse if any run whose state is `running`, alive **or stale**, names the source or the
     destination. Liveness is evidence, not proof, and the registry does not decide that a run is
     dead: a stale run is ended by a person, with `Run.finish`, before its store is moved.
     """
-    running = _running_runs_naming(operation, [src, dst], store_id, runs_root)
+    running = _running_runs_naming(operation, [src, dst], store_id, runs_root, client)
     if running:
         described = _describe_running(running)
         raise RuntimeError(
@@ -1001,11 +1027,11 @@ def _failure(operation, src, dst, step, error) -> RuntimeError:
     )
 
 
-def _prepare(operation, src, dst, runs_root):
+def _prepare(operation, src, dst, runs_root, client):
     """The refusals copy and move share, all before anything is written."""
     src = Path(os.path.abspath(src))
     dst = Path(os.path.abspath(dst))
-    reading = read_sidecar(src)
+    reading = read_sidecar(src, client_root=client)
     if reading.retired:
         raise RuntimeError(
             f'Cannot {operation} "{src}": {_tombstone_text(reading)}. Nothing was written'
@@ -1026,13 +1052,13 @@ def _prepare(operation, src, dst, runs_root):
             f"adopt` on it first; {operation} never upgrades a sidecar implicitly. Nothing was "
             f"written"
         )
-    destination = read_sidecar(dst)
+    destination = read_sidecar(dst, client_root=client)
     if destination.retired:
         raise RuntimeError(
             f'Cannot {operation} "{src}" to "{dst}", a retired name: '
             f"{_tombstone_text(destination)}. Nothing was written"
         )
-    _refuse_if_in_use(operation, src, dst, reading.store_id, runs_root)
+    _refuse_if_in_use(operation, src, dst, reading.store_id, runs_root, client)
 
     dst_sidecar = sidecar_path(dst)
     names = [dst_sidecar, _tmp_path(dst_sidecar)]
@@ -1067,7 +1093,7 @@ def _no_overwrite(path: Path) -> None:
         raise FileExistsError(f'refusing to overwrite "{path}"')
 
 
-def copy_store(src, dst, purpose, runs_root=None) -> dict:
+def copy_store(src, dst, purpose, runs_root=None, *, client_root=None) -> dict:
     """Copy the closed store ``src`` to ``dst`` with `ShardedPool.copy_store`, then write the
     destination's sidecar as a new file, and return it.
 
@@ -1080,7 +1106,8 @@ def copy_store(src, dst, purpose, runs_root=None) -> dict:
             f'Cannot copy "{src}": a copy is a new store and needs its own purpose. Nothing was '
             f"written"
         )
-    src, dst, reading, dst_sidecar = _prepare("copy", src, dst, runs_root)
+    client = find_client_root(client_root=client_root)
+    src, dst, reading, dst_sidecar = _prepare("copy", src, dst, runs_root, client)
     from datastorekit.SQL.ShardedPool import ShardedPool
 
     _store_files("copy", ShardedPool.copy_store, src, dst)
@@ -1095,10 +1122,10 @@ def copy_store(src, dst, purpose, runs_root=None) -> dict:
         fields["created"] = now_iso()
         fields["copied_from"] = {
             "store_id": reading.fields["store_id"],
-            "datastore": _repo_path(src),
+            "datastore": _repo_path(src, client.root),
         }
         fields["history"] = list(fields["history"]) + [
-            _history_entry("copy", src, dst, git_provenance())
+            _history_entry("copy", src, dst, git_provenance(os.getcwd()), client.root)
         ]
         _write_new_sidecar(dst_sidecar, fields, dst)
     except Exception as e:
@@ -1106,7 +1133,7 @@ def copy_store(src, dst, purpose, runs_root=None) -> dict:
     return fields
 
 
-def move_store(src, dst, runs_root=None) -> dict:
+def move_store(src, dst, runs_root=None, *, client_root=None) -> dict:
     """Move the closed store ``src`` to ``dst`` with `ShardedPool.move_store`, then carry its
     sidecar, and return it.
 
@@ -1117,7 +1144,8 @@ def move_store(src, dst, runs_root=None) -> dict:
     only once the store is in place, and a half-updated sidecar never sits under a sidecar name.
     Nothing is written anew and nothing is deleted: the one sidecar is renamed.
     """
-    src, dst, reading, dst_sidecar = _prepare("move", src, dst, runs_root)
+    client = find_client_root(client_root=client_root)
+    src, dst, reading, dst_sidecar = _prepare("move", src, dst, runs_root, client)
     from datastorekit.SQL.ShardedPool import ShardedPool
 
     _store_files("move", ShardedPool.move_store, src, dst)
@@ -1137,7 +1165,7 @@ def move_store(src, dst, runs_root=None) -> dict:
         fields["datastore"] = dst.name
         fields["name"] = dst.stem
         fields["history"] = list(fields["history"]) + [
-            _history_entry("move", src, dst, git_provenance())
+            _history_entry("move", src, dst, git_provenance(os.getcwd()), client.root)
         ]
         _update_sidecar(pending, fields, dst)
 
@@ -1442,7 +1470,9 @@ def _sidecar_refusal(reading) -> str:
     return f"it is {reading.kind}: " + "; ".join(reading.problems)
 
 
-def fingerprint_store(primary, *, write=False, runs_root=None, taken_by=None) -> dict:
+def fingerprint_store(
+    primary, *, write=False, runs_root=None, taken_by=None, client_root=None
+) -> dict:
     """Fingerprint the closed store ``primary``, compare it with the fingerprint its sidecar
     records, and, only if ``write``, record it there. In this order:
 
@@ -1465,10 +1495,11 @@ def fingerprint_store(primary, *, write=False, runs_root=None, taken_by=None) ->
     kind, and `inventory` is what was fingerprinted, for a listing. It never writes the store,
     never initialises Ray, and never deletes anything.
     """
+    client = find_client_root(client_root=client_root)
     primary = Path(os.path.abspath(primary))
 
     # 1. the running-run refusal, after the refusal of a tombstone: there is no store to read
-    first = read_sidecar(primary)
+    first = read_sidecar(primary, client_root=client)
     if first.retired:
         raise RuntimeError(
             f'Cannot fingerprint "{primary}": {_tombstone_text(first)}. Nothing was read or '
@@ -1480,7 +1511,7 @@ def fingerprint_store(primary, *, write=False, runs_root=None, taken_by=None) ->
     if not (isinstance(store_id, str) and _STORE_ID.fullmatch(store_id)):
         store_id = None
     running = _running_runs_naming(
-        "fingerprint", [primary], store_id, runs_root, exclude=taken_by
+        "fingerprint", [primary], store_id, runs_root, client, exclude=taken_by
     )
     if running:
         raise RuntimeError(
@@ -1496,7 +1527,7 @@ def fingerprint_store(primary, *, write=False, runs_root=None, taken_by=None) ->
     inventory = read_inventory(primary, factories)
 
     # 4. the fingerprint
-    provenance = git_provenance()
+    provenance = git_provenance(os.getcwd())
     fingerprint = fingerprint_of(
         inventory,
         {
@@ -1508,7 +1539,7 @@ def fingerprint_store(primary, *, write=False, runs_root=None, taken_by=None) ->
     )
 
     # 5. the comparison with what the sidecar records
-    reading = read_sidecar(primary)
+    reading = read_sidecar(primary, client_root=client)
     recorded = None
     comparison = None
     if reading.kind == "registry" and "fingerprint" in reading.fields:
@@ -1588,17 +1619,20 @@ def _strings(value, where="$"):
             yield from _strings(item, _json_path(where, index))
 
 
-def _names_one_of(text: str, targets) -> bool:
-    """Whether ``text``, read as a path by `_resolve`, is one of ``targets`` (realpaths)."""
+def _names_one_of(text: str, targets, root) -> bool:
+    """Whether ``text``, read as a path by `_resolve` against the record root ``root``, is one of
+    ``targets`` (realpaths)."""
     if not text.strip():
         return False
     try:
-        return os.path.realpath(_resolve(text)) in targets
+        return os.path.realpath(_resolve(text, root)) in targets
     except (OSError, ValueError):
         return False
 
 
-def _find_references(primary, planned, store_id, runs_root, stores_root, own) -> dict:
+def _find_references(
+    primary, planned, store_id, runs_root, stores_root, own, client
+) -> dict:
     """D5's report: the runs naming the store, and every sidecar under ``stores_root`` that names
     it. Reads, and never writes anything.
 
@@ -1620,7 +1654,9 @@ def _find_references(primary, planned, store_id, runs_root, stores_root, own) ->
     """
     runs = [
         {"id": entry["id"], "state": entry["state"], "matched_by": entry["matched_by"]}
-        for entry in runs_naming([primary], store_id, runs_root=runs_root)
+        for entry in runs_naming(
+            [primary], store_id, runs_root=runs_root, client_root=client
+        )
     ]
 
     targets = {os.path.realpath(p) for p in [primary, *planned]}
@@ -1645,7 +1681,7 @@ def _find_references(primary, planned, store_id, runs_root, stores_root, own) ->
             except (OSError, ValueError) as e:
                 sidecars.append(
                     {
-                        "sidecar": _repo_path(path),
+                        "sidecar": _repo_path(path, client.root),
                         "unreadable": f"{type(e).__name__}: {e}",
                     }
                 )
@@ -1657,29 +1693,31 @@ def _find_references(primary, planned, store_id, runs_root, stores_root, own) ->
             matched += [
                 where
                 for where, text in _strings(payload)
-                if _names_one_of(text, targets)
+                if _names_one_of(text, targets, client.root)
             ]
             if matched:
-                sidecars.append({"sidecar": _repo_path(path), "fields": matched})
+                sidecars.append(
+                    {"sidecar": _repo_path(path, client.root), "fields": matched}
+                )
 
     return {
-        "runs_root": _repo_path(runs_root),
-        "stores_root": _repo_path(stores_root),
+        "runs_root": _repo_path(runs_root, client.root),
+        "stores_root": _repo_path(stores_root, client.root),
         "runs": runs,
         "sidecars": sidecars,
         "not_searched": (
-            f"sidecars outside {_repo_path(stores_root)}, and the `.tmp` and "
+            f"sidecars outside {_repo_path(stores_root, client.root)}, and the `.tmp` and "
             f"`{INCOMPLETE_MOVE_SUFFIX}` files beside sidecars; run manifests outside "
-            f"{_repo_path(runs_root)}; and every reference that is not in a run manifest or a "
+            f"{_repo_path(runs_root, client.root)}; and every reference that is not in a run manifest or a "
             f"sidecar, such as docs, boards, logs and other committed files"
         ),
     }
 
 
-def _retire_failure(primary, step, error, files, sidecar) -> RuntimeError:
+def _retire_failure(primary, step, error, files, sidecar, root) -> RuntimeError:
     """A failure after the tombstone was written: it stays `retiring`, and nothing is cleaned up
     or retried (README §5 rule 11)."""
-    present = ", ".join(f'"{p}"' for p in _present(files, primary))
+    present = ", ".join(f'"{p}"' for p in _present(files, primary, root))
     tmp = _tmp_path(sidecar)
     left = (
         f' "{tmp}" exists, left by the interrupted write; it is not the sidecar, and a person '
@@ -1704,6 +1742,7 @@ def retire_store(
     stores_root=None,
     without_fingerprint=False,
     dry_run=False,
+    client_root=None,
 ) -> dict:
     """Retire the closed store ``primary``: delete its primary and shards, and keep its sidecar as
     a tombstone saying when, at what tree and why, what the store held, which files went, and
@@ -1725,7 +1764,7 @@ def retire_store(
        verbatim. Under the flag only, a missing shard is left out of the files, planned and
        deleted with ``resume=True``. A `shards` table that cannot be read is refused even so.
     4. **The references** (D5): the runs naming the store, and the sidecars under
-       ``stores_root`` (default `DEFAULT_STORES_ROOT`) that name it. None is ever rewritten.
+       ``stores_root`` (default the client config's `stores_root`) that name it. None is ever rewritten.
     5. With ``dry_run``, it stops here, having written and deleted nothing.
     6. **The writes:** the tombstone in state `retiring`, with the file list and the references,
        and one `retire` history entry; `ShardedPool.delete_store`; the check that no listed file
@@ -1737,9 +1776,10 @@ def retire_store(
     exists, or checks that none remains if it does not, and completes. It appends no history and
     rewrites no reference.
     """
+    client = find_client_root(client_root=client_root)
     primary = Path(os.path.abspath(primary))
-    runs_root = str(runs_root or DEFAULT_ROOT)
-    stores_root = str(stores_root or DEFAULT_STORES_ROOT)
+    runs_root = str(runs_root or client.runs_root)
+    stores_root = str(stores_root or client.stores_root)
 
     def refuse(why):
         return RuntimeError(
@@ -1751,7 +1791,7 @@ def retire_store(
         raise refuse(
             "a reason is required, saying why the store is retired, which only a person can say"
         )
-    reading = read_sidecar(primary)
+    reading = read_sidecar(primary, client_root=client)
     if reading.kind != "registry":
         raise refuse(
             f'its sidecar "{reading.path}" is not a registry sidecar '
@@ -1802,7 +1842,7 @@ def retire_store(
             f'the runs root "{runs_root}" is not a directory, so whether a running run names '
             f"this store cannot be checked"
         )
-    running = _running_runs_naming("retire", [primary], store_id, runs_root)
+    running = _running_runs_naming("retire", [primary], store_id, runs_root, client)
     if running:
         raise refuse(
             f"{_describe_running(running)}. A stale run is ended by a person, with Run.finish, "
@@ -1838,7 +1878,9 @@ def retire_store(
         resume = True
         if os.path.lexists(primary):
             planned = plan(True)
-            unlisted = [str(p) for p in planned if _repo_path(p) not in files]
+            unlisted = [
+                str(p) for p in planned if _repo_path(p, client.root) not in files
+            ]
             if unlisted:
                 raise refuse(
                     f"its files now include {unlisted}, which its tombstone does not list, so "
@@ -1846,7 +1888,7 @@ def retire_store(
                 )
         else:
             planned = []
-            remaining = _present(files, primary)
+            remaining = _present(files, primary, client.root)
             if remaining:
                 raise refuse(
                     f"its primary is gone, but these listed files remain: "
@@ -1866,7 +1908,7 @@ def retire_store(
             # every other refusal comes through again here
             planned = plan(True)
             resume = True
-        files = [_repo_path(p) for p in planned]
+        files = [_repo_path(p, client.root) for p in planned]
 
         if not without_fingerprint:
             recorded = fields.get("fingerprint")
@@ -1877,7 +1919,9 @@ def retire_store(
                     f"--write` to record one, and then retire it"
                 )
             try:
-                taken = fingerprint_store(primary, write=False, runs_root=runs_root)
+                taken = fingerprint_store(
+                    primary, write=False, runs_root=runs_root, client_root=client
+                )
             except Exception as e:
                 raise refuse(
                     f"a fresh fingerprint could not be taken to compare with the recorded one "
@@ -1894,7 +1938,9 @@ def retire_store(
             condition = {"condition": "matched", "digest": recorded["digest"]}
         else:
             try:
-                fingerprint_store(primary, write=False, runs_root=runs_root)
+                fingerprint_store(
+                    primary, write=False, runs_root=runs_root, client_root=client
+                )
             except Exception as e:
                 condition = {
                     "condition": "without",
@@ -1915,11 +1961,11 @@ def retire_store(
                 f"reference this store cannot be searched"
             )
         references = _find_references(
-            primary, planned, store_id, runs_root, stores_root, reading.path
+            primary, planned, store_id, runs_root, stores_root, reading.path, client
         )
 
-        provenance = git_provenance()
-        entry = _history_entry(RETIRE_OPERATION, primary, None, provenance)
+        provenance = git_provenance(os.getcwd())
+        entry = _history_entry(RETIRE_OPERATION, primary, None, provenance, client.root)
         tombstone = {
             "state": "retiring",
             "when": entry["when"],
@@ -1947,7 +1993,7 @@ def retire_store(
         "completing": completing,
         "fingerprint": condition,
         "files": list(files),
-        "to_delete": [_repo_path(p) for p in planned],
+        "to_delete": [_repo_path(p, client.root) for p in planned],
         "deleted": [],
         "references": references,
         "tombstone": tombstone,
@@ -1963,7 +2009,7 @@ def retire_store(
         try:
             _update_sidecar(reading.path, new_fields, primary)
         except Exception as e:
-            now = read_sidecar(primary)
+            now = read_sidecar(primary, client_root=client)
             raise RuntimeError(
                 f'retire of store "{primary}" failed at step "{step}": {type(e).__name__}: {e}. '
                 f"Nothing was deleted, and nothing was cleaned up; the sidecar now reads as "
@@ -1983,11 +2029,13 @@ def retire_store(
         try:
             deleted = ShardedPool.delete_store(primary, resume=resume)
         except Exception as e:
-            raise _retire_failure(primary, step, e, files, reading.path) from e
+            raise _retire_failure(
+                primary, step, e, files, reading.path, client.root
+            ) from e
 
     step = "check that no listed file remains"
-    remaining = _present(files, primary)
-    unlisted = [str(p) for p in deleted if _repo_path(p) not in files]
+    remaining = _present(files, primary, client.root)
+    unlisted = [str(p) for p in deleted if _repo_path(p, client.root) not in files]
     if remaining or unlisted:
         raise _retire_failure(
             primary,
@@ -1998,6 +2046,7 @@ def retire_store(
             ),
             files,
             reading.path,
+            client.root,
         )
 
     step = "mark the tombstone retired"
@@ -2007,10 +2056,10 @@ def retire_store(
     try:
         _update_sidecar(reading.path, new_fields, primary)
     except Exception as e:
-        raise _retire_failure(primary, step, e, files, reading.path) from e
+        raise _retire_failure(primary, step, e, files, reading.path, client.root) from e
 
     result.update(
-        deleted=[_repo_path(p) for p in deleted],
+        deleted=[_repo_path(p, client.root) for p in deleted],
         tombstone=new_fields["retired"],
         fields=new_fields,
     )
@@ -2050,7 +2099,14 @@ def _canonical_json(value) -> str:
 
 
 def amend_sidecar(
-    primary, field, reason, *, value=_NO_VALUE, remove=False, runs_root=None
+    primary,
+    field,
+    reason,
+    *,
+    value=_NO_VALUE,
+    remove=False,
+    runs_root=None,
+    client_root=None,
 ) -> dict:
     """Replace or remove the **unknown** field ``field`` of the registry sidecar beside
     ``primary``, with a required ``reason``, and return what changed.
@@ -2092,6 +2148,7 @@ def amend_sidecar(
     "removed" from "was null"), `entry` is the appended history entry, and `fields` is the
     sidecar's new fields.
     """
+    client = find_client_root(client_root=client_root)
     primary = Path(os.path.abspath(primary))
 
     def refuse(why):
@@ -2110,7 +2167,7 @@ def amend_sidecar(
     if not given_value and not remove:
         raise refuse("neither a value nor --remove was given; exactly one is required")
 
-    reading = read_sidecar(primary)
+    reading = read_sidecar(primary, client_root=client)
     if reading.retired:
         raise refuse(_tombstone_text(reading))
     if not reading.ok:
@@ -2131,7 +2188,7 @@ def amend_sidecar(
     # the recorded field, read directly: reading.ok is already established, but the pattern
     # matches retire_store's, which must read it this way for a tombstone
     store_id = fields["store_id"]
-    running = _running_runs_naming("amend", [primary], store_id, runs_root)
+    running = _running_runs_naming("amend", [primary], store_id, runs_root, client)
     if running:
         raise refuse(
             f"{_describe_running(running)}. A stale run is ended by a person, with Run.finish, "
@@ -2161,8 +2218,8 @@ def amend_sidecar(
     before = _amend_slot(fields, field)
     after = {"present": False} if remove else {"present": True, "value": new_value}
 
-    provenance = git_provenance()
-    entry = _history_entry(AMEND_OPERATION, None, None, provenance)
+    provenance = git_provenance(os.getcwd())
+    entry = _history_entry(AMEND_OPERATION, None, None, provenance, client.root)
     entry.update(field=field, reason=reason, before=before, after=after)
 
     new_fields = _copy.deepcopy(fields)

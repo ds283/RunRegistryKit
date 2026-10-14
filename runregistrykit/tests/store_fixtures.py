@@ -14,6 +14,7 @@ from pathlib import Path
 
 import runregistrykit
 from runregistrykit import stores
+from runregistrykit.tests.client_fixtures import enter_client_root
 from runregistrykit.tests.test_run_registry import RegistryTestCase
 
 from datastorekit.shard_paths import shard_file_name
@@ -121,6 +122,7 @@ class StoreTestCase(RegistryTestCase):
         self.top = Path(self._tmp.name).resolve()
         self.root = str(self.top / "runs")  # RegistryTestCase.begin() puts runs here
         os.makedirs(self.root)
+        self.client = enter_client_root(self)
 
     # --- stores
 
@@ -178,7 +180,8 @@ class StoreTestCase(RegistryTestCase):
         self.assertEqual(reading.fields["store_id"], store_id)
         self.assertEqual(len(reading.fields["history"]), history)
         self.assertEqual(
-            reading.fields["history"][-1]["to"], runregistrykit._repo_path(primary)
+            reading.fields["history"][-1]["to"],
+            runregistrykit._repo_path(primary, self.client),
         )
         return reading
 

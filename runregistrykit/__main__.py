@@ -26,7 +26,7 @@ import json
 import sys
 import time
 
-from . import DEFAULT_ROOT, DEFAULT_STALE_AFTER, list_runs
+from . import DEFAULT_STALE_AFTER, ConfigError, find_client_root, list_runs
 from . import stores
 
 
@@ -133,8 +133,8 @@ def _print_retirement(retired) -> None:
     _print_references(retired.get("references"))
 
 
-def _show(args) -> int:
-    reading = stores.read_sidecar(args.primary)
+def _show(args, client) -> int:
+    reading = stores.read_sidecar(args.primary, client_root=client)
     if reading.retired:
         _print_retirement(reading.fields.get("retired"))
     print(f"sidecar:  {reading.path}")
@@ -166,6 +166,7 @@ def _show(args) -> int:
         [reading.primary],
         store_id if isinstance(store_id, str) else None,
         runs_root=args.runs_root,
+        client_root=client,
     )
     if runs:
         print(f"runs naming this store, under {args.runs_root}:")
@@ -181,7 +182,7 @@ def _show(args) -> int:
     return 1 if reading.retired and reading.problems else 0
 
 
-def _retire(args) -> int:
+def _retire(args, client) -> int:
     try:
         result = stores.retire_store(
             args.primary,
@@ -190,6 +191,7 @@ def _retire(args) -> int:
             stores_root=args.stores_root,
             without_fingerprint=args.without_fingerprint,
             dry_run=args.dry_run,
+            client_root=client,
         )
     except RuntimeError as e:
         print(f"!! {e}", file=sys.stderr)
@@ -225,7 +227,7 @@ def _retire(args) -> int:
     return 0
 
 
-def _amend(args) -> int:
+def _amend(args, client) -> int:
     kwargs = {}
     if args.json is not None:
         try:
@@ -242,7 +244,12 @@ def _amend(args) -> int:
 
     try:
         result = stores.amend_sidecar(
-            args.primary, args.field, args.reason, runs_root=args.runs_root, **kwargs
+            args.primary,
+            args.field,
+            args.reason,
+            runs_root=args.runs_root,
+            client_root=client,
+            **kwargs,
         )
     except RuntimeError as e:
         print(f"!! {e}", file=sys.stderr)
@@ -287,12 +294,12 @@ def _print_fingerprint(fingerprint) -> None:
         print("problems: none")
 
 
-def _fingerprint(args) -> int:
+def _fingerprint(args, client) -> int:
     try:
         if args.listing is not None:
             stores.check_listing_path(args.listing, args.primary)
         result = stores.fingerprint_store(
-            args.primary, write=args.write, runs_root=args.runs_root
+            args.primary, write=args.write, runs_root=args.runs_root, client_root=client
         )
     except RuntimeError as e:
         print(f"!! {e}", file=sys.stderr)
@@ -337,29 +344,46 @@ def _fingerprint(args) -> int:
     return 0 if not comparison else 1
 
 
-def _store(args) -> int:
+def _store(args, client) -> int:
+    # a runs root or stores root not given on the command line is the client config's
+    for name, default in (
+        ("runs_root", client.runs_root),
+        ("stores_root", client.stores_root),
+    ):
+        if hasattr(args, name) and getattr(args, name) is None:
+            setattr(args, name, default)
     if args.store_command == "show":
-        return _show(args)
+        return _show(args, client)
     if args.store_command == "fingerprint":
-        return _fingerprint(args)
+        return _fingerprint(args, client)
     if args.store_command == "retire":
-        return _retire(args)
+        return _retire(args, client)
     if args.store_command == "amend":
-        return _amend(args)
+        return _amend(args, client)
     try:
         if args.store_command == "create":
-            fields = stores.create_sidecar(args.primary, args.purpose)
+            fields = stores.create_sidecar(
+                args.primary, args.purpose, client_root=client
+            )
             where = stores.sidecar_path(args.primary)
         elif args.store_command == "adopt":
-            fields = stores.adopt_sidecar(args.primary, args.purpose)
+            fields = stores.adopt_sidecar(
+                args.primary, args.purpose, client_root=client
+            )
             where = stores.sidecar_path(args.primary)
         elif args.store_command == "copy":
             fields = stores.copy_store(
-                args.src, args.dst, args.purpose, runs_root=args.runs_root
+                args.src,
+                args.dst,
+                args.purpose,
+                runs_root=args.runs_root,
+                client_root=client,
             )
             where = stores.sidecar_path(args.dst)
         else:
-            fields = stores.move_store(args.src, args.dst, runs_root=args.runs_root)
+            fields = stores.move_store(
+                args.src, args.dst, runs_root=args.runs_root, client_root=client
+            )
             where = stores.sidecar_path(args.dst)
     except RuntimeError as e:
         print(f"!! {e}", file=sys.stderr)
@@ -371,9 +395,21 @@ def _store(args) -> int:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="runregistrykit", description=__doc__)
+    parser.add_argument(
+        "--client-root",
+        default=None,
+        metavar="DIR",
+        help="the client's root, the directory holding runregistrykit.toml; default: found by "
+        "walking up from the working directory",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
     lister = sub.add_parser("list", help="every run, newest first")
-    lister.add_argument("--root", default=DEFAULT_ROOT, help=f"default {DEFAULT_ROOT}")
+    lister.add_argument(
+        "--root",
+        default=None,
+        metavar="DIR",
+        help="the runs root; default the client config's runs_root",
+    )
     lister.add_argument(
         "--stale-after",
         type=float,
@@ -385,9 +421,9 @@ def main(argv=None) -> int:
     store = sub.add_parser("store", help="a datastore and its sidecar")
     store_sub = store.add_subparsers(dest="store_command", required=True)
     runs_root = dict(
-        default=DEFAULT_ROOT,
+        default=None,
         metavar="DIR",
-        help=f"the runs root, default {DEFAULT_ROOT}",
+        help="the runs root; default the client config's runs_root",
     )
     show = store_sub.add_parser(
         "show", help="the sidecar and the runs naming the store"
@@ -449,10 +485,10 @@ def main(argv=None) -> int:
     retirer.add_argument("--runs-root", **runs_root)
     retirer.add_argument(
         "--stores-root",
-        default=stores.DEFAULT_STORES_ROOT,
+        default=None,
         metavar="DIR",
-        help=f"where sidecars that reference the store are searched for, default "
-        f"{stores.DEFAULT_STORES_ROOT}",
+        help="where sidecars that reference the store are searched for; default the client "
+        "config's stores_root",
     )
     amender = store_sub.add_parser(
         "amend",
@@ -474,12 +510,24 @@ def main(argv=None) -> int:
     amender.add_argument("--runs-root", **runs_root)
 
     args = parser.parse_args(argv)
+    # the client root is located only now, and only when the command needs it: every store
+    # command, and `list` without --root. Not finding one writes nothing and exits 1
+    client = None
+    root = args.root if args.command == "list" else None
+    if args.command == "store" or root is None:
+        try:
+            client = find_client_root(client_root=args.client_root)
+        except ConfigError as e:
+            print(f"!! {e}", file=sys.stderr)
+            return 1
     if args.command == "store":
-        return _store(args)
+        return _store(args, client)
 
-    entries = list_runs(root=args.root, stale_after=args.stale_after)
+    if root is None:
+        root = client.runs_root
+    entries = list_runs(root=root, stale_after=args.stale_after)
     if not entries:
-        print(f"no runs under {args.root}")
+        print(f"no runs under {root}")
         return 0
 
     now = time.time()
@@ -499,7 +547,7 @@ def main(argv=None) -> int:
     for entry in entries:
         counts[entry["liveness"]] = counts.get(entry["liveness"], 0) + 1
     summary = ", ".join(f"{n} {name}" for name, n in sorted(counts.items()))
-    print(f"\n{len(entries)} run(s) under {args.root}: {summary}.")
+    print(f"\n{len(entries)} run(s) under {root}: {summary}.")
     sys.stdout.flush()
     if counts.get("stale"):
         print(

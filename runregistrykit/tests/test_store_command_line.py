@@ -15,14 +15,13 @@ import sys
 
 import runregistrykit
 from runregistrykit import stores
+from runregistrykit.tests.client_fixtures import PACKAGE_PARENT
 from runregistrykit.tests.store_fixtures import (
     StoreTestCase,
     load,
     sweep_shaped,
     write_sidecar_json,
 )
-
-REPO_ROOT = runregistrykit.REPO_ROOT
 
 CHILD = """\
 import json, runpy, sys
@@ -57,8 +56,8 @@ class CommandLineTestCase(StoreTestCase):
             [sys.executable, "-c", CHILD, *[str(a) for a in argv]],
             capture_output=True,
             text=True,
-            cwd=REPO_ROOT,
-            env={**os.environ, "PYTHONPATH": REPO_ROOT},
+            cwd=self.client,
+            env={**os.environ, "PYTHONPATH": PACKAGE_PARENT},
             timeout=300,
         )
         lines = done.stdout.splitlines()
@@ -169,8 +168,8 @@ class TestImports(CommandLineTestCase):
             [sys.executable, "-c", IMPORTS],
             capture_output=True,
             text=True,
-            cwd=REPO_ROOT,
-            env={**os.environ, "PYTHONPATH": REPO_ROOT},
+            cwd=self.client,
+            env={**os.environ, "PYTHONPATH": PACKAGE_PARENT},
             timeout=300,
         )
         self.assertEqual(done.returncode, 0, done.stderr)

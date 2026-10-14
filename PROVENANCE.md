@@ -142,9 +142,21 @@ twelve files the two give the same output (measured), and `black --check runregi
 show it if they ever differed. It exits 0 only when all of that holds; the rules are stated in its
 docstring.
 
-The check holds through prompt 02, while the package is the import and the ported tests. It is
-retired at prompt 03's start, when the package begins to change in its own right; from then it
-describes 02's tree and is re-run from a worktree of 02's commit (README §4).
+The check held through prompt 02, while the package was the import and the ported tests. **It was
+retired at prompt 03's start**, when the package began to change in its own right (README §4). It
+describes 02's tree, `8155445`, and fails by design on any later one. To re-run it, make a worktree
+of that commit outside this checkout, run the check there with this checkout's venv, and remove the
+worktree:
+
+```bash
+git worktree add --detach <scratch>/check-02 8155445
+(cd <scratch>/check-02 && /Users/ds283/Documents/Code/RunRegistryKit/venv/bin/python \
+    docs/extraction/compare_with_source.py)
+git worktree remove <scratch>/check-02
+```
+
+It exits 0 there (measured at prompt 03's start, 2026-10-14). Changes since are listed below,
+under "Since the import".
 
 ## The freeze
 
@@ -152,3 +164,36 @@ SGK froze its `RunRegistry/` at the import commit, by its own `CLAUDE.md`, until
 package (gate G2 of `prompts/extraction/README.md` §7). A fix wanted in SGK's registry is made here,
 and reaches SGK when it adopts a release. The import edited no client: SGK was read only through
 `git`.
+
+## Since the import
+
+The package has changed in its own right since `8155445`, the tree the equivalence check describes.
+Each prompt's changes, from 03 on:
+
+**Prompt 03, the root and the client config** (`prompts/extraction/03-the-root-and-the-client-config.md`,
+this commit):
+
+- **The config file.** A client marks its root with `runregistrykit.toml`, read with `tomllib`:
+  `runs_root` (default `var/runs`), `stores_root` (default `var/datastores`), `distributions`
+  (default none) and a `[stores]` table, reserved for prompt 04. Its form is documented in the new
+  module `runregistrykit/client.py`, which holds `CONFIG_FILE`, `ConfigError`, `ClientRoot` and
+  `find_client_root`, standard library only.
+- **The root rule.** The root is found by walking up from where a call starts (for `begin()`, the
+  script's directory, else the working directory; for everything else, and the command line, the
+  working directory) to the first directory holding the file, or is named by `client_root=` or
+  `--client-root`. None found is a `ConfigError`, never a fallback. A run launched from a linked
+  git worktree is recorded under the main checkout (SGK's Q3), with its own tree's `git_head`,
+  `git_dirty` and script hash; a bare repository's worktree is refused. Paths in records stay
+  relative to the record root where they lie under it, so records written before read as they did.
+- **The names deleted.** `REPO_ROOT`, `DEFAULT_ROOT`, `DEFAULT_STORES_ROOT` and
+  `RECORDED_DISTRIBUTIONS`. `git_provenance(cwd)` and `package_provenance(names)` lose their
+  defaults, and `_repo_path` and `_resolve` take the root. Every public function that needs the
+  root takes `client_root=`; the command line's `list --root`, `--runs-root` and `--stores-root`
+  default to the config's.
+- **U9.** A manifest's `packages` records `runregistrykit` always, then the config's
+  `distributions`.
+- **The tests.** The ported tests' fixtures build a client root of their own in a `tempfile`
+  directory (`runregistrykit/tests/client_fixtures.py`, new); their bodies change only as that
+  prompt's §2.7 lists, and `test_the_recorded_names_are_the_two_packages` is renamed
+  `test_the_recorded_names_are_the_registry_and_the_configs`. `runregistrykit/tests/test_client_root.py`
+  is new.

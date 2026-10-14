@@ -34,7 +34,7 @@ from runregistrykit.tests.store_fixtures import (
 )
 from runregistrykit.tests.test_store_command_line import (
     IMPORTS,
-    REPO_ROOT,
+    PACKAGE_PARENT,
     CommandLineTestCase,
 )
 
@@ -80,7 +80,9 @@ class AmendTestCase(CommandLineTestCase):
         fields = self.sidecar(primary)
         create = fields["history"][0]
         retire_entry = dict(
-            create, operation="retire", **{"from": _repo_path(primary), "to": None}
+            create,
+            operation="retire",
+            **{"from": _repo_path(primary, self.client), "to": None},
         )
         tombstone = {
             "state": "retired" if complete else "retiring",
@@ -89,7 +91,7 @@ class AmendTestCase(CommandLineTestCase):
             "git_dirty": False,
             "reason": "disposable: superseded by a later store",
             "fingerprint": {"condition": "matched", "digest": "a" * 64},
-            "files": [_repo_path(primary)],
+            "files": [_repo_path(primary, self.client)],
             "files_present_only": False,
             "references": {
                 "runs_root": "runs",
@@ -633,8 +635,8 @@ class TestCommandLine(AmendTestCase):
             [sys.executable, "-c", IMPORTS],
             capture_output=True,
             text=True,
-            cwd=REPO_ROOT,
-            env={**os.environ, "PYTHONPATH": REPO_ROOT},
+            cwd=self.client,
+            env={**os.environ, "PYTHONPATH": PACKAGE_PARENT},
             timeout=300,
         )
         self.assertEqual(done.returncode, 0, done.stderr)

@@ -1,8 +1,9 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-14 · **Status: LIVE — 3 of 8 prompts written (01–03), 2 landed and
-reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108).** G1 holds on the source side at SGK
-`a45aefc`, and on the package side for 01's and 02's files; E1 holds (DatastoreKit `v0.4.0`). U1
+**Last updated:** 2026-10-14 · **Status: LIVE — 3 of 8 prompts written (01–03), 3 landed (01,
+`4e0d715`, suite 3, and 02, `8155445`, suite 108, reviewed; 03, this commit, suite 135).** G1 holds
+on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
+equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, and U5 and U9 for
 03, as recommended (README §6.2).
 
@@ -50,7 +51,7 @@ taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, 
 |---|---|---|---|---|---|
 | 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | `4e0d715` | 0 → 3 |
 | 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed and reviewed** 2026-10-14 ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | `8155445` | 3 → 108 |
-| 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | written 2026-10-14 | — | — |
+| 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | this commit | 108 → 135 |
 | 04 | `04-the-client-fingerprinter.md` | Opus | not written | — | — |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
@@ -203,8 +204,8 @@ measure it.
 | **I1** | 01 | the package skeleton; the three modules under D-name | ✅ 2026-10-14: D-name on 23 lines (6, 13, 4), D-fmt 0; the import test, 3 tests |
 | **I2** | 01 | `PROVENANCE.md`; `compare_with_source.py` (G1, package side) | ✅ 2026-10-14: the check exits 0 and bites on (a)–(i) |
 | **T1** | 02 | the 29 core and 76 shard-fixture tests, and their fixtures | ✅ 2026-10-14: the eight files ported; D-name 83, D-fix 5, D-fmt 12 lines in 3 hunks; the suite is 108, OK; the check extended and bites on (a)–(g), 01's (a)–(i) and (m1)–(m3) |
-| **R1** | 03 | the config file and the root rule (C1–C3, C9; Q2, Q3) | ⬜ |
-| **R2** | 03 | the recorded distributions (C5, U9) | ⬜ |
+| **R1** | 03 | the config file and the root rule (C1–C3, C9; Q2, Q3) | ✅ 2026-10-14: `runregistrykit.toml` read by the new `runregistrykit/client.py`; the walk, `client_root=` and `--client-root`; a linked worktree recorded under the main checkout, a bare repository's refused; provenance from the start directory; `REPO_ROOT`, `DEFAULT_ROOT`, `DEFAULT_STORES_ROOT` deleted; no config a `ConfigError`; C4's relative paths kept; the check retired, exit 0 from `8155445`; 27 new tests, the suite 135; (m1)–(m8) caught |
+| **R2** | 03 | the recorded distributions (C5, U9) | ✅ 2026-10-14: `RECORDED_DISTRIBUTIONS` deleted; `packages` is `runregistrykit` and the config's `distributions`; the pinning test renamed `test_the_recorded_names_are_the_registry_and_the_configs`; (m4) caught by three tests |
 | **F1** | 04 | the fingerprinter protocol; layer C and the format deleted (C6, C7) | ⬜ |
 | **F2** | 04 | what the package reads of a fingerprint (U7) | ⬜ |
 | **T2** | 04 | the neutral store; the 78 and `TestFormats`' 2 ported | ⬜ |
@@ -230,70 +231,13 @@ measure it.
 ## 3. Active and unresolved issues
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
-opened an eighth, and the orchestrator's review of 02 a ninth. Line numbers are SGK's until 01
-imports the code; 01 records each issue's package lines. **From 01 they are the same numbers** for
-the three modules: D-name replaced one line by one line and `black` changed nothing, so every line of them sits where it sat in SGK at `a45aefc` (01's
-log; each line below read in the package). 02's package lines are for the ported tests, read in
-`runregistrykit/tests/`.
-
-### `[00-the-root-is-the-packages-parent]`
-
-**Opened:** 2026-10-14, at planning (C1–C3, C9). **Owner:** 03.
-
-`REPO_ROOT` is the parent of the package's own directory (`__init__.py:57`); the runs root
-(`DEFAULT_ROOT`, `:58`) and the stores root (`DEFAULT_STORES_ROOT`, `stores.py:185`) are `var/runs`
-and `var/datastores` under it, and every `git_provenance()` call reads the git tree there (`:98`).
-
-*Impact.* Installed in `site-packages`, the package would create `var/runs/` inside the venv, a
-silent breach of the registry's durability rule, and record the venv's git state, if any, as the
-run's. In SGK the same rule makes a run launched from a worktree record into the worktree (SGK's
-`[00-a-run-launched-from-a-worktree-records-into-the-worktree]`).
-
-*Next step.* 03: the root found from where the run starts and marked by the config file (SGK's Q2,
-U5), records under the main checkout (Q3), provenance from the run's own tree.
-
-*Package lines (01, 2026-10-14).* `REPO_ROOT` `runregistrykit/__init__.py:57`; `DEFAULT_ROOT` `:58`,
-used at `:608, 681`, `runregistrykit/stores.py:911, 940, 1741` and as argparse defaults
-`runregistrykit/__main__.py:376, 388-390`; `DEFAULT_STORES_ROOT` `stores.py:185`, used at `:1742` and
-`__main__.py:452-455`; `_repo_path`/`_resolve` `__init__.py:176-185`; `git_provenance(cwd=REPO_ROOT)`
-`__init__.py:98`, called with the default at `__init__.py:649` and `stores.py:833, 893, 1101, 1140,
-1499, 1921, 2164`. In this repository's editable install `REPO_ROOT` is the repository's root.
-
-*Package lines (02, 2026-10-14), in the ported tests.* Child processes that rely on `REPO_ROOT`: the
-checker and crasher scripts are written with `repo=REPO_ROOT` at
-`runregistrykit/tests/test_run_registry.py:179, 226`, and `-m runregistrykit` runs with
-`cwd=REPO_ROOT` at `:684`; `test_store_command_line.py:60-61, 172-173` and
-`test_store_amend.py:636-637` run `-m runregistrykit` with `cwd=REPO_ROOT` and `PYTHONPATH` set to
-it (`REPO_ROOT = runregistrykit.REPO_ROOT`, `test_run_registry.py:21`,
-`test_store_command_line.py:25`). Two assertions read the checkout's commit through C9 and that the
-`git_head` is 40 characters: `test_run_registry.py:273` and `test_store_sidecar.py:288`. From a
-`git archive` export with no `.git` both fail (measured by the orchestrator at dispatch:
-`TestManifest.test_manifest_carries_the_provenance_triple` and
-`test_store_sidecar.TestCreate.test_the_fields_and_one_create_entry`). `CLAUDE.md`'s Tests bullet
-says so.
-
-### `[00-the-recorded-distributions-are-sgks]`
-
-**Opened:** 2026-10-14, at planning (C5). **Owner:** 03.
-
-`RECORDED_DISTRIBUTIONS = ("datastorekit", "raypoolkit")` (`__init__.py:119`) is what every manifest's
-`packages` records, and `test_run_registry.py:393-396` pins it.
-
-*Impact.* A client that uses neither records two irrelevant entries, and one with other packages
-cannot record them. The registry itself is not recorded.
-
-*Next step.* 03: the config's `distributions`, with `runregistrykit` always recorded (U9); the
-pinning test becomes a test of the config.
-
-*Package lines (01, 2026-10-14).* `RECORDED_DISTRIBUTIONS` `runregistrykit/__init__.py:119`, the
-default of `package_provenance` (`:122`). The pinning test is SGK's `test_run_registry.py:393-396`,
-which 02 ports.
-
-*Package lines (02, 2026-10-14).* The pinning test is
-`runregistrykit/tests/test_run_registry.py:393-396`
-(`TestPackageProvenance.test_the_recorded_names_are_the_two_packages`). Mutation (m1),
-`RECORDED_DISTRIBUTIONS = ("datastorekit",)`, fails it, and two more tests of that class (the
-02 log).
+opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven.
+Line numbers are SGK's until 01 imports the code; 01 records each issue's package lines. **From 01
+they are the same numbers** for the three modules: D-name replaced one line by one line and `black`
+changed nothing, so every line of them sits where it sat in SGK at `a45aefc` (01's log; each line
+below read in the package). 02's package lines are for the ported tests, read in
+`runregistrykit/tests/`. **From 03 the three modules' lines are no longer SGK's**: each issue's
+*Package lines (03, …)* gives them at 03's commit, read in the package.
 
 ### `[00-the-fingerprint-reads-a-clients-registry]`
 
@@ -313,6 +257,12 @@ would drift from DatastoreKit's.
 `runregistrykit/stores.py:1494`, inside `fingerprint_store` (`:1445`); `FINGERPRINT_FORMAT = 6`
 `:206`, its history `:194-205`; layer C `:1152-1399` (`fingerprint_of` `:1182`, called `:1500`;
 `compare_fingerprints` `:1256`, called `:1529`; `listing_lines` `:1376-1399`).
+
+*Package lines (03, 2026-10-14), read in the package.* `from config.datastore import factories`
+`runregistrykit/stores.py:1525`, inside `fingerprint_store` (`:1473`, which now takes
+`client_root=`); `FINGERPRINT_FORMAT = 6` `:202`, its history `:190-201`; layer C `:1180-1427`
+(`fingerprint_of` `:1210`, called `:1531`; `compare_fingerprints` `:1284`, called `:1560`;
+`listing_lines` `:1404-1427`, called `:1460`).
 
 ### `[00-the-store-layer-reads-inside-a-fingerprint]`
 
@@ -336,6 +286,12 @@ by the sidecar reader at `:630`; `fingerprint_store` builds `taken` at `:1500-15
 `runregistrykit/__main__.py`: `_print_fingerprint` `:267-287`, `_fingerprint` reads `taken` and
 `digest` at `:307-327`.
 
+*Package lines (03, 2026-10-14), read in the package.* `_fingerprint_problems`
+`runregistrykit/stores.py:412-432`, called by the sidecar reader at `:629`; `fingerprint_store`
+builds `taken` at `:1531-1539` and calls `_difference` at `:1550`; `retire_store` reads `digest`
+and `taken.when` at `:1931-1938`; `runregistrykit/__main__.py`: `_print_fingerprint` `:274-294`,
+`_fingerprint` (`:297`) reads `taken` and `digest` at `:314-334`.
+
 ### `[00-package-prose-names-sgk]`
 
 **Opened:** 2026-10-14, at planning (C8). **Owner:** 05.
@@ -356,6 +312,13 @@ the README, and the guard (U10) so it stays that way.
 here: `stores.py:197`, `runregistrykit/tests/data/full_store_fingerprint*.json` (01's log). And
 `stores.py:1567`'s "(prompt 01's log)" means an SGK campaign's prompt 01 (the comment sits in the
 section SGK's `store-retirement` campaign wrote), not this campaign's (01's log, observations).
+
+*Package lines (03, 2026-10-14), read in the package.* The C8 lines README §0.2 names are now
+`runregistrykit/__init__.py:70, 74, 369, 372, 454, 503, 511, 589, 624` and
+`runregistrykit/stores.py:101, 194-201, 1643, 1653, 2073`; the renamed comment citing a path that
+does not exist here is `stores.py:193`, and "(prompt 01's log)" is `stores.py:1598`. The CLI text
+is `runregistrykit/__main__.py:288`. 03 rewrote one C8 sentence, `begin()`'s on `packages`, which
+named the `dk-and-rpk-migration` campaign (03's log, deviation 15).
 
 ### `[00-the-shard-fixtures-reach-into-shardedpool]`
 
@@ -384,6 +347,10 @@ and sets ten private attributes: `_db_name`, `_primary_file`, `_timeout`, `_Shar
 (`:57-71`). `store_fixtures.assertOpens` (`runregistrykit/tests/store_fixtures.py:158-165`) calls
 `_check_shard_files` and reads `_shard_db_files`. The issue stays open, owner none.
 
+*Package lines (03, 2026-10-14).* `shard_store_fixtures.py` is unchanged, its lines as 02's;
+`store_fixtures.assertOpens` is now `runregistrykit/tests/store_fixtures.py:160-167` (03 added an
+import and a line of `StoreTestCase.setUp` above it).
+
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
 **Opened:** 2026-10-14, at planning. **Owner:** none.
@@ -406,6 +373,10 @@ A typed exception would be a request to DatastoreKit (README §8).
 used at `runregistrykit/stores.py:1818` and `:1863`, in `retire_store`, and the one SGK test of it is
 in `test_store_retire.py`, which 04 ports. No ported file names the constant or its text. The next
 step, a test that reaches the match, is therefore 04's.
+
+*Package lines (03, 2026-10-14), read in the package.* `_SHARDS_TABLE_UNREADABLE`
+`runregistrykit/stores.py:1598-1599` (the comment and the assignment), used at `:1858` and `:1905`,
+in `retire_store`. Still reached by no test.
 
 ### `[02-the-ported-tests-name-sgk]`
 
@@ -442,6 +413,15 @@ keeps its class name).
 
 *Next step.* 05, with its prose rewrite; the class name is put to the user there.
 
+*Package lines (03, 2026-10-14).* `shard_store_fixtures.py`, `test_store_sidecar.py`,
+`test_store_command_line.py:2` and `test_store_amend_residuals.py` are as 02 recorded. Moved by 03:
+`store_fixtures.py` `a3_shaped` `:37`, the A3 stem `:39`, the driver path `:50-51`, `a3-pilot`
+`:54-55`, `sweep_shaped` `:86`; `test_run_registry.py` `campaign="run-registry"` `:105` (the
+crasher) and `:129` (the run helper), the citations `:157-162` and `:492`,
+`scoped_pipeline_run.py --register` `:507`, `a3-pilot` `:687-713`; `test_store_copy_move.py`
+citations `:235, 331, 403, 483`; `test_store_amend.py` `TestLiveA3Shape` `:205`, its comment
+`:202`. 03 added no SGK name to the tests (03's log, deviation 19).
+
 ### `[02-the-sidecar-readers-guards-are-unpinned]`
 
 **Opened:** 2026-10-14, by the orchestrator's review of 02, from 02's log (observations and its
@@ -460,6 +440,96 @@ place such a change would come from.
 *Next step.* 04: a test of the reader that each mutation fails, added before the shape check
 changes. Put to whoever writes 04.
 
+*Package lines (03, 2026-10-14), read in the package.* `_registry_problems`
+`runregistrykit/stores.py:573`; the `bool` guard on `sidecar_format` `:578`; `_STORE_ID.fullmatch`
+on `store_id` `:588`. Still pinned by no test.
+
 ## 4. Resolved issues
 
-None.
+### `[00-the-root-is-the-packages-parent]`
+
+**Opened:** 2026-10-14, at planning (C1–C3, C9). **Owner:** 03. **Closed:** 2026-10-14, by 03
+(this commit).
+
+`REPO_ROOT` is the parent of the package's own directory (`__init__.py:57`); the runs root
+(`DEFAULT_ROOT`, `:58`) and the stores root (`DEFAULT_STORES_ROOT`, `stores.py:185`) are `var/runs`
+and `var/datastores` under it, and every `git_provenance()` call reads the git tree there (`:98`).
+
+*Impact.* Installed in `site-packages`, the package would create `var/runs/` inside the venv, a
+silent breach of the registry's durability rule, and record the venv's git state, if any, as the
+run's. In SGK the same rule makes a run launched from a worktree record into the worktree (SGK's
+`[00-a-run-launched-from-a-worktree-records-into-the-worktree]`).
+
+*Next step.* 03: the root found from where the run starts and marked by the config file (SGK's Q2,
+U5), records under the main checkout (Q3), provenance from the run's own tree.
+
+*Package lines (01, 2026-10-14).* `REPO_ROOT` `runregistrykit/__init__.py:57`; `DEFAULT_ROOT` `:58`,
+used at `:608, 681`, `runregistrykit/stores.py:911, 940, 1741` and as argparse defaults
+`runregistrykit/__main__.py:376, 388-390`; `DEFAULT_STORES_ROOT` `stores.py:185`, used at `:1742` and
+`__main__.py:452-455`; `_repo_path`/`_resolve` `__init__.py:176-185`; `git_provenance(cwd=REPO_ROOT)`
+`__init__.py:98`, called with the default at `__init__.py:649` and `stores.py:833, 893, 1101, 1140,
+1499, 1921, 2164`. In this repository's editable install `REPO_ROOT` is the repository's root.
+
+*Package lines (02, 2026-10-14), in the ported tests.* Child processes that rely on `REPO_ROOT`: the
+checker and crasher scripts are written with `repo=REPO_ROOT` at
+`runregistrykit/tests/test_run_registry.py:179, 226`, and `-m runregistrykit` runs with
+`cwd=REPO_ROOT` at `:684`; `test_store_command_line.py:60-61, 172-173` and
+`test_store_amend.py:636-637` run `-m runregistrykit` with `cwd=REPO_ROOT` and `PYTHONPATH` set to
+it (`REPO_ROOT = runregistrykit.REPO_ROOT`, `test_run_registry.py:21`,
+`test_store_command_line.py:25`). Two assertions read the checkout's commit through C9 and that the
+`git_head` is 40 characters: `test_run_registry.py:273` and `test_store_sidecar.py:288`. From a
+`git archive` export with no `.git` both fail (measured by the orchestrator at dispatch:
+`TestManifest.test_manifest_carries_the_provenance_triple` and
+`test_store_sidecar.TestCreate.test_the_fields_and_one_create_entry`). `CLAUDE.md`'s Tests bullet
+says so.
+
+*Resolved (03, 2026-10-14, this commit).* The package no longer decides where it lives from where it
+is installed. A client marks its root with `runregistrykit.toml`, read by the new
+`runregistrykit/client.py` (`find_client_root`, `ClientRoot`, `ConfigError`); the root is found by
+walking up from the start directory (the script's for `begin()`, else the working directory), or
+named by `client_root=` / `--client-root`, and none found is a `ConfigError`, never a fallback. The
+runs and stores roots are the config's, joined to the record root. A run launched from a linked
+worktree is recorded under the main checkout (Q3), and its `git_head`, `git_dirty` and script hash
+are its own tree's (`git_provenance(cwd)` has no default; every call passes the start directory).
+`REPO_ROOT`, `DEFAULT_ROOT` and `DEFAULT_STORES_ROOT` are deleted; `_repo_path` and `_resolve` take
+the root, so paths in records stay relative to it (C4, probed against records `8155445` wrote). The
+child-process tests run in a client root of their own and import the package from its parent
+directory. Pinned by `runregistrykit/tests/test_client_root.py`: `TestWalk` (the walk, the
+override, no fallback, the refused `begin()` leaving nothing), `TestWorktree` (a linked worktree,
+a config in a subdirectory, a nested worktree's provenance, a bare repository refused, no
+repository), `TestStoresUnderTheRoot` and `TestCommandLine`; (m1)–(m3) and (m5)–(m8) of 03's log
+each fail at least one of them. Only `TestManifest.test_manifest_carries_the_provenance_triple`
+still reads this checkout's commit (03's log, deviation 7).
+
+### `[00-the-recorded-distributions-are-sgks]`
+
+**Opened:** 2026-10-14, at planning (C5). **Owner:** 03. **Closed:** 2026-10-14, by 03 (this
+commit).
+
+`RECORDED_DISTRIBUTIONS = ("datastorekit", "raypoolkit")` (`__init__.py:119`) is what every manifest's
+`packages` records, and `test_run_registry.py:393-396` pins it.
+
+*Impact.* A client that uses neither records two irrelevant entries, and one with other packages
+cannot record them. The registry itself is not recorded.
+
+*Next step.* 03: the config's `distributions`, with `runregistrykit` always recorded (U9); the
+pinning test becomes a test of the config.
+
+*Package lines (01, 2026-10-14).* `RECORDED_DISTRIBUTIONS` `runregistrykit/__init__.py:119`, the
+default of `package_provenance` (`:122`). The pinning test is SGK's `test_run_registry.py:393-396`,
+which 02 ports.
+
+*Package lines (02, 2026-10-14).* The pinning test is
+`runregistrykit/tests/test_run_registry.py:393-396`
+(`TestPackageProvenance.test_the_recorded_names_are_the_two_packages`). Mutation (m1),
+`RECORDED_DISTRIBUTIONS = ("datastorekit",)`, fails it, and two more tests of that class (the
+02 log).
+
+*Resolved (03, 2026-10-14, this commit).* `RECORDED_DISTRIBUTIONS` is deleted and
+`package_provenance(names)` has no default. A manifest's `packages` is `runregistrykit`, always
+(U9), followed by the client config's `distributions`, `runregistrykit` not repeated
+(`_recorded_names`). Pinned by `test_run_registry.TestManifest.test_manifest_records_the_installed_packages`
+(an empty config records `runregistrykit` alone), the renamed
+`TestPackageProvenance.test_the_recorded_names_are_the_registry_and_the_configs` (a config naming
+`datastorekit` and `raypoolkit` records exactly those and `runregistrykit`), and
+`test_client_root.TestRecordedDistributions`; (m4) of 03's log fails all three.

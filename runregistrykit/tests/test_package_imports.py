@@ -19,7 +19,7 @@ PACKAGE_DIR = os.path.dirname(os.path.abspath(runregistrykit.__file__))
 PACKAGE_NAME = "runregistrykit"
 
 # The modules whose import statements at module scope are checked.
-MODULES = ("__init__.py", "stores.py", "__main__.py")
+MODULES = ("__init__.py", "stores.py", "__main__.py", "client.py")
 
 # Not one of these may be loaded by importing the package and its store layer: the heavy
 # dependencies of the store layer, and the client modules the imported code was written beside.
@@ -118,7 +118,7 @@ class TestPackageImports(unittest.TestCase):
         self.assertEqual(problems, [], "\n" + "\n".join(problems))
 
     def test_command_line_answers_to_its_name(self):
-        var = os.path.join(runregistrykit.REPO_ROOT, "var")
+        var = os.path.join(os.path.dirname(PACKAGE_DIR), "var")
         var_before = sorted(os.listdir(var)) if os.path.isdir(var) else None
         with tempfile.TemporaryDirectory() as cwd:
             result = _run(["-m", PACKAGE_NAME, "--help"], cwd)

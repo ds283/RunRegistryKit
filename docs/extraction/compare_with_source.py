@@ -72,6 +72,13 @@ line it could not classify, and then the pending, absent and declared files. It 
 row of the frozen tree is as the table says, every checked file equals ``black(T)``, the rename is
 complete, and every file is present and declared, pending files notwithstanding; 1 when not; and 2
 when it cannot run (``git`` fails, or ``black`` is missing, is not 25.1.0, or fails on T).
+
+**Retired at prompt 03.** From prompt 03 the package changes in its own right, so this check was
+retired at that prompt's start (README §4). It describes the tree of ``8155445``, prompt 02's
+commit, and fails by design on any later tree. Run it from a worktree of that commit, made outside
+this checkout, with this checkout's venv: ``git worktree add --detach <scratch>/check-02 8155445``,
+then ``<this checkout>/venv/bin/python docs/extraction/compare_with_source.py`` from
+``<scratch>/check-02``, then ``git worktree remove <scratch>/check-02``.
 """
 
 import difflib
