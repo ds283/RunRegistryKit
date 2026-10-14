@@ -112,7 +112,8 @@ repository's root, whose `var/` the gitignore covers), and `fingerprint_store` i
 
 ## Re-running the check
 
-From the repository root, with the repository's venv:
+At `8155445`, from the repository root, with the repository's venv (the check is retired: from
+prompt 03 on, run it from a worktree of that commit, as the end of this section says):
 
 ```bash
 ./venv/bin/python docs/extraction/compare_with_source.py
@@ -171,7 +172,7 @@ The package has changed in its own right since `8155445`, the tree the equivalen
 Each prompt's changes, from 03 on:
 
 **Prompt 03, the root and the client config** (`prompts/extraction/03-the-root-and-the-client-config.md`,
-this commit):
+`035e4b5`):
 
 - **The config file.** A client marks its root with `runregistrykit.toml`, read with `tomllib`:
   `runs_root` (default `var/runs`), `stores_root` (default `var/datastores`), `distributions`

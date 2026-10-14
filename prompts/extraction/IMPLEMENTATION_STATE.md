@@ -1,7 +1,7 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-14 · **Status: LIVE — 3 of 8 prompts written (01–03), 3 landed (01,
-`4e0d715`, suite 3, and 02, `8155445`, suite 108, reviewed; 03, this commit, suite 135).** G1 holds
+**Last updated:** 2026-10-14 · **Status: LIVE — 3 of 8 prompts written (01–03), 3 landed and
+reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, and U5 and U9 for
@@ -51,7 +51,7 @@ taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, 
 |---|---|---|---|---|---|
 | 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | `4e0d715` | 0 → 3 |
 | 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed and reviewed** 2026-10-14 ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | `8155445` | 3 → 108 |
-| 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | this commit | 108 → 135 |
+| 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | `035e4b5` | 108 → 135 |
 | 04 | `04-the-client-fingerprinter.md` | Opus | not written | — | — |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
@@ -62,7 +62,8 @@ taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, 
 The holds are for **method**, not scope: every charter is fixed in README §2.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`91b7a60`), used
-for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), used for 02.
+for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), used for 02;
+[`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`f02abc7`), used for 03.
 
 **Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
 with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
@@ -196,6 +197,97 @@ CHOICE, no UNINTENDED DRIFT) change nothing the prompt fixes. Its other observat
 `DEFAULT_STALE_AFTER` unpinned is the prompt's own note; `test_package_imports.py` naming
 `RunRegistry` and `StoreFixtures` on purpose is for 05's guard (U10) to allow, and 05's prompt will
 measure it.
+
+**Orchestrator review of prompt 03 (2026-10-14).** Dispatched from `f02abc7` to one Opus subagent,
+with the note's §0: its facts, ten corrections and readings of the prompt (the gate's diff read from
+`71f59ed`; the one docstring the four-name grep needs changed; the call site §2.5 omits,
+`stores.py:1663`, and an `ast` walk for every site no 03 test reaches; when `read_sidecar` locates;
+the test shapes (m3), (m6), (m7) and (m8) need; which test reads this checkout's commit; the two
+child processes; the suite's time; three small readings) and its two recommendations (`read_sidecar`
+locates only for a tombstone; a test of the bare-repository refusal). Reviewed against its commit
+`035e4b5`, with nothing landed after it. **Every check of the note's §3 passed**, and acceptance 1–3
+are met. No stop condition fired.
+
+*At dispatch.* The note's gate held at `f02abc7`, with the prompt's gate read from `71f59ed`
+(correction 1): the tree clean, this checkout the only worktree, no `var/`; the suite 108 OK in
+15.2 s; the check exited 0 from a worktree of `8155445`. No Ray process; `RAY_ADDRESS` unset.
+
+*The checks.*
+1. **Scope.** `035e4b5` touches 20 files, the prompt's §6 list. `pyproject.toml`, `README.md`,
+   `LICENSE`, `.gitignore`, `tests/__init__.py`, `shard_store_fixtures.py` and
+   `test_store_amend_residuals.py` are unchanged from `71f59ed`; `git ls-files runregistrykit` is 02's
+   thirteen and the three new files. `CLAUDE.md` changes in its Tests bullet only. The check's module
+   body after its docstring is the same by `ast.dump`, and the docstring gains one paragraph.
+   `PROVENANCE.md` gains "Since the import" and changes its paragraph on the check only.
+2. **The check retired.** From a fresh worktree of `8155445`, the check exits 0 with the log's
+   summary line; the worktree removed, this checkout alone in `git worktree list`.
+3. **The ported tests.** Every hunk of `git diff 8155445 035e4b5` over the seven ported files and the
+   import test is F-client, R-root (11 calls; the alias at `test_store_amend.py:42` unchanged, log
+   deviation 16), R-cwd, U9 or the import test's two edits; every changed assertion is R-root's or
+   U9's. The loader's test ids are 02's 108 but for the one rename, plus `test_client_root`'s 27.
+4. **By reading.** `client.py` as the prompt's §2.2–§2.4: the refusals naming the file, the walk to a
+   file only, the override, §2.4's three steps with realpaths compared and `root = found` unchanged in
+   the common case, nothing at import. `begin()` locates before reading the results sidecar or making
+   a directory, with provenance from its start; `Run` locates only to resolve a relative recorded
+   path; `list_runs` only without `root`. In `stores.py` the nine public functions take
+   `client_root` and private helpers never locate; `read_sidecar` locates only for a well-formed
+   tombstone. The `ast` walk finds 30 calls of `_repo_path`, `_resolve` and `git_provenance`, every
+   one passing its argument, none of the three with a default. The CLI as §2.5. Layer C,
+   `FINGERPRINT_FORMAT` and the `config.datastore` import (`stores.py:1525`) are untouched.
+5. **By probing.** *C4:* a scratch client whose run, unit ledger, live sidecar and hand-built
+   tombstone (listing a relative shard file) were written by `8155445`'s package, exported into it so
+   that its `REPO_ROOT` was the client, with root-relative paths as SGK's records have; read with
+   `035e4b5` and an empty config, `checkpoint_path`, `results_path`, `known()`, the live sidecar's
+   fields and the tombstone's problem (read from a subdirectory) are what the old package gave, and
+   `list` and `store show` find them. *Q3:* runs begun from a linked worktree and from one nested at
+   `.claude/worktrees/` on another commit are recorded under the main checkout's `var/runs`, with the
+   worktree's `git_head` and script hash, the script absolute and root-relative respectively.
+   *Refusals:* from an empty directory, `--help` exits 0, `list` and `store show` exit 1 with the
+   "No runregistrykit.toml" message, and a refused `begin(root=…)` leaves its runs root empty.
+6. **The suite.** `Ran 135 tests in 41.1s`, OK; the per-module counts the log's. `git status --short
+   --ignored` the same before and after; no `var/`; this checkout the only worktree; no Ray process.
+   The four-name grep finds nothing; `black --check runregistrykit docs`: 17 files unchanged. From a
+   `git archive` export with no `.git` (its own package imported), exactly one test fails,
+   `test_manifest_carries_the_provenance_triple`, as `CLAUDE.md` now says.
+7. **The mutations.** (m1)–(m8) extracted from the log and replayed in `bash` (`--check`, apply,
+   `-R --check`, the suite, reverse), each failing exactly the tests the log names, the tree clean
+   after each. The orchestrator's own: (o1) a relative `runs_root` joined to `found` fails the two
+   worktree tests; (o2) the subdirectory mapping dropped fails
+   `test_a_config_in_a_subdirectory_maps_to_the_same_subdirectory`; (o3) the bare refusal removed
+   fails `test_a_bare_repositorys_worktree_is_refused`; (o4) `find_client_root()` at `client.py`'s
+   module scope breaks the package's import, and discovery fails; (o5) the CLI returning 0 on a
+   `ConfigError` fails three subtests of
+   `test_outside_any_client_a_store_command_exits_1_and_writes_nothing`; (o6) `Run`'s relative paths
+   resolved against the working directory fails
+   `test_a_run_reads_its_status_with_no_config_and_locates_only_to_resolve`.
+8. **The issues.** The two closed in §4 with what resolved them and the tests that pin them; their
+   rows gone from the index. Each of the other seven carries its 03 package lines, spot-checked in
+   the package at `035e4b5` (`stores.py:202, 412, 573, 578, 588, 629, 1210, 1284, 1404, 1473, 1525,
+   1550, 1598-1599, 1858, 1905`; `__main__.py:274, 297`; the moved test lines of
+   `[02-the-ported-tests-name-sgk]`).
+9. **The records.** The log has every section of README §5.1, the check's summary from 02's tree,
+   every instance accounted for, the call-site table, 108 → 135 with the per-module counts and the
+   time, all eight diffs, and 21 deviations, each classified (8 STRUCTURALLY REQUIRED, 13
+   IMPLEMENTATION CHOICE). `PROVENANCE.md`, `CLAUDE.md`, the index (7, by counting) and
+   `prompts/INDEX.md` as the prompt's §4.3.
+10. **The interface.** No record changes form: the manifest's, `status.json`'s and the sidecar's
+    keys are those at `8155445`, by the diff and by the C4 probe; only `packages`' content differs.
+
+*Residue fixed in the follow-up.* "this commit" → `035e4b5` on this board, in the log, in
+`prompts/INDEX.md` and in `PROVENANCE.md`; 03 marked reviewed here, in README §2 and its header, and
+in `prompts/INDEX.md`; this paragraph and the notes line. `PROVENANCE.md`'s "Re-running the check"
+opened with "From the repository root", which fails on any tree after `8155445`; its first line now
+says the command is `8155445`'s and points to the section's end (the log's third observation).
+
+*Accepted as recorded.* Log deviation 21 records that the note's dispatch said to read no client
+while the prompt's §2.9 runs the check, which reads SGK through `git -C`; that was the note's error,
+README §5 rule 5 allows the read, and the agent ran the check once, as the prompt requires. The
+log's other observations need no issue: provenance at `finish(fingerprint=True)` is the prompt's rule
+and 04 writes `taken` anew; the prose naming the old layout and `git_provenance()` is 05's
+(`[00-package-prose-names-sgk]`); the unused `import runregistrykit` in `test_store_command_line.py`
+is harmless and outside R-cwd; the package's `git` inheriting `GIT_DIR` is by design; and the retire
+path's threading, checked here by the `ast` walk, is reached by 04's ported tests. **Nothing
+opened**; the index stays at 7.
 
 ### 1.1 Items
 
@@ -449,7 +541,7 @@ on `store_id` `:588`. Still pinned by no test.
 ### `[00-the-root-is-the-packages-parent]`
 
 **Opened:** 2026-10-14, at planning (C1–C3, C9). **Owner:** 03. **Closed:** 2026-10-14, by 03
-(this commit).
+(`035e4b5`).
 
 `REPO_ROOT` is the parent of the package's own directory (`__init__.py:57`); the runs root
 (`DEFAULT_ROOT`, `:58`) and the stores root (`DEFAULT_STORES_ROOT`, `stores.py:185`) are `var/runs`
@@ -483,7 +575,7 @@ it (`REPO_ROOT = runregistrykit.REPO_ROOT`, `test_run_registry.py:21`,
 `test_store_sidecar.TestCreate.test_the_fields_and_one_create_entry`). `CLAUDE.md`'s Tests bullet
 says so.
 
-*Resolved (03, 2026-10-14, this commit).* The package no longer decides where it lives from where it
+*Resolved (03, 2026-10-14, `035e4b5`).* The package no longer decides where it lives from where it
 is installed. A client marks its root with `runregistrykit.toml`, read by the new
 `runregistrykit/client.py` (`find_client_root`, `ClientRoot`, `ConfigError`); the root is found by
 walking up from the start directory (the script's for `begin()`, else the working directory), or
@@ -525,7 +617,7 @@ which 02 ports.
 `RECORDED_DISTRIBUTIONS = ("datastorekit",)`, fails it, and two more tests of that class (the
 02 log).
 
-*Resolved (03, 2026-10-14, this commit).* `RECORDED_DISTRIBUTIONS` is deleted and
+*Resolved (03, 2026-10-14, `035e4b5`).* `RECORDED_DISTRIBUTIONS` is deleted and
 `package_provenance(names)` has no default. A manifest's `packages` is `runregistrykit`, always
 (U9), followed by the client config's `distributions`, `runregistrykit` not repeated
 (`_recorded_names`). Pinned by `test_run_registry.TestManifest.test_manifest_records_the_installed_packages`

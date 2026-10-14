@@ -1,7 +1,7 @@
 # Log — prompt 03: the root and the client config
 
 **Subject:** Find the client root from runregistrykit.toml and record under it
-**Commit:** this commit (on `main`, after `f02abc7`)
+**Commit:** `035e4b5` (on `main`, after `f02abc7`)
 **Date:** 2026-10-14
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief (`brief-03-section0.md`,
 the orchestrator's note §0)
@@ -203,7 +203,7 @@ root, output to a scratch file:
 | §2.7's changes only, no new test | `Ran 108 tests in 32.352s`, OK |
 | after | `Ran 135 tests in 37.011s`, OK; the final run, on the tree committed: `Ran 135 tests in 37.353s`, OK |
 
-**108 → 135**, N = 27. By loader at this commit: `test_client_root` 27 (new),
+**108 → 135**, N = 27. By loader at `035e4b5`: `test_client_root` 27 (new),
 `test_package_imports` 3, `test_run_registry` 29, `test_store_amend` 21,
 `test_store_amend_residuals` 9, `test_store_command_line` 2, `test_store_copy_move` 27,
 `test_store_sidecar` 17; every ported module's count is 02's.
@@ -235,7 +235,7 @@ definition fails if it has a default. Result: **41 calls, 0 bad**; `git_provenan
 (`__init__.py:97`), `_repo_path(path, root)` (`:176`) and `_resolve(path, root)` (`:185`) have no
 default. The package's 30 calls, with the line each sat at in `8155445`:
 
-| At this commit | Call | At `8155445` |
+| At `035e4b5` | Call | At `8155445` |
 |---|---|---|
 | `__init__.py:313` | `_resolve(recorded, self.client_root.root)` | `:321` and `:332` (deviation 10) |
 | `__init__.py:671` | `_repo_path(script, client.root)` | `:639` |
@@ -275,7 +275,7 @@ The tests' 11 calls: `store_fixtures.py:184`; `test_store_amend.py:85, 94`;
 `__main__.py:137`). `fingerprint_store`, `_find_references`, `_retire_failure` and most of
 `retire_store` are reached by no test until 04 (correction 3), so for them this walk is the check.
 
-**The ported tests' changes, every instance (README §5 rule 9).** Lines are this commit's.
+**The ported tests' changes, every instance (README §5 rule 9).** Lines are `035e4b5`'s.
 
 - **F-client (5).** `test_run_registry.py:20-24` imports `enter_client_root` (and `PACKAGE_PARENT`,
   R-cwd; `temporary_directory`, U9); `RegistryTestCase.setUp` gains `self.client =
@@ -328,8 +328,8 @@ and worktree was in `agent-03/` or a `tempfile` directory; no scratch `.py` went
 
 ## The deliberate-breakage record
 
-Each diff below is exactly as applied, to this commit's tree: it was made by editing the staged
-file and taking `git diff` against the index (whose blobs are this commit's), then restoring the
+Each diff below is exactly as applied, to `035e4b5`'s tree: it was made by editing the staged
+file and taking `git diff` against the index (whose blobs are `035e4b5`'s), then restoring the
 file. A `bash` script then replayed each from its diff file: `git apply --check`, `git apply`,
 `git apply -R --check`, the suite (§3.2's command), `git apply -R`, and `git status --short`
 compared with the clean state. All eight checked both ways, and the tree was clean after each.
@@ -549,7 +549,7 @@ the prompt's rule, 04's or 05's.
   child process runs with `cwd=self.client` and `PYTHONPATH=PACKAGE_PARENT` (`test_store_retire.py:1215`).
 - The equivalence check is retired; it describes `8155445` and exits 0 from a worktree of it.
   `PROVENANCE.md` has a "Since the import" section, to which each prompt from 04 adds its changes.
-- The board's §3 has seven issues; their package lines at this commit are recorded there.
+- The board's §3 has seven issues; their package lines at `035e4b5` are recorded there.
 - Not touched: `pyproject.toml`, `tests/__init__.py`, `shard_store_fixtures.py`,
   `test_store_amend_residuals.py`; no client, DatastoreKit or RayPoolKit was edited or run; nothing
   installed; nothing pushed or tagged.
