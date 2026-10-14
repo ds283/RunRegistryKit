@@ -1,9 +1,9 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-14 · **Status: LIVE — 1 of 8 prompts written (01), 1 landed (01, this
-commit; suite 3).** G1 holds on the source side at SGK `a45aefc`, and on the package side for 01's
-files; E1 holds (DatastoreKit `v0.4.0`). U1 taken at set-up on 2026-10-14; U2 and U3 taken the same
-day, for 01, as recommended (README §6.2).
+**Last updated:** 2026-10-14 · **Status: LIVE — 1 of 8 prompts written (01), 1 landed and
+reviewed (01, `4e0d715`; suite 3).** G1 holds on the source side at SGK `a45aefc`, and on the
+package side for 01's files; E1 holds (DatastoreKit `v0.4.0`). U1 taken at set-up on 2026-10-14;
+U2 and U3 taken the same day, for 01, as recommended (README §6.2).
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -47,7 +47,7 @@ day, for 01, as recommended (README §6.2).
 
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
-| 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | this commit | 0 → 3 |
+| 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | `4e0d715` | 0 → 3 |
 | 02 | `02-port-the-core-and-shard-fixture-tests.md` | Sonnet | not written | — | — |
 | 03 | `03-the-root-and-the-client-config.md` | Opus | not written | — | — |
 | 04 | `04-the-client-fingerprinter.md` | Opus | not written | — | — |
@@ -58,6 +58,69 @@ day, for 01, as recommended (README §6.2).
 
 **Written one at a time** (README §2.1), each after the one before it has landed and been reviewed.
 The holds are for **method**, not scope: every charter is fixed in README §2.
+
+**Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`91b7a60`), used
+for 01.
+
+**Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
+with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
+rename must be complete, shown by breakage (i)) and its two recommendations (D-name as a
+substitution on equal-length `replace` blocks; no D-fmt rule). Reviewed against its commit
+`4e0d715`, with nothing landed after it. **Every check of the note's §3 passed**, and acceptance 1–3
+are met. No stop condition fired.
+
+*At dispatch.* The note's gate held at `91b7a60`. The tree was clean, the only worktree was this
+checkout, `runregistrykit` was not installed in `venv/` and there was no `var/`. SGK's `HEAD` was
+`14bcac0`, clean, with `RunRegistry/` and `StoreFixtures/` unchanged since `a45aefc`; the 25 rows and
+the shard fixture's blob as the table says. No Ray process was up; `RAY_ADDRESS` unset.
+
+*The checks.*
+1. **Scope.** `4e0d715` touches 11 files: the prompt's §6 list (`pyproject.toml`, the five files
+   under `runregistrykit/`, `compare_with_source.py`, `PROVENANCE.md`), the log, this board and
+   `prompts/INDEX.md`. No `venv/`, `*.egg-info`, `__pycache__` or scratch file; no `var/`.
+2. **The files.** `git ls-files runregistrykit` is exactly the five. `pyproject.toml` is §2.2's:
+   `0.1.0.dev0`, `>=3.12`, `dependencies = []`, `stores = ["datastorekit"]` unbounded,
+   `include = ["runregistrykit*"]`; a description and `include-package-data = false` besides
+   (log deviation 11).
+3. **Equivalence, by running.** The check exits 0 with the expected counts (D-name 6, 13, 4, 0;
+   D-fmt 0; 11 pending; 11 absent; 1 new), and its output is the log's verbatim. Independently,
+   `perl -pe 's/\bRunRegistry\b/runregistrykit/g'` over each module exported from `a45aefc` gives
+   the committed file byte for byte (`cmp`), all four.
+4. **Equivalence, by reading.** `compare_with_source.py` read in full: the constants at its top;
+   SGK read only through `git -C`; nothing of SGK or the package imported; the frozen tree an exact
+   set equality, checked first; D-name the substitution on equal-length `replace` pairs only, no
+   line numbers; the completeness rule present; `__pycache__` skipped; an undeclared `.py` fails; a
+   pending file that is present fails (log deviation 8), so 02 must extend it.
+5. **The check bites.** (a)–(i) extracted from the log and replayed in `bash` (`--check`, apply,
+   `-R --check`, reverse), each exiting 1 and naming the line, file or row as the log records; the
+   tree clean after each. The orchestrator's own, not in the log: `stores.py:120` and `:121`
+   swapped fails as `ADDED package :120`, `DELETED source :121`.
+6. **The import test.** `Ran 3 tests … OK`. Read in full: test 1 and test 3 run `sys.executable
+   -I` from a `tempfile` directory with a 120 s timeout; test 1 checks the seven names in
+   `sys.modules`; test 2 walks every statement but function and lambda bodies and names file, line
+   and module; test 3 checks the usage line, an empty working directory and `REPO_ROOT/var`
+   before and after.
+7. **Isolation.** From an empty scratch directory, `env -u PYTHONPATH`: §3.1's import exits 0;
+   `import RunRegistry` and `import config` each give `ModuleNotFoundError`.
+8. **The probes.** The `json`, `numpy` and `ShardedPool` diffs and (d) replayed: `json` passes
+   the suite; `numpy` fails tests 2 and 3 (correction 1); `ShardedPool` fails tests 1 (`datastorekit`,
+   `ray`, `sqlalchemy` loaded) and 2; (d) fails test 3. The suite is 3 OK after each; no Ray
+   process afterwards.
+9. **The records.** The log has every section of README §5.1, `pip freeze`, the check's whole
+   output, the D-name line citing an SGK path (`stores.py:197`), 0 → 3, and all twelve diffs. The
+   six items of `PROVENANCE.md` are there, the hashes and subjects right. §3's package lines were
+   spot-checked in the package (`DEFAULT_ROOT`'s and `DEFAULT_STORES_ROOT`'s uses, the
+   `git_provenance()` calls, `fingerprint_store` `:1445`, `_repo_path` `:176`): true at `4e0d715`.
+   The index counts 7, as its header says. `black --check runregistrykit docs`: 6 files unchanged.
+
+*Residue fixed in the follow-up.* "this commit" → `4e0d715` on this board and in the log; 01 marked
+reviewed here, in README §2 and its header, and in `prompts/INDEX.md`; this notes line.
+
+*Accepted as recorded.* The log's one UNINTENDED DRIFT (RayPoolKit's `pyproject.toml` read, read
+only, beyond the two files the brief named) changed nothing. Its observations need no issue: the
+`.py`-only walk is the prompt's rule, and 02 extends the check for whatever it adds;
+`stores.py:1567`'s "(prompt 01's log)" is SGK's and is recorded under
+`[00-package-prose-names-sgk]`, which 05 owns. **Nothing opened**; the index stays at 7.
 
 ### 1.1 Items
 
@@ -83,7 +146,7 @@ The holds are for **method**, not scope: every charter is fixed in README §2.
 
 | Gate | Status |
 |---|---|
-| **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. **Package side holds for 01's files** 2026-10-14 (this commit): `docs/extraction/compare_with_source.py` exits 0: the 25 rows and the shard fixture's blob equal; `__init__.py`, `stores.py`, `__main__.py` and `tests/__init__.py` equal their sources but for 23 D-name lines (6, 13, 4, 0), none unclassified, none left unrenamed; 11 files pending (8 for 02, 3 for 04); 11 not imported and absent; 1 declared new file. Package side for the ported tests: 02 |
+| **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. **Package side holds for 01's files** 2026-10-14 (`4e0d715`): `docs/extraction/compare_with_source.py` exits 0: the 25 rows and the shard fixture's blob equal; `__init__.py`, `stores.py`, `__main__.py` and `tests/__init__.py` equal their sources but for 23 D-name lines (6, 13, 4, 0), none unclassified, none left unrenamed; 11 files pending (8 for 02, 3 for 04); 11 not imported and absent; 1 declared new file. Package side for the ported tests: 02 |
 | **E1** | **holds** 2026-10-14: DatastoreKit `v0.4.0` (`c8570e8`, tag object `8e7c1d7`) |
 | **G2** | not yet (SGK adopts `v0.1.0` in its `runregistry-extraction` 05–08) |
 | **G3** | not yet (CPBH adopts) |

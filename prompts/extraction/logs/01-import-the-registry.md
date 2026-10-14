@@ -1,7 +1,7 @@
 # Log — prompt 01: import the registry
 
 **Subject:** Import SGK's registry as the package runregistrykit
-**Commit:** this commit (on `main`, after `91b7a60`)
+**Commit:** `4e0d715` (on `main`, after `91b7a60`)
 **Date:** 2026-10-14
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief (the orchestrator's note
 §0)
@@ -359,7 +359,7 @@ unchanged."
 
 ## The deliberate-breakage record
 
-Each diff is exactly as applied, to the tree of this commit, by a script that applied one, ran the
+Each diff is exactly as applied, to the tree of `4e0d715`, by a script that applied one, ran the
 check and the suite, and restored the files from the index (`git checkout -- runregistrykit docs`;
 for (g), the untracked file was deleted), confirming after each that nothing was left changed. Each
 diff as it appears below was checked with `git apply --check` and `git apply -R --check` (for (g),
@@ -615,7 +615,7 @@ index a70cfbd..2a5993d 100644
 
 ## State handed to the next prompt
 
-- The package is the import, at this commit: SGK's `RunRegistry/` at `a45aefc` under D-name only,
+- The package is the import, at `4e0d715`: SGK's `RunRegistry/` at `a45aefc` under D-name only,
   with C1–C9 as they were. Every package line number equals SGK's at `a45aefc`; the board's §3
   gives each issue's package lines.
 - `venv/` has `runregistrykit` installed editable (`0.1.0.dev0`); nothing else in it changed.
