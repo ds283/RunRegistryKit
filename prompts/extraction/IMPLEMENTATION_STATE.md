@@ -1,9 +1,9 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-14 · **Status: LIVE — 1 of 8 prompts written (01), 1 landed and
-reviewed (01, `4e0d715`; suite 3).** G1 holds on the source side at SGK `a45aefc`, and on the
+**Last updated:** 2026-10-14 · **Status: LIVE — 2 of 8 prompts written (01, 02), 1 landed
+and reviewed (01, `4e0d715`; suite 3).** G1 holds on the source side at SGK `a45aefc`, and on the
 package side for 01's files; E1 holds (DatastoreKit `v0.4.0`). U1 taken at set-up on 2026-10-14;
-U2 and U3 taken the same day, for 01, as recommended (README §6.2).
+U2 and U3 taken the same day, for 01, and U4 for 02, as recommended (README §6.2).
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -32,7 +32,7 @@ U2 and U3 taken the same day, for 01, as recommended (README §6.2).
 |---|---|---|
 | **U2** the import | faithful: only the package's name changes; C1–C9 later | **taken** 2026-10-14 |
 | **U3** the releases | one release, `v0.1.0`, at 06; 01 sets `0.1.0.dev0` | **taken** 2026-10-14 |
-| **U4** shard fixtures | carry SGK's as they are; issue open | open, for 02 |
+| **U4** shard fixtures | carry SGK's as they are; issue open | **taken** 2026-10-14 |
 | **U5** config file | `runregistrykit.toml`; found from the script or the working directory; none is a refusal | open, for 03 |
 | **U6** fingerprinter | a protocol; named by `module:attribute`; each client writes its own | open, for 04 |
 | **U7** what is read | versions, digest, `taken`, comparison `kind` and `text`; `encoding_format` not required to read | open, for 04 |
@@ -48,7 +48,7 @@ U2 and U3 taken the same day, for 01, as recommended (README §6.2).
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
 | 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | `4e0d715` | 0 → 3 |
-| 02 | `02-port-the-core-and-shard-fixture-tests.md` | Sonnet | not written | — | — |
+| 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | written 2026-10-14 | — | — |
 | 03 | `03-the-root-and-the-client-config.md` | Opus | not written | — | — |
 | 04 | `04-the-client-fingerprinter.md` | Opus | not written | — | — |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
