@@ -1,11 +1,11 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-14 · **Status: LIVE — 3 of 8 prompts written (01–03), 3 landed and
+**Last updated:** 2026-10-14 · **Status: LIVE — 4 of 9 prompts written (01–03, 04a), 3 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
-taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, and U5 and U9 for
-03, as recommended (README §6.2).
+taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
+and U6, U7 and U8 for 04, as recommended (README §6.2); 04 split into 04a and 04b.
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -36,9 +36,9 @@ taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, 
 | **U3** the releases | one release, `v0.1.0`, at 06; 01 sets `0.1.0.dev0` | **taken** 2026-10-14 |
 | **U4** shard fixtures | carry SGK's as they are; issue open | **taken** 2026-10-14 |
 | **U5** config file | `runregistrykit.toml`; found from the script or the working directory; none is a refusal | **taken** 2026-10-14 (override spelled `client_root`, prompt 03 §2.3) |
-| **U6** fingerprinter | a protocol; named by `module:attribute`; each client writes its own | open, for 04 |
-| **U7** what is read | versions, digest, `taken`, comparison `kind` and `text`; `encoding_format` not required to read | open, for 04 |
-| **U8** neutral store | own factories and writer, public `datastorekit` names only | open, for 04 |
+| **U6** fingerprinter | a protocol and a shipped `DatastoreKitFingerprinter`, each client instantiating it; named by `[stores] fingerprinter = "module:attribute"` | **taken** 2026-10-14 (re-recommended at 04's writing) |
+| **U7** what is read | versions, digest, `taken`, comparison `kind` and `text`; `encoding_format` not required to read | **taken** 2026-10-14 (two variants of one ported test removed) |
+| **U8** neutral store | own factories and writer, public `datastorekit` names only | **taken** 2026-10-14 |
 | **U9** self-record | `runregistrykit` always in `packages` | **taken** 2026-10-14 |
 | **U10** guard | measured client vocabulary, and an import rule | open, for 05 |
 | **U11** public names | for `_slug` and the like, before the release | open, for 05 |
@@ -52,7 +52,8 @@ taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, 
 | 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | `4e0d715` | 0 → 3 |
 | 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed and reviewed** 2026-10-14 ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | `8155445` | 3 → 108 |
 | 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | `035e4b5` | 108 → 135 |
-| 04 | `04-the-client-fingerprinter.md` | Opus | not written | — | — |
+| 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | written 2026-10-14 | — | — |
+| 04b | `04b-the-retire-tests.md` | Opus | not written | — | — |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
@@ -298,9 +299,10 @@ opened**; the index stays at 7.
 | **T1** | 02 | the 29 core and 76 shard-fixture tests, and their fixtures | ✅ 2026-10-14: the eight files ported; D-name 83, D-fix 5, D-fmt 12 lines in 3 hunks; the suite is 108, OK; the check extended and bites on (a)–(g), 01's (a)–(i) and (m1)–(m3) |
 | **R1** | 03 | the config file and the root rule (C1–C3, C9; Q2, Q3) | ✅ 2026-10-14: `runregistrykit.toml` read by the new `runregistrykit/client.py`; the walk, `client_root=` and `--client-root`; a linked worktree recorded under the main checkout, a bare repository's refused; provenance from the start directory; `REPO_ROOT`, `DEFAULT_ROOT`, `DEFAULT_STORES_ROOT` deleted; no config a `ConfigError`; C4's relative paths kept; the check retired, exit 0 from `8155445`; 27 new tests, the suite 135; (m1)–(m8) caught |
 | **R2** | 03 | the recorded distributions (C5, U9) | ✅ 2026-10-14: `RECORDED_DISTRIBUTIONS` deleted; `packages` is `runregistrykit` and the config's `distributions`; the pinning test renamed `test_the_recorded_names_are_the_registry_and_the_configs`; (m4) caught by three tests |
-| **F1** | 04 | the fingerprinter protocol; layer C and the format deleted (C6, C7) | ⬜ |
-| **F2** | 04 | what the package reads of a fingerprint (U7) | ⬜ |
-| **T2** | 04 | the neutral store; the 78 and `TestFormats`' 2 ported | ⬜ |
+| **F1** | 04a | the fingerprinter protocol and the shipped fingerprinter; layer C and the format deleted (C6, C7) | ⬜ |
+| **F2** | 04a | what the package reads of a fingerprint (U7) | ⬜ |
+| **T2a** | 04a | the neutral store; `test_store_fingerprint`'s 27 and `TestFormats`' 2 ported | ⬜ |
+| **T2b** | 04b | the retire tests' 51 ported onto the neutral store | ⬜ |
 | **P1** | 05 | the prose, the output and the README's rules (C8) | ⬜ |
 | **P2** | 05 | the no-client guard | ⬜ |
 | **V1** | 06 | versions, CI, `v0.1.0` | ⬜ |
@@ -333,7 +335,10 @@ below read in the package). 02's package lines are for the ported tests, read in
 
 ### `[00-the-fingerprint-reads-a-clients-registry]`
 
-**Opened:** 2026-10-14, at planning (C6, C7). **Owner:** 04.
+**Opened:** 2026-10-14, at planning (C6, C7). **Owner:** 04a.
+
+**Assigned (2026-10-14):** to 04a, when 04 was split: 04a deletes layer C and `FINGERPRINT_FORMAT` and
+puts the client's fingerprinter in their place (U6), which is this issue's next step.
 
 `fingerprint_store` imports `from config.datastore import factories` (`stores.py:1494`), SGK's
 registry, and fingerprints with SGK's `FINGERPRINT_FORMAT = 6` (`:206`) through the package's own
@@ -358,7 +363,10 @@ would drift from DatastoreKit's.
 
 ### `[00-the-store-layer-reads-inside-a-fingerprint]`
 
-**Opened:** 2026-10-14, at planning. **Owner:** 04.
+**Opened:** 2026-10-14, at planning. **Owner:** 04a.
+
+**Assigned (2026-10-14):** to 04a, when 04 was split: 04a settles what the package reads of a
+fingerprint (U7) and moves every other reader behind the fingerprinter.
 
 D3 has the package treat a fingerprint as opaque apart from its versions, its digest and the
 comparison's entries. The imported code reads more: the sidecar reader requires `classes`
@@ -466,6 +474,10 @@ used at `runregistrykit/stores.py:1818` and `:1863`, in `retire_store`, and the 
 in `test_store_retire.py`, which 04 ports. No ported file names the constant or its text. The next
 step, a test that reaches the match, is therefore 04's.
 
+**Assigned (2026-10-14):** its next step, a test that reaches the match, to 04b, when 04 was split:
+the one SGK test of it, `test_store_retire.TestWithoutFingerprint.test_an_unreadable_shards_table`, is
+04b's to port. The issue keeps owner none: its remedy is a request to DatastoreKit (README §8).
+
 *Package lines (03, 2026-10-14), read in the package.* `_SHARDS_TABLE_UNREADABLE`
 `runregistrykit/stores.py:1598-1599` (the comment and the assignment), used at `:1858` and `:1905`,
 in `retire_store`. Still reached by no test.
@@ -517,7 +529,10 @@ citations `:235, 331, 403, 483`; `test_store_amend.py` `TestLiveA3Shape` `:205`,
 ### `[02-the-sidecar-readers-guards-are-unpinned]`
 
 **Opened:** 2026-10-14, by the orchestrator's review of 02, from 02's log (observations and its
-(m3) candidates). **Owner:** 04.
+(m3) candidates). **Owner:** 04a.
+
+**Assigned (2026-10-14):** to 04a, when 04 was split: 04a rewrites the reader's shape check and adds
+the two pins before it does (04a §2.6).
 
 Two of the sidecar reader's acceptance rules are pinned by no test. In `_registry_problems`
 (`runregistrykit/stores.py:574`), dropping the `isinstance(fmt, bool)` guard on `sidecar_format`
