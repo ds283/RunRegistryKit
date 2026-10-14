@@ -8,4 +8,4 @@ right.
 
 | Campaign | Status | Opened → last board update | Owns | Open issues |
 |---|---|---|---|---|
-| [`extraction`](extraction/IMPLEMENTATION_STATE.md) | **live** 2026-10-14: 1 of 8 prompts written (01), none landed; G1 holds on the source side (SGK `a45aefc`); E1 holds (DatastoreKit `v0.4.0`); U1–U3 taken 2026-10-14 | 2026-10-14 → 2026-10-14 | moving SGK's `RunRegistry/` into `runregistrykit`; the client config and root rule; the client fingerprinter; the release `v0.1.0`; the clients' adoption checklists (SGK's E2) | §1.1; 7 |
+| [`extraction`](extraction/IMPLEMENTATION_STATE.md) | **live** 2026-10-14: 1 of 8 prompts written (01), 1 landed (01: the package imported, suite 3); G1 holds on the source side (SGK `a45aefc`) and on the package side for 01's files; E1 holds (DatastoreKit `v0.4.0`); U1–U3 taken 2026-10-14 | 2026-10-14 → 2026-10-14 | moving SGK's `RunRegistry/` into `runregistrykit`; the client config and root rule; the client fingerprinter; the release `v0.1.0`; the clients' adoption checklists (SGK's E2) | §1.1; 7 |

@@ -1,8 +1,9 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-14 · **Status: LIVE — 1 of 8 prompts written (01), none landed.** G1 holds on
-the source side at SGK `a45aefc`; E1 holds (DatastoreKit `v0.4.0`). U1 taken at set-up on
-2026-10-14; U2 and U3 taken the same day, for 01, as recommended (README §6.2).
+**Last updated:** 2026-10-14 · **Status: LIVE — 1 of 8 prompts written (01), 1 landed (01, this
+commit; suite 3).** G1 holds on the source side at SGK `a45aefc`, and on the package side for 01's
+files; E1 holds (DatastoreKit `v0.4.0`). U1 taken at set-up on 2026-10-14; U2 and U3 taken the same
+day, for 01, as recommended (README §6.2).
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -46,7 +47,7 @@ the source side at SGK `a45aefc`; E1 holds (DatastoreKit `v0.4.0`). U1 taken at 
 
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
-| 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | written 2026-10-14 | — | — |
+| 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | this commit | 0 → 3 |
 | 02 | `02-port-the-core-and-shard-fixture-tests.md` | Sonnet | not written | — | — |
 | 03 | `03-the-root-and-the-client-config.md` | Opus | not written | — | — |
 | 04 | `04-the-client-fingerprinter.md` | Opus | not written | — | — |
@@ -62,8 +63,8 @@ The holds are for **method**, not scope: every charter is fixed in README §2.
 
 | Item | Prompt | What | State |
 |---|---|---|---|
-| **I1** | 01 | the package skeleton; the three modules under D-name | ⬜ |
-| **I2** | 01 | `PROVENANCE.md`; `compare_with_source.py` (G1, package side) | ⬜ |
+| **I1** | 01 | the package skeleton; the three modules under D-name | ✅ 2026-10-14: D-name on 23 lines (6, 13, 4), D-fmt 0; the import test, 3 tests |
+| **I2** | 01 | `PROVENANCE.md`; `compare_with_source.py` (G1, package side) | ✅ 2026-10-14: the check exits 0 and bites on (a)–(i) |
 | **T1** | 02 | the 29 core and 76 shard-fixture tests, and their fixtures | ⬜ |
 | **R1** | 03 | the config file and the root rule (C1–C3, C9; Q2, Q3) | ⬜ |
 | **R2** | 03 | the recorded distributions (C5, U9) | ⬜ |
@@ -82,7 +83,7 @@ The holds are for **method**, not scope: every charter is fixed in README §2.
 
 | Gate | Status |
 |---|---|
-| **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. Package side: 01, then 02 |
+| **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. **Package side holds for 01's files** 2026-10-14 (this commit): `docs/extraction/compare_with_source.py` exits 0: the 25 rows and the shard fixture's blob equal; `__init__.py`, `stores.py`, `__main__.py` and `tests/__init__.py` equal their sources but for 23 D-name lines (6, 13, 4, 0), none unclassified, none left unrenamed; 11 files pending (8 for 02, 3 for 04); 11 not imported and absent; 1 declared new file. Package side for the ported tests: 02 |
 | **E1** | **holds** 2026-10-14: DatastoreKit `v0.4.0` (`c8570e8`, tag object `8e7c1d7`) |
 | **G2** | not yet (SGK adopts `v0.1.0` in its `runregistry-extraction` 05–08) |
 | **G3** | not yet (CPBH adopts) |
@@ -92,7 +93,10 @@ The holds are for **method**, not scope: every charter is fixed in README §2.
 ## 3. Active and unresolved issues
 
 All seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`. Line
-numbers are SGK's until 01 imports the code; 01 records each issue's package lines.
+numbers are SGK's until 01 imports the code; 01 records each issue's package lines. **From 01 they
+are the same numbers:** D-name replaced one line by one line and `black` changed nothing, so every
+line of `runregistrykit/` sits where it sat in SGK at `a45aefc` (01's log; each line below read in
+the package).
 
 ### `[00-the-root-is-the-packages-parent]`
 
@@ -110,6 +114,13 @@ run's. In SGK the same rule makes a run launched from a worktree record into the
 *Next step.* 03: the root found from where the run starts and marked by the config file (SGK's Q2,
 U5), records under the main checkout (Q3), provenance from the run's own tree.
 
+*Package lines (01, 2026-10-14).* `REPO_ROOT` `runregistrykit/__init__.py:57`; `DEFAULT_ROOT` `:58`,
+used at `:608, 681`, `runregistrykit/stores.py:911, 940, 1741` and as argparse defaults
+`runregistrykit/__main__.py:376, 388-390`; `DEFAULT_STORES_ROOT` `stores.py:185`, used at `:1742` and
+`__main__.py:452-455`; `_repo_path`/`_resolve` `__init__.py:176-185`; `git_provenance(cwd=REPO_ROOT)`
+`__init__.py:98`, called with the default at `__init__.py:649` and `stores.py:833, 893, 1101, 1140,
+1499, 1921, 2164`. In this repository's editable install `REPO_ROOT` is the repository's root.
+
 ### `[00-the-recorded-distributions-are-sgks]`
 
 **Opened:** 2026-10-14, at planning (C5). **Owner:** 03.
@@ -122,6 +133,10 @@ cannot record them. The registry itself is not recorded.
 
 *Next step.* 03: the config's `distributions`, with `runregistrykit` always recorded (U9); the
 pinning test becomes a test of the config.
+
+*Package lines (01, 2026-10-14).* `RECORDED_DISTRIBUTIONS` `runregistrykit/__init__.py:119`, the
+default of `package_provenance` (`:122`). The pinning test is SGK's `test_run_registry.py:393-396`,
+which 02 ports.
 
 ### `[00-the-fingerprint-reads-a-clients-registry]`
 
@@ -136,6 +151,11 @@ fingerprint=True)` and `store retire` fail with `ModuleNotFoundError`. A second 
 would drift from DatastoreKit's.
 
 *Next step.* 04: the client fingerprinter (D3, U6), layer C and the format deleted.
+
+*Package lines (01, 2026-10-14).* `from config.datastore import factories`
+`runregistrykit/stores.py:1494`, inside `fingerprint_store` (`:1445`); `FINGERPRINT_FORMAT = 6`
+`:206`, its history `:194-205`; layer C `:1152-1399` (`fingerprint_of` `:1182`, called `:1500`;
+`compare_fingerprints` `:1256`, called `:1529`; `listing_lines` `:1376-1399`).
 
 ### `[00-the-store-layer-reads-inside-a-fingerprint]`
 
@@ -153,6 +173,12 @@ shape, which D3 rejected, and a DatastoreKit change to it would break `store sho
 *Next step.* 04, under U7: the package reads only the named fields and `taken`; the rest is printed
 through the fingerprinter.
 
+*Package lines (01, 2026-10-14).* `_fingerprint_problems` `runregistrykit/stores.py:416-436`, called
+by the sidecar reader at `:630`; `fingerprint_store` builds `taken` at `:1500-1508` and calls
+`_difference` at `:1519`; `retire_store` reads `digest` and `taken.when` at `:1887-1894`;
+`runregistrykit/__main__.py`: `_print_fingerprint` `:267-287`, `_fingerprint` reads `taken` and
+`digest` at `:307-327`.
+
 ### `[00-package-prose-names-sgk]`
 
 **Opened:** 2026-10-14, at planning (C8). **Owner:** 05.
@@ -166,6 +192,13 @@ would be sent to a command they do not have.
 
 *Next step.* 05: the prose in the package's own terms, SGK's history in `PROVENANCE.md`, the rules in
 the README, and the guard (U10) so it stays that way.
+
+*Package lines (01, 2026-10-14).* The SGK citations sit at README §0.2's C8 lines, now in
+`runregistrykit/__init__.py` and `runregistrykit/stores.py`; the CLI text is
+`runregistrykit/__main__.py:281`. D-name made one renamed comment cite a path that does not exist
+here: `stores.py:197`, `runregistrykit/tests/data/full_store_fingerprint*.json` (01's log). And
+`stores.py:1567`'s "(prompt 01's log)" means an SGK campaign's prompt 01 (the comment sits in the
+section SGK's `store-retirement` campaign wrote), not this campaign's (01's log, observations).
 
 ### `[00-the-shard-fixtures-reach-into-shardedpool]`
 
@@ -182,6 +215,9 @@ one of those internals breaks the suite here with no change in the package's beh
 *Next step.* Pin `datastorekit` exactly in CI (U13), so that a change is seen when the pin moves. A
 public way to write and reopen a small store would be a request to DatastoreKit (README §8).
 
+*Package lines (01, 2026-10-14).* None yet: the fixture is pending, 02
+(`runregistrykit/tests/shard_store_fixtures.py`, `store_fixtures.py`).
+
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
 **Opened:** 2026-10-14, at planning. **Owner:** none.
@@ -196,6 +232,9 @@ an error. The text is unchanged from `v0.2.2` to `v0.4.0`.
 
 *Next step.* Keep a test that reaches the match at both tested ends (02 or 04, whichever ports it).
 A typed exception would be a request to DatastoreKit (README §8).
+
+*Package lines (01, 2026-10-14).* `_SHARDS_TABLE_UNREADABLE` `runregistrykit/stores.py:1567-1568`
+(the comment and the assignment).
 
 ## 4. Resolved issues
 
