@@ -1,0 +1,18 @@
+.DS_Store
+.idea
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+venv/
+.venv/
+*.sqlite
+*.db
+*.sqlite-journal
+*.db-journal
+*-wal
+*-shm
+
+# A run root made by hand while developing (runs and store sidecars)
+var/
