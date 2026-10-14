@@ -69,19 +69,37 @@ it.
 
 ## The differences allowed
 
-The three modules and `tests/__init__.py` equal their sources at `a45aefc` except for these classes
-of difference (prompt 01 §2.4). Nothing else differs.
+The three modules and `tests/__init__.py` (prompt 01), and the eight test and fixture files
+(prompt 02), equal their sources at `a45aefc` except for these classes of difference (prompt 01
+§2.4, prompt 02 §2.3). Nothing else differs.
 
 - **D-name, the package's name.** Every whole-word occurrence of `RunRegistry` (the regular
   expression `\bRunRegistry\b`) becomes `runregistrykit`, and nothing else on the line changes: the
-  CLI's `prog`, the `python -m RunRegistry …` text of the error messages, and the docstrings and
-  comments; 23 lines in all (6 in `__init__.py`, 13 in `stores.py`, 4 in `__main__.py`). The rule
-  is uniform, so one renamed comment, `stores.py:197`, now cites a path that does not exist here
+  CLI's `prog`, the `python -m RunRegistry …` text of the error messages, the docstrings and
+  comments, and in the tests the imports, `runpy.run_module("RunRegistry", …)`, `sys.argv` and the
+  `-m RunRegistry` of the child processes. 106 lines in all: 23 in the package (6 in `__init__.py`,
+  13 in `stores.py`, 4 in `__main__.py`) and 83 in the tests (31, 6, 15, 10, 11, 8, 2 and 0, in the
+  order of the table: `test_run_registry.py`, `store_fixtures.py`, `test_store_sidecar.py`,
+  `test_store_copy_move.py`, `test_store_command_line.py`, `test_store_amend.py`,
+  `test_store_amend_residuals.py`, `shard_store_fixtures.py`). The rule is uniform, so one renamed
+  comment, `stores.py:197`, now cites a path that does not exist here
   (`runregistrykit/tests/data/full_store_fingerprint*.json`, SGK's golden fingerprints).
-- **D-fmt, formatting.** `black` 25.1.0, with no configuration. It changes nothing: the source is
-  black-clean, and every renamed line is inside a docstring, comment or string, which `black` does
-  not split. So the check has no D-fmt rule, and every line of the package sits at its line number
-  in SGK.
+- **D-fix, the shard fixture's new home.** `\bStoreFixtures\.shard_store_fixtures\b` becomes
+  `runregistrykit.tests.shard_store_fixtures`, and `\bStoreFixtures/shard_store_fixtures\.py`
+  becomes `runregistrykit/tests/shard_store_fixtures.py` (decision U4: the fixture is carried as it
+  is, under `tests/`). 5 lines: the three imports (`store_fixtures.py:20`,
+  `test_store_sidecar.py:28`, `test_store_copy_move.py:32`) and two docstrings
+  (`store_fixtures.py:4`, `test_store_amend.py:15`). The imports are absolute, as SGK's were.
+- **D-fmt, formatting.** `black` 25.1.0, with no configuration, applied to the renamed source. It
+  changes nothing in the three modules and the other eleven files, but D-name lengthens three code
+  lines of `test_store_copy_move.py` past 88 columns and `black` reflows them: source `:73` (1 line
+  becomes 4, a dict split with a trailing comma `black` adds, package `:73-76`), `:135` (1 becomes
+  5, package `:138-142`) and `:211` (1 becomes 3, package `:218-220`). **3 source lines, 12 package
+  lines, in 3 hunks, all in that file**, which goes from 601 lines to 610. From `:73` on, that
+  file's package line numbers are no longer SGK's; every other file's are.
+
+The three reflowed lines are three of that file's ten D-name lines as well, since they were reflowed
+because D-name lengthened them. No line needs both D-name and D-fix.
 
 **Imported unchanged:** the couplings to SGK that README §0.2 lists as C1–C9 (the root as the
 package's parent, the runs and stores roots under it, SGK's recorded distributions, the lazy
@@ -103,14 +121,28 @@ From the repository root, with the repository's venv:
 It reads SGK only with `git -C /Users/ds283/Documents/Code/SecondaryGWKit ls-tree|rev-parse|show
 a45aefc…`, never SGK's working tree, and imports nothing of SGK or of this package. It checks that
 `RunRegistry/` at the import commit is still the 25 rows of the table above, path and blob, and the
-shard fixture its blob; that every imported file exists here and every other file under
-`runregistrykit/` is declared; that no file left in SGK is here; and, line by line, that every line
-on which a package module differs from its source is the D-name substitution applied to the source
-line, and that no line still holds the word `RunRegistry`. A line no rule maps, and any line added
-or deleted, fails the check. Files ported by a later prompt are reported as pending while absent.
-It exits 0 only when all of that holds; the rules are stated in its docstring.
+shard fixture its blob; that every imported or ported file exists here and every other file under
+`runregistrykit/` is declared; that no file left in SGK is here; and, for each of the twelve files
+checked, that:
 
-The check holds through prompt 02, while the package is the import. It is retired at prompt 03's
+1. T, the *renamed source* (the source with D-name and D-fix applied to every line, one line for
+   one line), is formed, counting the lines each changed;
+2. the package file equals `black.format_str(T, mode=black.Mode())` exactly; the lines where
+   `black(T)` differs from T are D-fmt, counted and printed hunk by hunk;
+3. any line where the package differs from `black(T)` is printed as UNCLASSIFIED, with its package
+   line number, and fails the check; nothing is widened to accept a difference;
+4. no line of the package file still holds the word `RunRegistry` or `StoreFixtures`.
+
+Files ported by a later prompt are reported as pending while absent, and fail if present. The rule
+names no line number. **The check needs `black` 25.1.0**: it imports it and exits 2 (cannot run)
+if it is missing or another version, so the reflows it accepts are those of the version recorded
+here. It uses `black.Mode()`, which infers target versions from each file's content; `black` run at
+the root reads `pyproject.toml` instead and infers `py312`, `py313` from `requires-python`. On all
+twelve files the two give the same output (measured), and `black --check runregistrykit docs` would
+show it if they ever differed. It exits 0 only when all of that holds; the rules are stated in its
+docstring.
+
+The check holds through prompt 02, while the package is the import and the ported tests. It is retired at prompt 03's
 start, when the package begins to change in its own right; from then it describes 02's tree and is
 re-run from a worktree of 02's commit (README §4).
 

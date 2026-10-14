@@ -99,9 +99,12 @@ a prompt that says so. No reader of an older form is added.
 
 ## Repository mechanics
 
-- **Tests** will live in `runregistrykit/tests/` as `unittest` modules and run from the repository
-  root. They **must not need a Ray cluster**, must not import a client, and must not create
-  anything outside a `tempfile` directory: a test that needs a client root builds one there.
+- **Tests** live in `runregistrykit/tests/` as `unittest` modules, and run from the repository root
+  with `./venv/bin/python -m unittest discover -s runregistrykit/tests -t .`. They need
+  `datastorekit` and `ray` installed (Ray is never initialised) and the checkout to be a git work
+  tree (two tests read the checkout's commit). They **must not need a Ray cluster**, must not
+  import a client, and must not create anything outside a `tempfile` directory: a test that needs
+  a client root builds one there.
 - **Format with `black`** (no configuration) the files you change, before committing.
 - **Supported versions** will be stated in `pyproject.toml`. The clients run Python 3.12 (SGK) and
   3.13 (CPBH, SI).

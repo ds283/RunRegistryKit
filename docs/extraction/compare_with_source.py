@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 """
-The equivalence check of the extraction campaign (prompt 01 §2.6; README §4 and §5 rule 8).
+The equivalence check of the extraction campaign (prompt 01 §2.6, extended by prompt 02 §2.4;
+README §4 and §5 rule 8).
 
-The package ``runregistrykit`` is SecondaryGWKit's ``RunRegistry/`` at the import commit, changed
-only by the classes of difference prompt 01 §2.4 allows. This script checks that, from the
-repository root, with the venv's interpreter:
+The package ``runregistrykit`` is SecondaryGWKit's ``RunRegistry/`` at the import commit (and, from
+prompt 02, the tests and fixtures ported with it), changed only by the classes of difference
+below. This script checks that, from the repository root, with the venv's interpreter:
 
     ./venv/bin/python docs/extraction/compare_with_source.py
 
 It reads the source only with ``git -C <SGK> ls-tree|rev-parse|show`` at the import commit, never
 from the source's working tree, and imports nothing of the source or of this package. It writes
-nothing.
+nothing. It imports ``black``, pinned (below).
 
 **The frozen tree.** ``git ls-tree -r <commit> -- RunRegistry/`` must equal the rows of ``TABLE``
 under ``RunRegistry/`` exactly, path and blob, with no row missing or extra; and every row outside
 ``RunRegistry/`` (the shard fixture) must be the blob ``git rev-parse <commit>:<path>`` gives.
 
 **The fates.** Each row of ``TABLE`` has one fate:
-- *imported*: the package file must exist, and is compared line by line (below);
+- *imported by 01* or *ported by 02*: the package file must exist, and is checked by the rule
+  below, the same rule for both;
 - *pending, NN*: ported by a later prompt. While its package file is absent it is reported as
   pending. If it is present it fails: no rule here covers it, and the prompt that ports it extends
   this script to check it;
@@ -29,31 +31,47 @@ is either the package file of a row of ``TABLE`` or one of ``NEW_FILES``, the fi
 source. Any other fails as NOT DECLARED, and a declared new file that is absent fails as MISSING.
 A prompt that adds a file declares it here.
 
-**How a line is classified.** The source and the package file are compared line by line
-(``difflib``, no junk heuristic). Equal lines need no class. Where a run of source lines is
-replaced by a run of package lines *of the same length*, the pairs are taken in turn; a pair is
-**D-name** exactly when the D-name substitution applied to the source line gives the package line,
-indentation and trailing text included:
+**The rule for a checked file.** The differences allowed are three substitutions and no others:
 
-    re.sub(r"\\bRunRegistry\\b", "runregistrykit", source_line) == package_line
+- *D-name*, the package's name: ``\\bRunRegistry\\b`` becomes ``runregistrykit``;
+- *D-fix*, the shard fixture's new home: ``\\bStoreFixtures\\.shard_store_fixtures\\b`` becomes
+  ``runregistrykit.tests.shard_store_fixtures`` and ``\\bStoreFixtures/shard_store_fixtures\\.py``
+  becomes ``runregistrykit/tests/shard_store_fixtures.py``;
+- *D-fmt*, ``black`` 25.1.0 with no configuration.
 
-That is a rule applied to the source line, not a pattern a package line may match, and no line
-number appears in it. A pair it does not map, every added or deleted line, and every line of a
-replaced run whose two sides differ in length, is UNCLASSIFIED.
+The rule, in four steps, with no line number in it:
 
-There is **no D-fmt rule**: ``black`` 25.1.0 leaves the renamed modules unchanged, so formatting
-accounts for no difference, and its count is reported as 0. A line ``black`` had changed would be
-UNCLASSIFIED here.
+1. T, the *renamed source*, is the source with D-name and D-fix applied to every line, one line
+   for one line. The lines D-name changes, and the lines D-fix changes, are counted (a line that
+   needed both would be counted under each).
+2. The package file must equal ``black.format_str(T, mode=black.Mode())`` exactly. The lines
+   where ``black(T)`` differs from T (the non-equal ``difflib`` opcodes, no junk heuristic) are
+   D-fmt: they are counted, as package lines and as hunks, and each hunk is printed with its T
+   and package lines. D-fmt is a property of the source, so a breakage in the package does not
+   move any of the three counts.
+3. If the package differs from ``black(T)``, every differing line (``difflib`` between
+   ``black(T)`` and the package, with package line numbers) is printed as UNCLASSIFIED and the
+   check fails. Nothing is widened to accept a difference.
+4. Completeness: no line of a checked package file may match ``\\bRunRegistry\\b`` or
+   ``\\bStoreFixtures\\b``; one that does fails, named by file and line. A line left unrenamed
+   equals T on that line only if the source did not need the rename, so it would otherwise pass.
 
-**The rename is complete.** D-name renames *every* whole-word occurrence, so no line of an
-imported package module may match ``\\bRunRegistry\\b``. A line on which the rename was not made
-equals its source and passes the comparison above; this check fails it, naming file and line.
+For the files prompt 01 imported, ``black(T) == T``, so step 2 requires the package to equal T
+line for line, which is what 01's per-pair rule required.
 
-The script prints, for each imported file, its count per class and every line it could not
-classify, and then the pending, absent and declared files. It exits 0 when every row of the frozen
-tree is as the table says, every differing line is classified, the rename is complete, and every
-file is present and declared, pending files notwithstanding; 1 when not; and 2 when it cannot run
-(``git`` fails).
+**``black`` is a dependency of this check, pinned.** The script exits 2 (cannot run) unless
+``black.__version__ == "25.1.0"``, so the reflows it accepts are those of the version recorded
+here. It uses ``black.Mode()``, which infers the target versions from each file's content. The
+command ``black`` run at the repository root reads ``pyproject.toml`` and infers its target
+versions from ``requires-python`` instead; on every file checked here the two give the same
+output (measured, prompt 02), but they could differ in principle, and ``black --check
+runregistrykit docs`` (prompt 02 §3.5) would then show it.
+
+The script prints, for each checked file, its counts and every instance of each class and every
+line it could not classify, and then the pending, absent and declared files. It exits 0 when every
+row of the frozen tree is as the table says, every checked file equals ``black(T)``, the rename is
+complete, and every file is present and declared, pending files notwithstanding; 1 when not; and 2
+when it cannot run (``git`` fails, or ``black`` is missing, is not 25.1.0, or fails on T).
 """
 
 import difflib
@@ -61,6 +79,13 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+
+try:
+    import black
+except ImportError:  # reported as CANNOT RUN, in main()
+    black = None
+
+BLACK_VERSION = "25.1.0"
 
 # --- the source -----------------------------------------------------------------------------------
 
@@ -74,6 +99,7 @@ PACKAGE = "runregistrykit"
 # --- the fate of every source file (prompt 01 §2.5) -----------------------------------------------
 
 IMPORTED = "imported by 01"
+PORTED = "ported by 02"
 NOT_IMPORTED = "not imported"
 
 
@@ -110,43 +136,43 @@ TABLE = (
     (
         "RunRegistry/tests/store_fixtures.py",
         "391f31fc2155c1f2d8f2350d306272ee6e0ae54e",
-        pending("02"),
+        PORTED,
         "runregistrykit/tests/store_fixtures.py",
     ),
     (
         "RunRegistry/tests/test_run_registry.py",
         "01c3ea37d8491c63300667f5a181f3bad91000ab",
-        pending("02"),
+        PORTED,
         "runregistrykit/tests/test_run_registry.py",
     ),
     (
         "RunRegistry/tests/test_store_sidecar.py",
         "533d1118447527cfef65a833525516fcadbbc2e7",
-        pending("02"),
+        PORTED,
         "runregistrykit/tests/test_store_sidecar.py",
     ),
     (
         "RunRegistry/tests/test_store_copy_move.py",
         "4be78d983aa83d5d7d39fc440519347cc87386bd",
-        pending("02"),
+        PORTED,
         "runregistrykit/tests/test_store_copy_move.py",
     ),
     (
         "RunRegistry/tests/test_store_command_line.py",
         "6f111e29e9b695340a88bf19eb18a50e89a9ea05",
-        pending("02"),
+        PORTED,
         "runregistrykit/tests/test_store_command_line.py",
     ),
     (
         "RunRegistry/tests/test_store_amend.py",
         "8b7db110f76ae74bfb4716fe12d7192bac38265e",
-        pending("02"),
+        PORTED,
         "runregistrykit/tests/test_store_amend.py",
     ),
     (
         "RunRegistry/tests/test_store_amend_residuals.py",
         "0c6e6a2ca5d59b74dcb960111a5cd05ed2d991f4",
-        pending("02"),
+        PORTED,
         "runregistrykit/tests/test_store_amend_residuals.py",
     ),
     (
@@ -236,7 +262,7 @@ TABLE = (
     (
         "StoreFixtures/shard_store_fixtures.py",
         "1375949aacde2263de991785055cd7dfabc57251",
-        pending("02"),
+        PORTED,
         "runregistrykit/tests/shard_store_fixtures.py",
     ),
 )
@@ -246,10 +272,15 @@ NEW_FILES = {
     "runregistrykit/tests/test_package_imports.py": "01 §2.7: the import test",
 }
 
-# --- the classes of difference (prompt 01 §2.4) ---------------------------------------------------
+# --- the classes of difference (prompt 01 §2.4; prompt 02 §2.3) -----------------------------------
 
 OLD_NAME = re.compile(r"\bRunRegistry\b")
 NEW_NAME = "runregistrykit"
+
+# the shard fixture's new home: the dotted form (imports), and the path form (docstrings)
+FIX_DOTTED = re.compile(r"\bStoreFixtures\.shard_store_fixtures\b")
+FIX_PATH = re.compile(r"\bStoreFixtures/shard_store_fixtures\.py")
+OLD_FIXTURES = re.compile(r"\bStoreFixtures\b")
 
 
 def d_name(source_line: str) -> str:
@@ -257,7 +288,13 @@ def d_name(source_line: str) -> str:
     return OLD_NAME.sub(NEW_NAME, source_line)
 
 
-CLASSES = ("D-name", "D-fmt")  # D-fmt has no rule: its count is always 0
+def d_fix(source_line: str) -> str:
+    """The image of ``source_line`` under D-fix: the shard fixture's imports and path."""
+    line = FIX_DOTTED.sub("runregistrykit.tests.shard_store_fixtures", source_line)
+    return FIX_PATH.sub("runregistrykit/tests/shard_store_fixtures.py", line)
+
+
+CLASSES = ("D-name", "D-fix", "D-fmt")
 
 
 # --- git ------------------------------------------------------------------------------------------
@@ -336,50 +373,107 @@ def _lines(text: str):
     return lines
 
 
-def compare_module(source_path: str, package_path: str):
-    """Compare one imported file line by line; returns (counts, classified, unclassified)."""
-    src = _lines(git("show", f"{IMPORT_COMMIT}:{source_path}"))
-    pkg = _lines((REPO_ROOT / package_path).read_text(encoding="utf-8"))
+def renamed_source(source_text: str):
+    """T: the source with D-name and D-fix applied to every line, one line for one line.
 
-    counts = {"identical": 0}
-    counts.update({name: 0 for name in CLASSES})
+    Returns (T as text, the lines D-name changed, the lines D-fix changed), the last two as lists
+    of (source line number, source line, renamed line).
+    """
+    name_lines, fix_lines, out = [], [], []
+    for n, line in enumerate(source_text.split("\n"), start=1):
+        named = d_name(line)
+        fixed = d_fix(line)
+        if named != line:
+            name_lines.append((n, line, named))
+        if fixed != line:
+            fix_lines.append((n, line, fixed))
+        out.append(d_fix(named))
+    return "\n".join(out), name_lines, fix_lines
+
+
+def black_of(text: str, what: str) -> str:
+    """``black`` 25.1.0 with no configuration; a failure on T means the check cannot run."""
+    try:
+        return black.format_str(text, mode=black.Mode())
+    except (
+        Exception
+    ) as e:  # black raises several types; T comes from the source, so none is ours
+        raise CannotRun(f"black failed on the renamed source of {what}: {e!r}")
+
+
+def compare_module(source_path: str, package_path: str):
+    """Check one file by the rule; returns (counts, classified, unclassified).
+
+    ``counts`` has the three classes (D-fmt in package lines) and ``D-fmt hunks`` and
+    ``identical`` (lines the source and package share, unchanged by every class).
+    """
+    source_text = git("show", f"{IMPORT_COMMIT}:{source_path}")
+    package_text = (REPO_ROOT / package_path).read_text(encoding="utf-8")
+
+    t_text, name_lines, fix_lines = renamed_source(source_text)
+    expected = black_of(t_text, source_path)
+
+    t = _lines(t_text)
+    b = _lines(expected)
+    pkg = _lines(package_text)
+
     classified = []
     unclassified = []
+    counts = {name: 0 for name in CLASSES}
+    counts["D-fmt hunks"] = 0
 
-    matcher = difflib.SequenceMatcher(None, src, pkg, autojunk=False)
-    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+    for n, s, p in name_lines:
+        counts["D-name"] += 1
+        classified.append(f"D-name source :{n}\n    - {s}\n    + {p}")
+    for n, s, p in fix_lines:
+        counts["D-fix"] += 1
+        classified.append(f"D-fix source :{n}\n    - {s}\n    + {p}")
+
+    # D-fmt: where black(T) differs from T, a property of the source alone
+    stable = set()  # T lines (numbered from 1) that black leaves as they are
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(
+        None, t, b, autojunk=False
+    ).get_opcodes():
         if tag == "equal":
-            counts["identical"] += i2 - i1
+            stable.update(range(i1 + 1, i2 + 1))
             continue
+        counts["D-fmt hunks"] += 1
+        counts["D-fmt"] += j2 - j1
+        body = [f"    - {line}" for line in t[i1:i2]] + [
+            f"    + {line}" for line in b[j1:j2]
+        ]
+        classified.append(
+            f"D-fmt source :{i1 + 1}-{i2} -> package :{j1 + 1}-{j2}\n" + "\n".join(body)
+        )
+    changed = {n for n, _, _ in name_lines} | {n for n, _, _ in fix_lines}
+    counts["identical"] = len(stable - changed)
 
-        if tag == "replace" and i2 - i1 == j2 - j1:
-            for k in range(i2 - i1):
-                s, p = src[i1 + k], pkg[j1 + k]
-                where = f"source :{i1 + k + 1} / package :{j1 + k + 1}"
-                if s == p:
-                    counts["identical"] += 1
-                elif d_name(s) == p:
-                    counts["D-name"] += 1
-                    classified.append(f"D-name {where}\n    - {s}\n    + {p}")
-                else:
-                    unclassified.append(
-                        f"CHANGED (no rule maps it) {where}\n    - {s}\n    + {p}"
-                    )
+    # the package must equal black(T) exactly
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(
+        None, b, pkg, autojunk=False
+    ).get_opcodes():
+        if tag == "equal":
             continue
-
-        # an insertion, a deletion, or a replacement of a different length: never classified
         for i in range(i1, i2):
-            unclassified.append(f"DELETED source :{i + 1}\n    - {src[i]}")
-        for j in range(j1, j2):
-            unclassified.append(f"ADDED   package :{j + 1}\n    + {pkg[j]}")
-
-    # the rename is complete: no imported line keeps the source's name
-    for n, line in enumerate(pkg, start=1):
-        if OLD_NAME.search(line):
             unclassified.append(
-                f"NOT RENAMED {package_path}:{n} still has the word RunRegistry\n"
-                f"    = {line}"
+                f"DIFFERS FROM black(T) (black(T) line :{i + 1}, absent from the package)\n    - {b[i]}"
             )
+        for j in range(j1, j2):
+            unclassified.append(
+                f"DIFFERS FROM black(T) (package :{j + 1}, not in black(T))\n    + {pkg[j]}"
+            )
+
+    # the rename is complete: no checked line keeps a source name
+    for n, line in enumerate(pkg, start=1):
+        for pattern, word in (
+            (OLD_NAME, "RunRegistry"),
+            (OLD_FIXTURES, "StoreFixtures"),
+        ):
+            if pattern.search(line):
+                unclassified.append(
+                    f"NOT RENAMED {package_path}:{n} still has the word {word}\n"
+                    f"    = {line}"
+                )
 
     return counts, classified, unclassified
 
@@ -395,7 +489,21 @@ def package_files():
     )
 
 
+def require_black():
+    if black is None:
+        raise CannotRun(
+            f"black is not importable; this check needs black {BLACK_VERSION} "
+            "(pip install black==" + BLACK_VERSION + ")"
+        )
+    if black.__version__ != BLACK_VERSION:
+        raise CannotRun(
+            f"black is {black.__version__}; this check is pinned to black {BLACK_VERSION}, "
+            "whose reflows it accepts"
+        )
+
+
 def main() -> int:
+    require_black()
     print(
         f"Equivalence check: {PACKAGE} against SecondaryGWKit ({SGK_PATH}) "
         f"at {IMPORT_COMMIT}"
@@ -403,15 +511,16 @@ def main() -> int:
     print()
     failed = bool(check_frozen_tree())
 
-    imported = [row for row in TABLE if row[2] == IMPORTED]
+    checked = [row for row in TABLE if row[2] in (IMPORTED, PORTED)]
     pending_rows = [row for row in TABLE if row[2].startswith("pending")]
     not_imported = [row for row in TABLE if row[2] == NOT_IMPORTED]
     here = package_files()
 
     totals = {name: 0 for name in CLASSES}
-    for src, _, _, target in imported:
+    totals["D-fmt hunks"] = 0
+    for src, _, fate, target in checked:
         print()
-        print(f"{target}  <-  {src}  [{IMPORTED}]")
+        print(f"{target}  <-  {src}  [{fate}]")
         if not (REPO_ROOT / target).is_file():
             print("  !! MISSING: the package file does not exist")
             failed = True
@@ -475,10 +584,13 @@ def main() -> int:
         failed = True
 
     print()
+    by01 = sum(1 for row in checked if row[2] == IMPORTED)
     print(
-        f"Summary: {len(imported)} imported (D-name {totals['D-name']}, "
-        f"D-fmt {totals['D-fmt']}); {len(pending_rows)} pending; "
-        f"{absent} not imported and absent; {len(NEW_FILES)} declared new"
+        f"Summary: {len(checked)} checked ({by01} by 01, {len(checked) - by01} by 02): "
+        f"D-name {totals['D-name']}, D-fix {totals['D-fix']}, "
+        f"D-fmt {totals['D-fmt']} in {totals['D-fmt hunks']} hunks; "
+        f"{len(pending_rows)} pending; {absent} not imported and absent; "
+        f"{len(NEW_FILES)} declared new"
     )
     print("RESULT: " + ("FAIL" if failed else "OK"))
     return 1 if failed else 0

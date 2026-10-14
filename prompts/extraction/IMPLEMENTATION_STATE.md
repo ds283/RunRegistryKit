@@ -1,8 +1,8 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-14 · **Status: LIVE — 2 of 8 prompts written (01, 02), 1 landed
-and reviewed (01, `4e0d715`; suite 3).** G1 holds on the source side at SGK `a45aefc`, and on the
-package side for 01's files; E1 holds (DatastoreKit `v0.4.0`). U1 taken at set-up on 2026-10-14;
+**Last updated:** 2026-10-14 · **Status: LIVE — 2 of 8 prompts written (01, 02), 2 landed (01,
+`4e0d715`, reviewed; suite 3. 02, this commit, awaiting review; suite 108).** G1 holds on the source
+side at SGK `a45aefc`, and on the package side for 01's and 02's files; E1 holds (DatastoreKit `v0.4.0`). U1 taken at set-up on 2026-10-14;
 U2 and U3 taken the same day, for 01, and U4 for 02, as recommended (README §6.2).
 
 **Campaign:** [`README.md`](README.md) ·
@@ -48,7 +48,7 @@ U2 and U3 taken the same day, for 01, and U4 for 02, as recommended (README §6.
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
 | 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | `4e0d715` | 0 → 3 |
-| 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | written 2026-10-14 | — | — |
+| 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed** 2026-10-14, awaiting review ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | this commit | 3 → 108 |
 | 03 | `03-the-root-and-the-client-config.md` | Opus | not written | — | — |
 | 04 | `04-the-client-fingerprinter.md` | Opus | not written | — | — |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
@@ -128,7 +128,7 @@ only, beyond the two files the brief named) changed nothing. Its observations ne
 |---|---|---|---|
 | **I1** | 01 | the package skeleton; the three modules under D-name | ✅ 2026-10-14: D-name on 23 lines (6, 13, 4), D-fmt 0; the import test, 3 tests |
 | **I2** | 01 | `PROVENANCE.md`; `compare_with_source.py` (G1, package side) | ✅ 2026-10-14: the check exits 0 and bites on (a)–(i) |
-| **T1** | 02 | the 29 core and 76 shard-fixture tests, and their fixtures | ⬜ |
+| **T1** | 02 | the 29 core and 76 shard-fixture tests, and their fixtures | ✅ 2026-10-14: the eight files ported; D-name 83, D-fix 5, D-fmt 12 lines in 3 hunks; the suite is 108, OK; the check extended and bites on (a)–(g), 01's (a)–(i) and (m1)–(m3) |
 | **R1** | 03 | the config file and the root rule (C1–C3, C9; Q2, Q3) | ⬜ |
 | **R2** | 03 | the recorded distributions (C5, U9) | ⬜ |
 | **F1** | 04 | the fingerprinter protocol; layer C and the format deleted (C6, C7) | ⬜ |
@@ -146,7 +146,7 @@ only, beyond the two files the brief named) changed nothing. Its observations ne
 
 | Gate | Status |
 |---|---|
-| **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. **Package side holds for 01's files** 2026-10-14 (`4e0d715`): `docs/extraction/compare_with_source.py` exits 0: the 25 rows and the shard fixture's blob equal; `__init__.py`, `stores.py`, `__main__.py` and `tests/__init__.py` equal their sources but for 23 D-name lines (6, 13, 4, 0), none unclassified, none left unrenamed; 11 files pending (8 for 02, 3 for 04); 11 not imported and absent; 1 declared new file. Package side for the ported tests: 02 |
+| **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. **Package side holds for 01's files** 2026-10-14 (`4e0d715`): `docs/extraction/compare_with_source.py` exits 0: the 25 rows and the shard fixture's blob equal; `__init__.py`, `stores.py`, `__main__.py` and `tests/__init__.py` equal their sources but for 23 D-name lines (6, 13, 4, 0), none unclassified, none left unrenamed; 11 files pending (8 for 02, 3 for 04); 11 not imported and absent; 1 declared new file. **Package side for 02's eight files holds** 2026-10-14 (this commit): the check, extended, exits 0: 12 files checked (4 by 01, 8 by 02); each equals `black` of its renamed source; D-name 106, D-fix 5, D-fmt 12 lines in 3 hunks (all in `test_store_copy_move.py`); 3 files pending (04); 11 not imported and absent; 1 declared new file |
 | **E1** | **holds** 2026-10-14: DatastoreKit `v0.4.0` (`c8570e8`, tag object `8e7c1d7`) |
 | **G2** | not yet (SGK adopts `v0.1.0` in its `runregistry-extraction` 05–08) |
 | **G3** | not yet (CPBH adopts) |
@@ -155,11 +155,12 @@ only, beyond the two files the brief named) changed nothing. Its observations ne
 
 ## 3. Active and unresolved issues
 
-All seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`. Line
-numbers are SGK's until 01 imports the code; 01 records each issue's package lines. **From 01 they
-are the same numbers:** D-name replaced one line by one line and `black` changed nothing, so every
-line of `runregistrykit/` sits where it sat in SGK at `a45aefc` (01's log; each line below read in
-the package).
+Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`, and 02
+opened an eighth. Line numbers are SGK's until 01 imports the code; 01 records each issue's package
+lines. **From 01 they are the same numbers** for the three modules: D-name replaced one line by one
+line and `black` changed nothing, so every line of them sits where it sat in SGK at `a45aefc` (01's
+log; each line below read in the package). 02's package lines are for the ported tests, read in
+`runregistrykit/tests/`.
 
 ### `[00-the-root-is-the-packages-parent]`
 
@@ -184,6 +185,19 @@ used at `:608, 681`, `runregistrykit/stores.py:911, 940, 1741` and as argparse d
 `__init__.py:98`, called with the default at `__init__.py:649` and `stores.py:833, 893, 1101, 1140,
 1499, 1921, 2164`. In this repository's editable install `REPO_ROOT` is the repository's root.
 
+*Package lines (02, 2026-10-14), in the ported tests.* Child processes that rely on `REPO_ROOT`: the
+checker and crasher scripts are written with `repo=REPO_ROOT` at
+`runregistrykit/tests/test_run_registry.py:179, 226`, and `-m runregistrykit` runs with
+`cwd=REPO_ROOT` at `:684`; `test_store_command_line.py:60-61, 172-173` and
+`test_store_amend.py:636-637` run `-m runregistrykit` with `cwd=REPO_ROOT` and `PYTHONPATH` set to
+it (`REPO_ROOT = runregistrykit.REPO_ROOT`, `test_run_registry.py:21`,
+`test_store_command_line.py:25`). Two assertions read the checkout's commit through C9 and that the
+`git_head` is 40 characters: `test_run_registry.py:273` and `test_store_sidecar.py:288`. From a
+`git archive` export with no `.git` both fail (measured by the orchestrator at dispatch:
+`TestManifest.test_manifest_carries_the_provenance_triple` and
+`test_store_sidecar.TestCreate.test_the_fields_and_one_create_entry`). `CLAUDE.md`'s Tests bullet
+says so.
+
 ### `[00-the-recorded-distributions-are-sgks]`
 
 **Opened:** 2026-10-14, at planning (C5). **Owner:** 03.
@@ -200,6 +214,12 @@ pinning test becomes a test of the config.
 *Package lines (01, 2026-10-14).* `RECORDED_DISTRIBUTIONS` `runregistrykit/__init__.py:119`, the
 default of `package_provenance` (`:122`). The pinning test is SGK's `test_run_registry.py:393-396`,
 which 02 ports.
+
+*Package lines (02, 2026-10-14).* The pinning test is
+`runregistrykit/tests/test_run_registry.py:393-396`
+(`TestPackageProvenance.test_the_recorded_names_are_the_two_packages`). Mutation (m1),
+`RECORDED_DISTRIBUTIONS = ("datastorekit",)`, fails it, and two more tests of that class (the
+02 log).
 
 ### `[00-the-fingerprint-reads-a-clients-registry]`
 
@@ -281,6 +301,15 @@ public way to write and reopen a small store would be a request to DatastoreKit 
 *Package lines (01, 2026-10-14).* None yet: the fixture is pending, 02
 (`runregistrykit/tests/shard_store_fixtures.py`, `store_fixtures.py`).
 
+*Package lines (02, 2026-10-14), read in the carried files.* `bare_pool`
+(`runregistrykit/tests/shard_store_fixtures.py:30-43`) builds a pool with `object.__new__(ShardedPool)`
+and sets ten private attributes: `_db_name`, `_primary_file`, `_timeout`, `_ShardKeyType_name`,
+`_replicated_tables`, `_sharded_tables`, `_shard_db_files`, `_shard_records`, `_shard_keys` and
+`_engine` (`:33-42`). `read_pool` calls `_create_engine` and `_read_shard_data` (`:46-54`);
+`write_new_store` sets `_shard_db_files` and calls `_create_engine` and `_write_shard_data`
+(`:57-71`). `store_fixtures.assertOpens` (`runregistrykit/tests/store_fixtures.py:158-165`) calls
+`_check_shard_files` and reads `_shard_db_files`. The issue stays open, owner none.
+
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
 **Opened:** 2026-10-14, at planning. **Owner:** none.
@@ -298,6 +327,46 @@ A typed exception would be a request to DatastoreKit (README §8).
 
 *Package lines (01, 2026-10-14).* `_SHARDS_TABLE_UNREADABLE` `runregistrykit/stores.py:1567-1568`
 (the comment and the assignment).
+
+*Package lines (02, 2026-10-14).* **No 02 test reaches the match.** `_SHARDS_TABLE_UNREADABLE` is
+used at `runregistrykit/stores.py:1818` and `:1863`, in `retire_store`, and the one SGK test of it is
+in `test_store_retire.py`, which 04 ports. No ported file names the constant or its text. The next
+step, a test that reaches the match, is therefore 04's.
+
+### `[02-the-ported-tests-name-sgk]`
+
+**Opened:** 2026-10-14, by 02. **Owner:** 05.
+
+The ported tests and fixtures carry SGK's names, besides the `RunRegistry` and `StoreFixtures` that
+D-name and D-fix handle. Measured in the eight files at this commit (package lines):
+
+- *SGK's table and key type in the shard fixture:* `shard_store_fixtures.py:25-27`,
+  `KEY_TYPE = "wavenumber"`, `REPLICATED = ["version", "wavenumber"]`, `SHARDED = {"GkSource": "k"}`,
+  used at `:37-38, 131, 135`.
+- *SGK's store stems:* `handover-A3-baseline-lambdacdm` (`store_fixtures.py:38`;
+  `test_store_sidecar.py:43`) and `handover-atol-sweep` (`test_store_sidecar.py:36, 43`).
+- *An SGK driver path:* `docs/gktk-remedial/scoped_pipeline_run.py` and the "post prompt 15 (measured
+  curvature criterion)" beside it (`store_fixtures.py:49-50`); `scoped_pipeline_run.py --register`
+  (`test_run_registry.py:482`).
+- *SGK's A3 store and sweep, as helper and class names, and a run name:* the class
+  `test_store_amend.TestLiveA3Shape` (`:203`; its comments `:7, :200`); the helpers `a3_shaped`
+  (`store_fixtures.py:36`) and `sweep_shaped` (`:85`, whose docstring names
+  `quadsource_atol_sweep.py`), and the tests named for them (`test_store_sidecar.py:349, 372,
+  500`); the run directory `a3-pilot` (`test_run_registry.py:662-688`; `store_fixtures.py:53-54`);
+  and `campaign="run-registry"` in the run helper (`test_run_registry.py:102, 125`).
+- *Docstrings and comments citing SGK's campaigns and prompts* (`prompts/datastore-portability`,
+  `prompts/run-registry`, `store-retirement`, "prompt 01" to "prompt 06", the "datastore-generic
+  campaign"): `store_fixtures.py:1`; `test_run_registry.py:4, 148-153, 467`;
+  `test_store_sidecar.py:2`; `test_store_copy_move.py:1-4, 234, 330, 402, 482`;
+  `test_store_command_line.py:2`; `test_store_amend.py:1, 7`; `test_store_amend_residuals.py:1`;
+  `shard_store_fixtures.py:91`. 31 lines of the eight files match `prompt` or `campaign` (`grep -i`),
+  the code lines `campaign=` and `prompt=` among them.
+
+*Impact.* The package's tests name a client, which `CLAUDE.md` forbids, and 05's guard (U10), if it
+scans `tests/`, fails on them. Renaming `TestLiveA3Shape` touches README §5 rule 9 (a ported test
+keeps its class name).
+
+*Next step.* 05, with its prose rewrite; the class name is put to the user there.
 
 ## 4. Resolved issues
 
