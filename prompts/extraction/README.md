@@ -5,7 +5,8 @@
 (SGK `prompts/runregistry-extraction/`, written 2026-10-12 at SGK `c8a7f14`) and from read-only
 measurements made the same day (§0.2). The brief is evidence, not a specification: where it and
 §0.2 disagree, §0.2 says so and is right for this tree. The user's rulings carried in from SGK are
-§6.1; the decisions this campaign needs are §6.2. **No prompt is written yet** (§2.1).
+§6.1; the decisions this campaign needs are §6.2. The user took U2 and U3 on 2026-10-14, as
+recommended, for 01. **Prompt 01 is written** (§2.1).
 
 ## 0. Why this campaign exists
 
@@ -214,7 +215,7 @@ has a `pyproject.toml` with a `[project]` table (SI's holds only pytest settings
 
 | # | Prompt | Covers | Model | Status |
 |---|---|---|---|---|
-| 01 | `01-import-the-registry.md` | The package skeleton (`pyproject.toml`, `runregistrykit/`). SGK's `__init__.py`, `stores.py` and `__main__.py` at `a45aefc`, changed only by **D-name**: the word `RunRegistry` → `runregistrykit` in strings, docstrings and `prog` (U2). The client couplings C1–C9 are imported as they are, recorded on the board. `PROVENANCE.md`: the import commit, the file map, the fate of each of the 25 source files (imported now, ported by 02 or 04, or left in SGK), the differences allowed. `docs/extraction/compare_with_source.py` checks G1: SGK's 25 blobs against the frozen table, and every line of the three modules against its source, by rule. A test that `import runregistrykit` and `import runregistrykit.stores` load neither `ray`, `sqlalchemy` nor `datastorekit`. **Acceptance:** the check exits 0 and bites on named mutations; the package imports in a fresh interpreter with no client on the path. | Opus | not written |
+| 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | The package skeleton (`pyproject.toml`, `runregistrykit/`). SGK's `__init__.py`, `stores.py` and `__main__.py` at `a45aefc`, changed only by **D-name**: the word `RunRegistry` → `runregistrykit` in strings, docstrings and `prog` (U2). The client couplings C1–C9 are imported as they are, recorded on the board. `PROVENANCE.md`: the import commit, the file map, the fate of each of the 25 source files (imported now, ported by 02 or 04, or left in SGK), the differences allowed. `docs/extraction/compare_with_source.py` checks G1: SGK's 25 blobs against the frozen table, and every line of the three modules against its source, by rule. A test that `import runregistrykit` and `import runregistrykit.stores` load neither `ray`, `sqlalchemy` nor `datastorekit`. **Acceptance:** the check exits 0 and bites on named mutations; the package imports in a fresh interpreter with no client on the path. *(At writing: §2.5 of the prompt gives all 25 source files and the shard fixture a fate (4 imported by 01, 8 ported by 02, 3 by 04, 11 left in SGK); D-name touches 23 lines (6, 13, 4), and the renamed modules are black-clean; the import test has three tests.)* | Opus | written 2026-10-14 |
 | 02 | `02-port-the-core-and-shard-fixture-tests.md` | The 29 core and 76 shard-fixture tests, with `store_fixtures.py` and SGK's `StoreFixtures/shard_store_fixtures.py` carried into `runregistrykit/tests/` (U4). The changes allowed are D-name and the fixture's import path; the check of 01 is extended to them. The tests pin the imported behaviour, C1 and C5 included, as they stand. **Acceptance:** 105 tests (+01's) pass at the venv's versions; the check exits 0; `[00-the-shard-fixtures-reach-into-shardedpool]` measured against the carried file. | Sonnet | not written |
 | 03 | `03-the-root-and-the-client-config.md` | C1–C5 and C9. The **client config file** at the client's root, read with `tomllib`, which also marks the root (SGK's Q2; its form, U5). The **root rule** (SGK's Q3): a run is recorded under the main checkout, the parent of `git rev-parse --git-common-dir`, while its git SHA, dirty flag and script hash are its own tree's. The runs root, the stores root and the recorded distributions from the config, `runregistrykit` always recorded besides (U9). No config found is a refusal, never a fallback. C4's relative paths are kept, so every existing record reads as before. The child-process tests stop depending on the package's location; `test_run_registry.py:393` becomes a config test. Tests with temporary git repositories and worktrees. Closes `[00-the-root-is-the-packages-parent]` and `[00-the-recorded-distributions-are-sgks]`. | Opus | not written |
 | 04 | `04-the-client-fingerprinter.md` | C6 and C7, under SGK's D3 and D4. The **fingerprinter protocol** and how the config names it (U6); layer C (`stores.py:1152-1399`) and `FINGERPRINT_FORMAT` deleted; `fingerprint_store`'s discipline kept exactly. **What the package reads of a fingerprint** (U7): its versions, its digest, its `taken` (which the package itself builds) and a comparison's `kind` and `text`; everything that walks `classes` goes through the fingerprinter. A **neutral store** of this package's own, on public `datastorekit` names only (U8), and a stand-in fingerprinter over DatastoreKit's function. The 78 and `TestFormats`' 2 ported onto it, each test keeping its name and what it asserts. Closes `[00-the-fingerprint-reads-a-clients-registry]` and `[00-the-store-layer-reads-inside-a-fingerprint]`. *(May be split into 04a, the fingerprinter and the fingerprint tests, and 04b, the retire tests, when written.)* | Opus | not written |
@@ -344,8 +345,9 @@ From SGK's audit §0 and §8 (2026-10-12), as carried by the brief, and this rep
 
 ### 6.2 Decisions this campaign needs
 
-Each is put with a recommendation, the recommended option first. U2 and U3 are put now, for 01; the
-others when the prompt that needs them is written.
+Each is put with a recommendation, the recommended option first. **U2 and U3 were taken by the user
+on 2026-10-14, for 01, as recommended**; the recommendation below is the decision. The others are
+put when the prompt that needs them is written.
 
 - **U2: the import** *(for 01)*. (a) **Faithful**: SGK's three modules at `a45aefc`, changed only by
   the package's name (D-name), with C1–C9 left as they are and opened as §3 issues, each owned by a
@@ -353,12 +355,13 @@ others when the prompt that needs them is written.
   01 internalised its two client dependencies. *Recommended:* (a). G1 is then checked line by line
   by a script, as RayPoolKit's was; every generic change (03–05) is a diff from a tested baseline
   that a reviewer can read against SGK's code; and C1–C9 are design changes, not internalisations,
-  so they deserve prompts of their own.
+  so they deserve prompts of their own. *Taken 2026-10-14, for 01: (a).*
 - **U3: the releases** *(for 01, since it sets the version)*. (a) **One release, `v0.1.0`, at 06**,
   the generic package; 01 sets `0.1.0.dev0`; or (b) RayPoolKit's two: `v0.1.0` the faithful import,
   then `v0.2.0` generic. *Recommended:* (a). The faithful import cannot run installed: C1 puts
   `var/runs/` inside the venv, and C6 imports a client. A tag no client can use would only be a
-  second baseline, and 02's suite already pins the import's behaviour.
+  second baseline, and 02's suite already pins the import's behaviour. *Taken 2026-10-14, for 01:
+  (a).*
 - **U4: the shard fixtures** *(for 02)*. SGK's `shard_store_fixtures.py` builds and reopens stores
   through about 13 private `ShardedPool` attributes. (a) **Carry it as it is**, with
   `[00-the-shard-fixtures-reach-into-shardedpool]` open, and DatastoreKit pinned exactly in CI so
