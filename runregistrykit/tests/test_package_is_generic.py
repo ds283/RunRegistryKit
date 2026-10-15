@@ -24,8 +24,12 @@ that reports ``file:line word`` for every hit in every file:
 2. ``test_no_string_or_docstring``: every string constant, docstrings and f-string text included;
 3. ``test_no_comment``: every comment;
 4. ``test_no_citation``: in strings and comments, a path under a directory of campaign prompts
-   (that directory's name followed by a slash), the word for a prompt, singular or plural, followed
-   by a space and two digits, and the section sign followed by a digit, with an optional space.
+   (that directory's name followed by a slash), the word for a prompt, singular or plural, with a
+   small or a capital first letter, followed by a space and two digits, the section sign followed
+   by a digit, with an optional space, a decision id (one of the capitals C, D, G, Q and U
+   followed by one or two digits, as a whole word) and an issue tag (a square bracket, two
+   digits, an optional small letter, a hyphen, small letters, digits and hyphens, a closing
+   square bracket).
    The package's history is in ``PROVENANCE.md`` and the campaign's records, not in its prose.
    The pattern is built from parts below, so that this module holds no citation.
 
@@ -120,16 +124,23 @@ NOT_PROJECT_PACKAGES = {"config", "tools", "thirdparty", "plotting"}
 _WORD = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:[.-][A-Za-z0-9_]+)*")
 
 # the citation pattern, from parts, so that this module's own text holds no citation: a path under
-# a directory of campaign prompts; the word for a prompt and two digits; a section sign and a digit
+# a directory of campaign prompts; the word for a prompt, small or capital, and two digits; a
+# section sign and a digit; a decision id (one of five capitals and one or two digits, a whole
+# word); an issue tag (a bracket, two digits, an optional letter, a hyphen, a slug, a bracket)
 _DIRECTORY = "prompts"
 _PROMPT = "prompts?"
 _SECTION_SIGN = "\N{SECTION SIGN}"
+_DECISION_LETTERS = "[CDGQU]"
+_TAG_OPEN, _TAG_CLOSE = r"\[", r"\]"
 CITATION = re.compile(
     r"|".join(
         (
             r"\b" + _DIRECTORY + "/",
             r"\b" + _PROMPT + r" \d\d",
+            r"\b" + _PROMPT.capitalize() + r" \d\d",
             _SECTION_SIGN + r" ?\d",
+            r"\b" + _DECISION_LETTERS + r"\d{1,2}\b",
+            _TAG_OPEN + r"\d\d[a-z]?-[a-z0-9-]+" + _TAG_CLOSE,
         )
     )
 )
@@ -609,13 +620,24 @@ class TestTheRules(unittest.TestCase):
     def test_a_citation_is_a_path_a_numbered_prompt_or_a_section(self):
         directory, prompt, section = "prompts", "prompt", "\N{SECTION SIGN}"
         digits = "".join(("0", "7"))
+        capital = prompt.capitalize()
+        decision = "".join(("D", "4"))
+        tag = "[" + digits + "x-" + "a-b-" + "3" + "]"
         for text in (
             f"{directory}/x/y.md",
             f".{directory}/x",
             f"{prompt} {digits}",
             f"{directory} {digits}",
+            f"{capital} {digits}",
+            f"{capital}s {digits}",
             f"{section}{digits[1]}",
             f"{section} {digits[1]}",
+            decision,
+            "".join(("U", "9")),
+            "".join(("C", "12")),
+            f"see ({decision})",
+            tag,
+            "[" + digits + "-" + "a" + "]",
         ):
             for source in (f"x = '{text}'", f"x = 1  # {text}"):
                 with self.subTest(source=source):
@@ -628,6 +650,19 @@ class TestTheRules(unittest.TestCase):
             f"{section} x",
             f"x{directory}/y",
             f"{prompt}{digits}",
+            f"a {capital} is a thing",
+            f"{capital}{digits}",
+            f"{capital} {digits[1]}",
+            "".join(("E", "4")),
+            "".join(("D", "123")),
+            "".join(("d", "4")),
+            "".join(("x", "D", "4")),
+            "".join(("D", "4", "x")),
+            "".join(("D", "")),
+            "[" + "a-b" + "]",
+            "[" + digits[1] + "-b]",
+            "[" + digits + "x]",
+            "[" + digits + "-]",
         ):
             for source in (f"x = '{text}'", f"x = 1  # {text}"):
                 with self.subTest(source=source):

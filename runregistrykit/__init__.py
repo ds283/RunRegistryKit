@@ -15,18 +15,18 @@
 
 """A record on disk that a long-running job exists, what it is for, and how far it has got.
 
-The rules this package exists to support are in `CLAUDE.md`, "Long-running jobs — the run
-registry"; the failures it exists because of are `prompts/run-registry/README.md` §0. It is a
-convention with a little code behind it, not a framework: it schedules nothing, supervises nothing
-and locks nothing. It also creates, adopts, copies and moves the stores it manages, with their
-`<stem>.manifest.json` sidecars (`runregistrykit.stores`), because the user decided that managing
-stores is part of managing the registry (`prompts/datastore-portability` README §6.5). It deletes
-nothing but a store's own files, and those only through `store retire`, which a person runs and
-which leaves the store's sidecar behind as its record (`prompts/store-retirement` README §6.2, D0).
-It never deletes a run directory, a sidecar or any other record.
+The rules this package exists to support are in this repository's `README.md`, "The rules", and
+each is told there with the failure it answers. The package is a convention with a little code
+behind it, not a framework: it schedules nothing, supervises nothing and locks nothing. It also
+creates, adopts, copies and moves the stores it manages, with their `<stem>.manifest.json`
+sidecars (`runregistrykit.stores`), because managing stores is part of managing the registry. It
+deletes nothing but a store's own files, and those only through `store retire`, which a person
+runs and which leaves the store's sidecar behind as its record. It never deletes a run directory,
+a sidecar or any other record.
 
-The layout, under `var/runs/` (gitignored, in the repository, never a session scratchpad and never
-`/tmp` — README §0 item 4 is a datastore that was written into a scratchpad and is gone):
+The layout, under the client's runs root (`var/runs/` by default, `runs_root` in the client's
+`runregistrykit.toml`), which a client keeps under its own root and ignores in git, and never in a
+session scratchpad or in `/tmp` (a datastore written into a scratchpad is lost with it):
 
     var/runs/<campaign>-<prompt>-<slug>-<YYYYMMDDTHHMMSS>/
         manifest.json      written once at launch, never mutated
@@ -34,17 +34,19 @@ The layout, under `var/runs/` (gitignored, in the repository, never a session sc
         checkpoint.jsonl   optional, append-only, one JSON object per completed unit
         stdout.log  stderr.log
 
-The manifest keeps two different things in two different fields, and the difference is README §0.2:
-`checkpoint` is the unit ledger above, which `record()` writes and `known()` reads; `results` names
-the durable thing the job's results live in — a pipeline run's datastore — which this package names
-and never writes; it reads it only to take its fingerprint at `finish(..., fingerprint=True)`. A job
-may have either, both or neither.
+The manifest keeps two different things in two different fields, because the registry is about a
+job's existence and checkpointing is per job, and sometimes already solved: `checkpoint` is the
+unit ledger above, which `record()` writes and `known()` reads; `results` names the durable thing
+the job's results live in — a datastore the job's pipeline writes — which this package names and
+never writes; it reads it only to take its fingerprint at `finish(..., fingerprint=True)`. A job
+may have either, both or neither. `campaign` and `prompt` are the client's names for a body of work
+and for a step of it, and `slug` names the run.
 
 Usage is three calls. The launching process writes the manifest before any work starts, so that a
 crash in the first second still leaves a record:
 
     run = runregistrykit.begin(
-        campaign="run-registry", prompt="01", slug="smoke",
+        campaign="example", prompt="01", slug="smoke",
         purpose="one line a stranger can read",
         script=__file__, unit="cell", expected_units=60, checkpoint=True,
     )
@@ -105,11 +107,12 @@ _ID_STAMP = "%Y%m%dT%H%M%S"
 
 
 # =================================================================================================
-# provenance, as `docs/handover/realistic_large_x.py` stamps it
+# identity and provenance: the run's id, and what was running, as it stood at launch
 
 
 def now_iso() -> str:
-    """Local time with an offset, to the second — the format the hand-written A3 manifest used."""
+    """Local time with an offset, to the second (`YYYY-MM-DDTHH:MM:SS+hh:mm`): the format that
+    manifests written by hand, before this registry existed, used."""
     return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
 
 
@@ -169,7 +172,7 @@ def package_provenance(names) -> dict:
     `vcs_info` or `dir_info` that is not one, gives `None` for the three fields and `False` for
     `editable`; it never raises, because `begin()` must not fail on odd metadata.
 
-    An editable install is recorded, not refused: the registry records (`CLAUDE.md`).
+    An editable install is recorded, not refused: the registry records (the README's rules).
     """
     packages = {}
     for name in names:
@@ -249,7 +252,7 @@ def write_json_atomic(path, payload) -> None:
 
 
 # =================================================================================================
-# liveness — README §0 item 3, which is why this package exists at all
+# liveness, by pid and heartbeat and never by a command-line match (the README's rule on liveness)
 
 
 def pid_alive(pid) -> bool:
@@ -258,7 +261,7 @@ def pid_alive(pid) -> bool:
     **Never identify a process by matching a pattern against command lines.** `pgrep -f <name>`
     also matches the *polling shell's own* command line, so "wait until no process matches" can
     never be satisfied; that mistake left nineteen immortal poll loops, fifteen of them waiting on
-    a job that was already dead (`prompts/run-registry/README.md` §0 item 3).
+    a job that was already dead (the README's rule on liveness).
     """
     try:
         pid = int(pid)
@@ -379,12 +382,11 @@ class Run:
 
     @property
     def results_path(self):
-        """The durable thing this job's results live in — a pipeline run's datastore — which the
-        registry names. README §0 item 4 is a datastore written into a session scratchpad with
-        nothing on disk saying where the results went; §0 item 5 is a resume, which must know what
-        it is resuming into. The registry never writes it. It reads it, read-only, in one place:
-        `finish(..., fingerprint=True)` takes its content fingerprint (store-fingerprint prompt
-        04)."""
+        """The durable thing this job's results live in — a datastore the job's pipeline writes —
+        which the registry names. A datastore once written into a session scratchpad was lost with
+        it, with nothing on disk saying where the results had gone, and a resume must know what it
+        is resuming into. The registry never writes it. It reads it, read-only, in one place:
+        `finish(..., fingerprint=True)` takes its content fingerprint."""
         recorded = self.manifest.get("results")
         return self._recorded_path(recorded) if recorded else None
 
@@ -406,11 +408,10 @@ class Run:
         """Refresh the heartbeat, and with it whatever is now known. A launcher that spawns a
         detached child passes the child's `pid` here once it has one.
 
-        `stage` is for a job that has no total to count against — a `main.py` pipeline reports
-        progress per stage and per work queue, never as one number, and inventing a denominator
-        would be worse than saying where it has got to. It is the field the hand-written
-        `handover-A3-baseline-lambdacdm.manifest.json` carried as `stage_reached`, reconstructed
-        by hand from a stdout file after the fact.
+        `stage` is for a job that has no total to count against — a pipeline reports progress per
+        stage and per work queue, never as one number, and inventing a denominator would be worse
+        than saying where it has got to. It is the field a manifest written by hand carried as
+        `stage_reached`, reconstructed by hand from a stdout file after the fact.
         """
         fields = {
             "units_done": units_done,
@@ -491,7 +492,8 @@ class Run:
         """Append one completed unit to `checkpoint.jsonl`, `flush`, `fsync`, and beat.
 
         The record carries the provenance triple — script hash, git head, dirty flag — taken at
-        launch, exactly as `docs/handover/realistic_large_x.py` stamps each cell.
+        launch and never re-taken (the README's rule on provenance), so that a resume can tell
+        which version of the script wrote each record.
 
         It appends to the **ledger** and to nothing else. A run that declares no ledger is refused,
         by name: the caller who reaches here is usually one who copied the pipeline pattern — whose
@@ -540,19 +542,20 @@ class Run:
         different version of the script is dropped and its unit recomputed, rather than the run
         refusing to start — an edited script is then self-healing instead of stranding the operator
         on a file they must know to delete, and the notice is what makes the discard visible. This
-        is `realistic_large_x.load_checkpoint`'s choice, generalised. Records are never blended
-        across script versions, and an existing record is **never re-stamped** with the running
-        hash: that would falsify the provenance the stamp exists to provide. Where the manifest
-        records no script hash there is nothing to gate on and every record is reused.
+        is the choice of a script that checkpoints its own cells, generalised. Records are never
+        blended across script versions, and an existing record is **never re-stamped** with the
+        running hash: that would falsify the provenance the stamp exists to provide. Where the
+        manifest records no script hash there is nothing to gate on and every record is reused.
 
         A malformed trailing line is ignored: the file is appended to as each unit lands, so a kill
         can truncate the last record. **A file that is not a ledger at all is a different thing and
         raises.** Answering `{}` — "nothing has been done yet" — for a file this method cannot read
-        is the failure a resume then acts on by recomputing everything, and on the A3 baseline that
-        is 10 h 33 m. The two are told apart by where the unreadable line is and what it looks
-        like: a torn record is the **last** line and is a prefix of a JSON object, so it begins
-        `{`. Anything else — a line that does not, or a readable line after one that did not, or a
-        file that is not even text — means the path names something that is not a unit ledger.
+        is the failure a resume then acts on by recomputing everything, which for one pipeline run
+        was 10 h 33 m of work. The two are told apart by where the unreadable line is and what it
+        looks like: a torn record is the **last** line and is a prefix of a JSON object, so it
+        begins `{`. Anything else — a line that does not, or a readable line after one that did
+        not, or a file that is not even text — means the path names something that is not a unit
+        ledger.
 
         A ledger that does not exist yet is not an error, and returns nothing quietly: that is
         every first run.
@@ -626,20 +629,21 @@ def begin(
     wherever the job's own convention says, which is how a resume in a new run directory reads the
     previous run's units.
 
-    `results` is the **durable thing the job's results live in** — for a registered `main.py`
-    pipeline run, its SQLite datastore — which the registry names and never writes. It is a
-    different field from `checkpoint` because it is a different thing, and conflating them let
-    `record()` append JSON-Lines to a datastore (README §0.2: the registry records *existence*;
-    checkpointing is per-job and is sometimes already solved). It traces to §0 item 4, a datastore
-    written into a session scratchpad with nothing on disk saying where the results went, and to
-    §0 item 5, since a resume must know what it is resuming into.
+    `results` is the **durable thing the job's results live in** — for a registered pipeline run,
+    its SQLite datastore — which the registry names and never writes. It is a different field from
+    `checkpoint` because it is a different thing, and conflating them let `record()` append
+    JSON-Lines to a datastore (the registry records a job's *existence*; checkpointing is per job
+    and is sometimes already solved, as a pipeline's datastore already is). It exists because a
+    datastore written into a session scratchpad was lost with it, with nothing on disk saying where
+    the results had gone, and because a resume must know what it is resuming into.
 
     `pid` defaults to the calling process; a launcher that spawns a detached child passes the
-    child's pid to `heartbeat()` once it has one. Every manifest field but two is one README §0
-    would have caught something with; there are no others.
+    child's pid to `heartbeat()` once it has one. Every manifest field but two is one that would
+    have caught something in the failures the README's rules answer; there are no others.
 
-    The first is `results_store_id`, which is `prompts/datastore-portability` README §6.5 point 5.
-    When `results` has a problem-free registry sidecar beside it (`runregistrykit.stores`), it holds
+    The first is `results_store_id`, which comes with managing stores: it is how a run and its
+    store are matched. When `results` has a problem-free registry sidecar beside it
+    (`runregistrykit.stores`), it holds
     that sidecar's `store_id`, and otherwise `null`: no store, no sidecar, a legacy sidecar, or a
     sidecar with a problem. It matches a run to its store after the store has moved, which a path
     cannot, and it is how `store copy` / `store move` recognise a store a running run is using.
@@ -651,7 +655,7 @@ def begin(
     The second is `packages`, which is `package_provenance()` of `runregistrykit` and of the client
     config's `distributions`: what was installed of each when the run began. It exists so that a
     run says which package release it ran, instead of that being implied by `requirements.txt` at
-    its `HEAD`; no README §0 failure asked for it.
+    its `HEAD`; none of those failures asked for it.
 
     `root` is the runs root, and defaults to the client config's `runs_root`. The client root is
     found by walking up from the directory of `script`, or from the working directory when no
@@ -661,8 +665,8 @@ def begin(
     walk started in.
 
     `scope` is one line saying what the run covers, and is what tells a stranger whether the run
-    is still relevant — the hand-written `handover-A3-baseline-lambdacdm.manifest.json` carried it
-    by hand, because `argv` alone is exact and unreadable. Derive it from the job's own arguments
+    is still relevant — a manifest written by hand carried it, because `argv` alone is exact and
+    unreadable. Derive it from the job's own arguments
     rather than typing it: a field somebody must remember to update is a field that goes stale.
 
     `heartbeat_means` is one line saying what a fresh heartbeat on *this* job actually asserts.
@@ -678,8 +682,8 @@ def begin(
     client = find_client_root(start=start, client_root=client_root)
     identifier = run_id(campaign, prompt, slug, when)
     path = os.path.join(root or client.runs_root, identifier)
-    # the results store's sidecar is read before anything is created: a retired store is refused
-    # (store-retirement README D6), complete or not, and no run directory is left behind
+    # the results store's sidecar is read before anything is created: a retired store is refused,
+    # complete or not, because a retired name is never reused, and no run directory is left behind
     results_store_id = None
     if results:
         # here, because `stores` imports this module

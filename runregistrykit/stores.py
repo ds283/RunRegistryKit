@@ -18,16 +18,16 @@
 A `ShardedPool` datastore is a primary SQLite file and its shards. Beside the primary there may be
 a **sidecar**, `<stem>.manifest.json`, which is where a person learns what the store is for and
 where it came from. `datastorekit`'s `ShardedPool` and its `datastorekit.tools.sharded_store` know
-nothing about it (`prompts/datastore-portability` README §6.3). This module is its one owner
-(README §6.5): the name (`sidecar_path`), the format, the reader (`read_sidecar`) and the writer
-are defined here and nowhere else, and only the operations below write a sidecar.
+nothing about it. This module is its one owner: the name (`sidecar_path`), the format, the reader
+(`read_sidecar`) and the writer are defined here and nowhere else, and only the operations below
+write a sidecar.
 
 **The format.** A *registry sidecar* is a JSON object with `"sidecar_format": 1`. Its fields:
 
     sidecar_format  1; its presence is what tells a registry sidecar from a legacy one
     store_id        32 lowercase hex characters. New on create, adopt and copy; kept on a move
     datastore       the primary's bare file name. Never a path: a path goes stale when the store
-                    moves, and the backup's legacy sidecar names the live store for that reason
+                    moves, and the legacy sidecar of a copy names the live store for that reason
     name            the primary's stem
     purpose         one line a stranger can read
     created         when this store identity began (`now_iso()`); adopt keeps a legacy value
@@ -61,7 +61,7 @@ are defined here and nowhere else, and only the operations below write a sidecar
                       when         `now_iso()` at the first write, the `retire` entry's `when`
                       git_head     `git_provenance()` at the first write
                       git_dirty
-                      reason       the required text saying why (README D3)
+                      reason       the required text saying why
                       fingerprint  how the fingerprint condition was met: {"condition":
                                    "matched", "digest": <the recorded overall digest, which a
                                    fresh read-only fingerprint matched>}, or under
@@ -97,7 +97,7 @@ where the store is, and it says it by name, relative to the sidecar it sits in.
 A *legacy* sidecar is any other JSON object, such as the two written by hand or by a script
 before this module existed. It is read as it is and never rewritten except by an explicit
 `adopt_sidecar`. A legacy `datastore` that is a path is read by its final component, never as a
-path: that is prompt 01's rule for legacy shard records, applied to JSON.
+path: that is the rule for a legacy shard record's path, applied to JSON.
 
 **The operations** are `create_sidecar`, `adopt_sidecar`, `copy_store`, `move_store`,
 `fingerprint_store`, `retire_store` and `amend_sidecar`. Copy and move call
@@ -114,14 +114,14 @@ Nothing else here deletes a file. Nothing overwrites one except the in-place upd
 retirement's two writes, and an amendment), and nothing cleans up after a failure or decides that a
 run is over.
 
-`amend_sidecar` (store-retirement prompt 04) replaces or removes exactly one **unknown** field of
-a registry sidecar, with a required reason, and records the field's old value in an `amend` history
-entry, so that a present-tense claim an unknown field makes (such as the live A3 sidecar's
-`backup.retained`) can be corrected by a person without a hand edit of a sidecar, and nothing is
-ever lost. It never touches a known field, `retired` included: those belong to the operation that
+`amend_sidecar` replaces or removes exactly one **unknown** field of a registry sidecar, with a
+required reason, and records the field's old value in an `amend` history entry, so that a
+present-tense claim an unknown field makes (such as a field saying that a copy of the store is
+retained, once the copy is retired) can be corrected by a person without a hand edit of a sidecar,
+and nothing is ever lost. It never touches a known field, `retired` included: those belong to the operation that
 owns them. It never opens the store's files; it reads and writes only the sidecar.
 
-**The fingerprint** (store-fingerprint prompt 04) says what a closed store holds. This module does
+**The fingerprint** says what a closed store holds. This module does
 not compute one: the client's config names a fingerprinter (`[stores] fingerprinter`,
 `runregistrykit.fingerprint`), which takes, compares, describes and lists fingerprints, and every
 store operation refuses, before it reads, writes or deletes anything, when the config names none.
@@ -211,8 +211,7 @@ HISTORY_KEYS = ("operation", "from", "to", "when", "git_head", "git_dirty")
 # an `amend` entry carries these four keys beside `HISTORY_KEYS`, and no other operation may
 AMEND_KEYS = ("field", "reason", "before", "after")
 
-# which operation owns each known field, named in `amend_sidecar`'s refusal of one (store-retirement
-# prompt 04 §2.1)
+# which operation owns each known field, named in `amend_sidecar`'s refusal of one
 _FIELD_OWNERS = {
     "sidecar_format": "create or adopt",
     "store_id": "create, adopt or copy",
@@ -428,8 +427,8 @@ def _amend_slot_problems(value, where: str) -> List[str]:
     """Every way ``value`` fails to be an amend history entry's `before` or `after`: an object
     ``{"present": true, "value": <the field's value>}`` or ``{"present": false}``. This tagged
     shape, not a sentinel string, is what an `amend` entry uses to say a field was absent or
-    removed, so that no JSON value a field could hold is ever mistaken for the marker (README D5,
-    prompt 04 §2.2): the marker is a wrapper one level above the value, never the value itself.
+    removed, so that no JSON value a field could hold is ever mistaken for the marker: the marker is
+    a wrapper one level above the value, never the value itself.
     """
     if not isinstance(value, dict) or not isinstance(value.get("present"), bool):
         return [f"{where} is {value!r}, not a well-formed amend marker"]
@@ -1118,7 +1117,8 @@ def _prepare(operation, src, dst, runs_root, client):
 
 
 def _store_files(operation, method, src, dst):
-    """Prompt 02's interface, for the store's files. Its refusals come through unchanged."""
+    """Copy or move the store's files with ``method``, a `ShardedPool` method. Its refusals come
+    through unchanged."""
     try:
         method(src, dst)
     except Exception as e:
@@ -1222,7 +1222,7 @@ def move_store(src, dst, runs_root=None, *, client_root=None) -> dict:
 
 
 # =================================================================================================
-# the fingerprint (store-fingerprint prompt 04)
+# the fingerprint
 #
 # A fingerprint is the client fingerprinter's (`runregistrykit.fingerprint`): it takes, compares,
 # describes and lists one. This module decides when one is taken and where it is recorded, and
@@ -1397,7 +1397,7 @@ def fingerprint_store(
 
 
 # =================================================================================================
-# retirement (store-retirement prompt 03)
+# retirement
 #
 # `retire_store` deletes a closed store's own files through `ShardedPool.delete_store` and keeps
 # its sidecar as a tombstone. The order of the writes is the point: the tombstone, with the list of
@@ -1406,7 +1406,7 @@ def fingerprint_store(
 # through `read_sidecar`, as the live store untouched, an incomplete retirement naming what
 # remains, or a completed tombstone; and `store retire` again completes an incomplete one.
 
-# the text `ShardedPool._read_closed_store` gives a `shards` table it cannot read (prompt 01's log)
+# the text `ShardedPool._read_closed_store` gives a `shards` table it cannot read
 _SHARDS_TABLE_UNREADABLE = "its shards table could not be read"
 
 
@@ -1444,15 +1444,15 @@ def _names_one_of(text: str, targets, root) -> bool:
 def _find_references(
     primary, planned, store_id, runs_root, stores_root, own, client
 ) -> dict:
-    """D5's report: the runs naming the store, and every sidecar under ``stores_root`` that names
-    it. Reads, and never writes anything.
+    """The references report: the runs naming the store, and every sidecar under ``stores_root``
+    that names it. Reads, and never writes anything.
 
     A sidecar names the store when its ``copied_from.store_id`` is the store's, or when any string
     in it resolves to the primary, to a file in the plan, or to the store's directory.
 
     A match by the **directory** means that a sidecar names the directory the store sits in. That
-    is how the live A3 sidecar named its backup, which sat alone in a subdirectory of the stores
-    root, and retiring the backup has to report it. It is weaker than a match by the primary: the
+    is how one store's sidecar can name another store that sits alone in a subdirectory of the
+    stores root, and retiring that other store has to report it. It is weaker than a match by the primary: the
     directory may hold other stores too, and a sidecar naming it names all of them, so the report
     says only that the sidecar names where the store is.
 
@@ -1461,7 +1461,7 @@ def _find_references(
     container of every store, so a field that names it names none in particular, and every
     tombstone records ``references.stores_root``, the root its own retirement searched. Counting
     the root as a target made each retirement of a store directly in the root report every earlier
-    tombstone there, one more with each (``[10-store-retire-reports-every-tombstone-as-a-reference]``).
+    tombstone there, one more with each.
     """
     runs = [
         {"id": entry["id"], "state": entry["state"], "matched_by": entry["matched_by"]}
@@ -1527,7 +1527,7 @@ def _find_references(
 
 def _retire_failure(primary, step, error, files, sidecar, root) -> RuntimeError:
     """A failure after the tombstone was written: it stays `retiring`, and nothing is cleaned up
-    or retried (README §5 rule 11)."""
+    or retried."""
     present = ", ".join(f'"{p}"' for p in _present(files, primary, root))
     tmp = _tmp_path(sidecar)
     left = (
@@ -1559,10 +1559,13 @@ def retire_store(
     a tombstone saying when, at what tree and why, what the store held, which files went, and
     what referenced it. Returns what it found and did (see the end of this function).
 
-    Every refusal is a `RuntimeError` naming the store and the reason and ending "Nothing was
-    written or deleted". In order:
+    Every refusal is a `RuntimeError` and comes before anything is written or deleted. Those of
+    the config, which are `ConfigError`s in the config's own words, are `find_client_root`'s (no
+    config file found, or one that cannot be used) and `require_fingerprinter`'s (none named), at
+    the top, and on a first retirement `load_fingerprinter`'s (step 3). Every other refusal names
+    the store and the reason and ends "Nothing was written or deleted". In order:
 
-    1. **The sidecar.** A reason is required (D3). The sidecar must be a problem-free registry
+    1. **The sidecar.** A reason is required. The sidecar must be a problem-free registry
        sidecar, or a tombstone whose one problem is an incomplete retirement, which this call then
        completes. It never upgrades a sidecar, and it refuses a completed tombstone.
     2. **In use.** Any `running` run under ``runs_root``, alive **or stale**, naming the store by
@@ -1570,7 +1573,7 @@ def retire_store(
     3. **The files and the fingerprint.** The files are `ShardedPool.closed_store_files`, whose
        refusals come through, a hot journal among them. Without ``without_fingerprint``, the
        sidecar must record a fingerprint, and a fresh read-only one must compare empty with it,
-       `problems` included. With it (D4), the fingerprint is attempted all the same: if it
+       `problems` included. With it, the fingerprint is attempted all the same: if it
        succeeds the call refuses, since the flag does not apply, and if it fails its error is kept
        verbatim. Under the flag only, a missing shard is left out of the files, planned and
        deleted with ``resume=True``. A `shards` table that cannot be read is refused even so.
@@ -1578,8 +1581,8 @@ def retire_store(
        and a `ConfigError` from the load comes through as itself, under the flag or not, before
        anything is written; the completion of an incomplete retirement takes no fingerprint and
        loads none.
-    4. **The references** (D5): the runs naming the store, and the sidecars under
-       ``stores_root`` (default the client config's `stores_root`) that name it. None is ever rewritten.
+    4. **The references**: the runs naming the store, and the sidecars under ``stores_root``
+       (default the client config's `stores_root`) that name it. None is ever rewritten.
     5. With ``dry_run``, it stops here, having written and deleted nothing.
     6. **The writes:** the tombstone in state `retiring`, with the file list and the references,
        and one `retire` history entry; `ShardedPool.delete_store`; the check that no listed file
@@ -1886,12 +1889,12 @@ def retire_store(
 
 
 # =================================================================================================
-# amend (store-retirement prompt 04)
+# amend
 #
 # `amend_sidecar` replaces or removes exactly one **unknown** field of a registry sidecar, so that
-# a present-tense claim it makes (the live A3 sidecar's `backup.retained`, once the backup is
-# retired) can be corrected by a person, with nothing lost and no hand edit of a sidecar (README
-# D5). It never opens the store's files, and it never touches a known field: those belong to the
+# a present-tense claim it makes (a field saying that a copy of the store is retained, once the
+# copy is retired) can be corrected by a person, with nothing lost and no hand edit of a sidecar.
+# It never opens the store's files, and it never touches a known field: those belong to the
 # operation that owns them (`_FIELD_OWNERS`).
 
 # the one value `value=` never equals: how `amend_sidecar` tells "no value was given" from a value
@@ -1931,8 +1934,11 @@ def amend_sidecar(
     ``primary``, with a required ``reason``, and return what changed.
 
     Exactly one of ``value`` (the new value, any JSON-serialisable Python value) or
-    ``remove=True`` is given. Every refusal is a `RuntimeError` naming the sidecar and the reason,
-    and ending "Nothing was written". In order:
+    ``remove=True`` is given. Every refusal is a `RuntimeError` and comes before anything is
+    written. Those of the config, which are `ConfigError`s in the config's own words, are
+    `find_client_root`'s (no config file found, or one that cannot be used) and
+    `require_fingerprinter`'s (none named), at the top. Every other refusal names the sidecar and
+    the reason and ends "Nothing was written". In order:
 
     1. a blank or missing ``reason``;
     2. both ``value`` and ``remove``, or neither;

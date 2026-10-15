@@ -163,6 +163,21 @@ class TestProtocolAndLoader(unittest.TestCase):
                 with self.assertRaises(kind):
                     fingerprint_of(None, bad)
 
+    def test_describe_points_a_problem_to_the_stores_inventory_reader(self):
+        fingerprint = {
+            "classes": {"Alpha": {"count": 3, "digest": "a" * 64, "tag_sets": []}},
+            "problems": {"Alpha": {"unreadable": 2}},
+        }
+        lines = FINGERPRINTER.describe(fingerprint)
+        self.assertIn(
+            "problems: (counts only; the store's own text is in the store's inventory, "
+            "which `datastorekit.store_inventory.read_inventory` returns)",
+            lines,
+        )
+        self.assertIn("  !! Alpha: unreadable 2", lines)
+        self.assertNotIn("problems: none", lines)
+        self.assertFalse([line for line in lines if ".py" in line])
+
     def test_module_and_attribute_are_resolved(self):
         a_module_name(self)  # for its cleanup: the loader puts the root on sys.path
         enter_client_root(self)

@@ -148,7 +148,8 @@ class DatastoreKitFingerprinter:
                 )
         if fingerprint["problems"]:
             lines.append(
-                "problems: (counts only; the store's own text is in `main.py --inventory`)"
+                "problems: (counts only; the store's own text is in the store's inventory, "
+                "which `datastorekit.store_inventory.read_inventory` returns)"
             )
             for name, kinds in fingerprint["problems"].items():
                 counted = ", ".join(f"{kind} {n}" for kind, n in kinds.items())
@@ -181,8 +182,8 @@ def require_fingerprinter(client) -> str:
 def load_fingerprinter(client) -> Fingerprinter:
     """The fingerprinter the config of ``client`` (a `ClientRoot`) names, imported (the module
     docstring). Every refusal is a `ConfigError` naming the config file and the spec: none named;
-    an import that fails, with the exception's type and text; a missing attribute; an object that
-    is not a `Fingerprinter`."""
+    an import that fails, with the exception's type and text; a missing attribute; a class named
+    where an instance is wanted; an object that is not a `Fingerprinter`."""
     spec = require_fingerprinter(client)
     module_name, _, attribute = spec.partition(":")
     where = f"{client.config_file}: [stores] fingerprinter {spec!r}"

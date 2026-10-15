@@ -1,8 +1,9 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 7 of 11 prompts written (01–03, 04a, 04b, 05a, 05b), 6 landed and
+**Last updated:** 2026-10-15 · **Status: LIVE — 7 of 11 prompts written (01–03, 04a, 04b, 05a, 05b), 7 landed, 6
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
-`c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275).** G1 holds
+`c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275), and 05b landed, this
+commit, suite 276, review pending.** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -61,7 +62,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | `c81ad06` | 135 → 186 |
 | 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | `5302a6f` | 186 → 245 |
 | 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05a-the-guard-and-the-public-names.md)) | `14af805` | 245 → 275 |
-| 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | written 2026-10-15 | — | — |
+| 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed** 2026-10-15, review pending ([log](logs/05b-the-package-prose-and-the-rules.md)) | this commit | 275 → 276 |
 | 05c | `05c-the-tests-own-names.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
@@ -584,7 +585,7 @@ log says so. The other observations need no issue. **Nothing opened**; the index
 | **F3** | 04b | U14: `store retire` loads the fingerprinter before it fingerprints; the loader refuses a class | ✅ 2026-10-15: `retire_store` loads the fingerprinter on a first retirement after steps 1 and 2 and before the plan, its `ConfigError` unwrapped and nothing written, under the flag or not, in a dry run and from the command; the completion path loads none; `load_fingerprinter` refuses a class before its protocol check; 8 tests in `test_fingerprinter.py`; (m4)–(m6), (m8)–(m10) caught |
 | **P2** | 05a | the no-client guard, its vocabulary and its known hits (U10, U16) | ✅ 2026-10-15: `docs/extraction/measure_client_vocabulary.py` writes `runregistrykit/tests/data/client_vocabulary.json` through `git` at SGK `14bcac0`, ChamPBH `c21cdfb`, SI `5fb4a1d` (38 / 27 / 30 registry keys, 194 / 80 / 101 columns, 14 / 11 / 15 packages, 26 / 10 / 6 campaigns, 17 listed words); `test_package_is_generic.py` scans all 24 files, itself included, by four word scans and an import rule, 22 tests; `known_hits.json` holds 69 hits in the package modules (30 entries, 05b's) and 137 in the tests (83 entries, 05c's), written by the guard's own scans; the guard holds none; (m1)–(m11) caught |
 | **N1** | 05a | the public names (`slugify`, `__all__`) and the licence header (U11, U12) | ✅ 2026-10-15: `_slug` is `slugify` (no alias; `run_id` and `begin()` signatures unchanged); each of the five modules declares a sorted `__all__` (20, 26, 4, 4, 1 names) and begins with the 14-line Apache header; `test_public_names.py`, 8 tests |
-| **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ⬜ |
+| **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ✅ 2026-10-15: the docstrings and comments of `__init__.py`, `stores.py` and `fingerprint.py` rewritten in the package's own terms, every reason and fact kept and no client, campaign, prompt, decision, issue tag or incident left (`known_hits.json` has no package-module entry in any scan; `ast` with docstrings removed equals `c735acf`'s but for the one constant); `describe`'s problems line points at `datastorekit.store_inventory.read_inventory`, one test; `load_fingerprinter`'s docstring names the class refusal, and `retire_store`'s and `amend_sidecar`'s say the config's `ConfigError`s are in the config's words (no message changed); the guard's citation pattern gains `Prompt NN`, a decision id and an issue tag (U17), which finds 18 more hits in 11 entries of the tests, listed for 05c; `README.md` gains "The rules" (six, each with its failure) and "The public names" (U11); `PROVENANCE.md` gains 05b's section and "Where the prose's citations pointed"; (m1)–(m8) caught |
 | **T3** | 05c | the tests' SGK names and prose renamed (U16) | ⬜ |
 | **V1** | 06 | versions, CI, `v0.1.0` | ⬜ |
 | **A1** | 07 | the three checklists and their script (SGK's E2) | ⬜ |
@@ -607,79 +608,14 @@ log says so. The other observations need no issue. **Nothing opened**; the index
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
 opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
-04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two. Line numbers are SGK's until 01 imports the code; 01 records
+04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three. Line numbers are SGK's until 01 imports the code; 01 records
 each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
 replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
 in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
 ported tests, read in `runregistrykit/tests/`. **From 03 the three modules' lines are no longer
 SGK's**: each issue's *Package lines (03, …)* gives them at 03's commit, and *Package lines (04a,
-…)* at 04a's, and *Package lines (04b, …)* at 04b's, and *Package lines (05a, …)* at 05a's, read in
-the package.
-
-### `[00-package-prose-names-sgk]`
-
-**Opened:** 2026-10-14, at planning (C8). **Owner:** 05b.
-
-**Assigned (2026-10-15):** to 05b by U15, when 05 was split: 05a's guard lists each of its hits in
-the package modules as known, and 05b rewrites the prose and empties them.
-
-49 docstring and comment lines cite SGK's campaigns (21 in `__init__.py`, 28 in `stores.py`), and
-others name SGK's A3 store, `realistic_large_x`, `main.py` and SGK's classes (README §0.2). The CLI
-prints "the store's own text is in `main.py --inventory`" (`__main__.py:281`), an SGK command.
-
-*Impact.* A reader in this repository or a client cannot follow the citations, and CPBH and SI users
-would be sent to a command they do not have.
-
-*Next step.* 05: the prose in the package's own terms, SGK's history in `PROVENANCE.md`, the rules in
-the README, and the guard (U10) so it stays that way.
-
-*Package lines (01, 2026-10-14).* The SGK citations sit at README §0.2's C8 lines, now in
-`runregistrykit/__init__.py` and `runregistrykit/stores.py`; the CLI text is
-`runregistrykit/__main__.py:281`. D-name made one renamed comment cite a path that does not exist
-here: `stores.py:197`, `runregistrykit/tests/data/full_store_fingerprint*.json` (01's log). And
-`stores.py:1567`'s "(prompt 01's log)" means an SGK campaign's prompt 01 (the comment sits in the
-section SGK's `store-retirement` campaign wrote), not this campaign's (01's log, observations).
-
-*Package lines (03, 2026-10-14), read in the package.* The C8 lines README §0.2 names are now
-`runregistrykit/__init__.py:70, 74, 369, 372, 454, 503, 511, 589, 624` and
-`runregistrykit/stores.py:101, 194-201, 1643, 1653, 2073`; the renamed comment citing a path that
-does not exist here is `stores.py:193`, and "(prompt 01's log)" is `stores.py:1598`. The CLI text
-is `runregistrykit/__main__.py:288`. 03 rewrote one C8 sentence, `begin()`'s on `packages`, which
-named the `dk-and-rpk-migration` campaign (03's log, deviation 15).
-
-*Package lines (04a, 2026-10-15), read in the package.* `__init__.py` is unchanged, its lines as
-03's. In `runregistrykit/stores.py` the C8 lines are now `:104` (03's `:101`), `:1410`, `:1420` and
-`:1841` (03's `:1643`, `:1653`, `:2073`), and "(prompt 01's log)" is `:1365`. The format history
-(03's `:194-201`) and the renamed comment citing a path that does not exist here (03's `:193`) are
-deleted with `FINGERPRINT_FORMAT`. 04a's rewritten fingerprint paragraph and section comment keep
-the citation "(store-fingerprint prompt 04)" (`:109`, `:1181`). The CLI text "the store's own text
-is in `main.py --inventory`" moved, unchanged, from `__main__.py:288` into
-`DatastoreKitFingerprinter.describe`, `runregistrykit/fingerprint.py:128`.
-
-*Package lines (04b, 2026-10-15), read in the package.* `__init__.py` is unchanged. In
-`runregistrykit/stores.py`, 04b added seven lines inside `retire_store` (`:1533-1536`, `:1673-1675`),
-so the C8 lines before them are 04a's (`:104`, `:1410`, `:1420`; "(prompt 01's log)" `:1365`; the
-citations `:109`, `:1181`) and 04a's `:1841` is now `:1848`. The CLI text is now
-`runregistrykit/fingerprint.py:129` (04b added a docstring line above it). 04b's own prose names
-nothing of SGK. Two docstrings 05 rewrites are 04b's observations: `load_fingerprinter`'s list of
-refusals does not name the class refusal, and the loader's `ConfigError` in `retire_store` does not
-end "Nothing was written or deleted" as the docstring says every refusal does.
-
-**Narrowed (2026-10-15, by 05a, `14af805`):** every hit of the package modules is now listed by
-the guard, by scan, file and word, in `runregistrykit/tests/data/known_hits.json`: 69 hits in 30
-entries, all in `__init__.py`, `stores.py` and `fingerprint.py` (`client.py` and `__main__.py`
-hold none): the words `A3`, `main.py`, `realistic_large_x`, `handover-A3-baseline-lambdacdm`,
-`handover`, and the campaigns `run-registry`, `datastore-portability`, `store-fingerprint` and
-`store-retirement` in strings and comments (26 and 8 hits), and 35 citations (`prompts/`, `prompt
-01`, `prompt 03`, `prompt 04`, `§0`, `§2`, `§5`, `§6`). Each scan must find exactly its entries, so
-a new hit fails and 05b's removal of one must update the file. 05a rewrote no prose.
-
-*Package lines (05a, 2026-10-15), read in the package.* The header (15 lines) and `__all__` moved
-every line: `__init__.py` by +15 up to its imports, +38 from `TERMINAL_STATES` to `slugify`, +40
-after it; `stores.py` by +44; `fingerprint.py` by +22; `client.py` and `__main__.py` by +17. So
-`stores.py`: "(prompt 01's log)" `:1409`, the section comments `:1225` and `:1400`, the docstring
-citation `:124`; `fingerprint.py`: the CLI text naming `main.py --inventory` `:151`. Nothing of
-05a's own names a client.
+…)* at 04a's, and *Package lines (04b, …)* at 04b's, and *Package lines (05a, …)* at 05a's, and
+*Package lines (05b, …)* at 05b's, read in the package.
 
 ### `[00-the-shard-fixtures-reach-into-shardedpool]`
 
@@ -730,6 +666,11 @@ neutral store's. The issue stays open, owner none.
 by 05a, their lines as 03's. The carried fixture's names are among the tests' known hits
 (`known_hits.json`: `wavenumber`, `GkSource` and the like in `shard_store_fixtures.py`), for 05c.
 The issue stays open, owner none.
+
+*Package lines (05b, 2026-10-15).* `shard_store_fixtures.py`, `store_fixtures.py` and
+`test_store_retire.py` are unchanged by 05b, their lines as 05a's. 05b's one new test
+(`test_fingerprinter.py`) touches no private `ShardedPool` attribute. The issue stays open, owner
+none.
 
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
@@ -784,6 +725,11 @@ in `retire_store`.
 `runregistrykit/stores.py:1409-1410` (the comment and the assignment), used at `:1674` and `:1724`,
 in `retire_store` (05a's header and `__all__` moved the file by 44 lines). The issue stays open,
 owner none.
+
+*Package lines (05b, 2026-10-15), read in the package.* `_SHARDS_TABLE_UNREADABLE`
+`runregistrykit/stores.py:1409-1410` (the comment and the assignment; 05b dropped "(prompt 01's
+log)" from the comment's text, not its line), used at `:1677` and `:1727`, in `retire_store` (05b's
+longer docstring moved the uses by three lines). The issue stays open, owner none.
 
 ### `[02-the-ported-tests-name-sgk]`
 
@@ -875,7 +821,107 @@ test.
 new `test_package_is_generic.py` and `test_public_names.py` name nothing of SGK (the guard's own
 words are read from the vocabulary file at run time).
 
+**Narrowed (2026-10-15, by 05b, this commit):** the citation scan is widened (U17): `Prompt` or
+`Prompts` with a capital and two digits, a decision id (`C`, `D`, `G`, `Q` or `U` and one or two
+digits, as a whole word) and an issue tag (`[`, two digits, an optional letter, a hyphen, a slug,
+`]`), each built from parts in the guard, and `known_hits.json` lists what they find in the tests:
+**18 more hits in 11 entries**, all under `test_no_citation` (`test_client_root.py` `Q3`, `U9`;
+`test_fingerprinter.py` `D4` ×2, `U14` ×2, `U7` ×2 and the tag
+`[02-the-sidecar-readers-guards-are-unpinned]`; `test_store_amend.py` `D5`;
+`test_store_copy_move.py` `C3`; `test_store_retire.py` `D4` ×3, `D6` ×3;
+`test_store_retire_references.py` the tag `[10-store-retire-reports-every-tombstone-as-a-reference]`),
+none with a capital `Prompt NN`. The tests' totals are now: code names 29 (14 entries), strings 67
+(36), comments 1 (1), citations 58 (43), imports 0, **155 hits in 94 entries** (05a's 137 in 83,
+plus 18 in 11). 05b changed no test's text but one new test in `test_fingerprinter.py`, which names
+nothing of SGK and adds no entry.
+
+*Package lines (05b, 2026-10-15), read in the package.* The tests are unchanged by 05b but
+`test_fingerprinter.py`, which gains `TestProtocolAndLoader.test_describe_points_a_problem_to_the_stores_inventory_reader`
+(`:166`), moving the lines below it in that file by 15, and `test_package_is_generic.py`, whose
+citation pattern, docstring paragraph and citation test changed; neither names SGK.
+
 ## 4. Resolved issues
+
+### `[00-package-prose-names-sgk]`
+
+**Opened:** 2026-10-14, at planning (C8). **Owner:** 05b. **Closed:** 2026-10-15, by 05b (this commit).
+
+**Assigned (2026-10-15):** to 05b by U15, when 05 was split: 05a's guard lists each of its hits in
+the package modules as known, and 05b rewrites the prose and empties them.
+
+49 docstring and comment lines cite SGK's campaigns (21 in `__init__.py`, 28 in `stores.py`), and
+others name SGK's A3 store, `realistic_large_x`, `main.py` and SGK's classes (README §0.2). The CLI
+prints "the store's own text is in `main.py --inventory`" (`__main__.py:281`), an SGK command.
+
+*Impact.* A reader in this repository or a client cannot follow the citations, and CPBH and SI users
+would be sent to a command they do not have.
+
+*Next step.* 05: the prose in the package's own terms, SGK's history in `PROVENANCE.md`, the rules in
+the README, and the guard (U10) so it stays that way.
+
+*Package lines (01, 2026-10-14).* The SGK citations sit at README §0.2's C8 lines, now in
+`runregistrykit/__init__.py` and `runregistrykit/stores.py`; the CLI text is
+`runregistrykit/__main__.py:281`. D-name made one renamed comment cite a path that does not exist
+here: `stores.py:197`, `runregistrykit/tests/data/full_store_fingerprint*.json` (01's log). And
+`stores.py:1567`'s "(prompt 01's log)" means an SGK campaign's prompt 01 (the comment sits in the
+section SGK's `store-retirement` campaign wrote), not this campaign's (01's log, observations).
+
+*Package lines (03, 2026-10-14), read in the package.* The C8 lines README §0.2 names are now
+`runregistrykit/__init__.py:70, 74, 369, 372, 454, 503, 511, 589, 624` and
+`runregistrykit/stores.py:101, 194-201, 1643, 1653, 2073`; the renamed comment citing a path that
+does not exist here is `stores.py:193`, and "(prompt 01's log)" is `stores.py:1598`. The CLI text
+is `runregistrykit/__main__.py:288`. 03 rewrote one C8 sentence, `begin()`'s on `packages`, which
+named the `dk-and-rpk-migration` campaign (03's log, deviation 15).
+
+*Package lines (04a, 2026-10-15), read in the package.* `__init__.py` is unchanged, its lines as
+03's. In `runregistrykit/stores.py` the C8 lines are now `:104` (03's `:101`), `:1410`, `:1420` and
+`:1841` (03's `:1643`, `:1653`, `:2073`), and "(prompt 01's log)" is `:1365`. The format history
+(03's `:194-201`) and the renamed comment citing a path that does not exist here (03's `:193`) are
+deleted with `FINGERPRINT_FORMAT`. 04a's rewritten fingerprint paragraph and section comment keep
+the citation "(store-fingerprint prompt 04)" (`:109`, `:1181`). The CLI text "the store's own text
+is in `main.py --inventory`" moved, unchanged, from `__main__.py:288` into
+`DatastoreKitFingerprinter.describe`, `runregistrykit/fingerprint.py:128`.
+
+*Package lines (04b, 2026-10-15), read in the package.* `__init__.py` is unchanged. In
+`runregistrykit/stores.py`, 04b added seven lines inside `retire_store` (`:1533-1536`, `:1673-1675`),
+so the C8 lines before them are 04a's (`:104`, `:1410`, `:1420`; "(prompt 01's log)" `:1365`; the
+citations `:109`, `:1181`) and 04a's `:1841` is now `:1848`. The CLI text is now
+`runregistrykit/fingerprint.py:129` (04b added a docstring line above it). 04b's own prose names
+nothing of SGK. Two docstrings 05 rewrites are 04b's observations: `load_fingerprinter`'s list of
+refusals does not name the class refusal, and the loader's `ConfigError` in `retire_store` does not
+end "Nothing was written or deleted" as the docstring says every refusal does.
+
+**Narrowed (2026-10-15, by 05a, `14af805`):** every hit of the package modules is now listed by
+the guard, by scan, file and word, in `runregistrykit/tests/data/known_hits.json`: 69 hits in 30
+entries, all in `__init__.py`, `stores.py` and `fingerprint.py` (`client.py` and `__main__.py`
+hold none): the words `A3`, `main.py`, `realistic_large_x`, `handover-A3-baseline-lambdacdm`,
+`handover`, and the campaigns `run-registry`, `datastore-portability`, `store-fingerprint` and
+`store-retirement` in strings and comments (26 and 8 hits), and 35 citations (`prompts/`, `prompt
+01`, `prompt 03`, `prompt 04`, `§0`, `§2`, `§5`, `§6`). Each scan must find exactly its entries, so
+a new hit fails and 05b's removal of one must update the file. 05a rewrote no prose.
+
+*Package lines (05a, 2026-10-15), read in the package.* The header (15 lines) and `__all__` moved
+every line: `__init__.py` by +15 up to its imports, +38 from `TERMINAL_STATES` to `slugify`, +40
+after it; `stores.py` by +44; `fingerprint.py` by +22; `client.py` and `__main__.py` by +17. So
+`stores.py`: "(prompt 01's log)" `:1409`, the section comments `:1225` and `:1400`, the docstring
+citation `:124`; `fingerprint.py`: the CLI text naming `main.py --inventory` `:151`. Nothing of
+05a's own names a client.
+
+*Resolved (05b, 2026-10-15, this commit).* The docstrings and comments of `runregistrykit/__init__.py`,
+`stores.py` and `fingerprint.py` no longer name or cite any client: the campaigns, prompts, README
+sections, decisions, issue tags, scripts, stores, incident dates and `CLAUDE.md` as the home of the
+rules are gone, each reason stated in general terms and the rules pointed at by name ("the README's
+rule on liveness"). `known_hits.json` has no entry for a package module in any scan (0 hits; the
+widened scan finds none either), and a grep of the five modules for `prompt`, `campaign`, `README`,
+`CLAUDE`, `log's`, `A3`, `backup`, `pipeline`, `main.py`, `realistic`, `handover`, `scratchpad`,
+`2026-` and `§` finds only the manifest's keys, `run_id`'s and `begin()`'s parameters, the README
+by section name, and general terms (05b's log accounts for each line). The CLI's pointer to a
+client's `main.py --inventory` is replaced by DatastoreKit's `read_inventory`
+(`runregistrykit/fingerprint.py:151-154`). The two docstrings 04b found inexact are exact. The rules
+moved into `README.md` ("The rules"), SGK's history into `PROVENANCE.md` ("Where the prose's
+citations pointed"), and the guard stays (U10, widened by U17), so that the prose stays so: the
+tests' share of the known hits is 05c's. No code changed but that one message and the guard's
+citation pattern.
 
 ### `[04b-retire-without-fingerprint-deletes-on-a-broken-fingerprinter]`
 

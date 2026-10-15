@@ -284,3 +284,55 @@ Each prompt's changes, from 03 on:
 - **The licence header.** Each of the five package modules begins with the Apache 2.0 header that
   RayPoolKit and the clients carry (fourteen lines, then a blank line), ahead of its docstring; no
   test module has it. Every line of the five modules moved down by fifteen or more.
+
+**Prompt 05b, the package prose and the rules**
+(`prompts/extraction/05b-the-package-prose-and-the-rules.md`, this commit):
+
+- **The prose rewritten.** The docstrings and comments of `runregistrykit/__init__.py`,
+  `stores.py` and `fingerprint.py` no longer name or cite any client: no campaign, prompt, README
+  section, log, decision, issue tag, script, store or incident date, and no `CLAUDE.md` as the
+  home of the rules. Each reason they gave is kept, in general terms, and each fact (what a
+  function refuses, writes, deletes, reads and returns, in what order) is unchanged. `client.py`
+  and `__main__.py` held none. The code is unchanged: `ast.dump` of each module with its
+  docstrings removed equals that at `c735acf`, but for the one string constant below.
+- **The message replaced.** `DatastoreKitFingerprinter.describe`'s line `problems: (counts only;
+  the store's own text is in `main.py --inventory`)`, a client's command, now says that the
+  store's own text is in the store's inventory, which
+  `datastorekit.store_inventory.read_inventory` returns. It keeps its leading `problems:` and
+  "counts only". `test_fingerprinter.py` gains one test of it.
+- **Two docstrings made exact.** `load_fingerprinter`'s list of refusals names the class refusal;
+  `retire_store`'s and `amend_sidecar`'s say that the config's refusals (`ConfigError`, from
+  `find_client_root`, `require_fingerprinter` and, in a first retirement, `load_fingerprinter`)
+  are in the config's own words and come before anything is written, and that every other refusal
+  ends as stated. No message changed.
+- **`README.md`** gains "The rules" (the registry's six rules, each with the failure it answers)
+  and "The public names" (each module's `__all__`, and that no patch target is promised).
+- **The widened scan.** The guard's citation pattern gains three forms: `Prompt` or `Prompts`
+  with a capital and two digits, a decision id (one of the capitals C, D, G, Q and U with one or
+  two digits, as a whole word) and an issue tag (a bracket, two digits, an optional letter, a
+  hyphen, a slug, a bracket). `known_hits.json` is rewritten by the guard's own scans: no entry
+  for a package module in any scan, and the tests' entries those of 05a plus 18 hits in 11
+  entries of the widened scan, for prompt 05c.
+
+## Where the prose's citations pointed
+
+The package's docstrings and comments cited SGK's records. The citations are gone from the prose
+(prompt 05b); this table says what each pointed at, **as cited at `c735acf`** (the prose's own
+words; no SGK file was read to check a row beyond SGK's `CLAUDE.md` and
+`prompts/run-registry/README.md`), and where the reason is stated now. A row's SGK record is in
+SGK's repository at `a45aefc`, or at its `14bcac0` for its `CLAUDE.md` and the run-registry
+campaign's README.
+
+| Topic | The SGK record cited at `c735acf` | Where the reason is stated now |
+|---|---|---|
+| The rules, and the five failures | `CLAUDE.md`, "Long-running jobs — the run registry"; `prompts/run-registry/README.md` §0 (items 3, 4 and 5; §0.2) | this repository's `README.md`, "The rules"; `pid_alive`'s docstring; the docstrings of `Run.results_path`, `Run.record`, `Run.known` and `begin()` |
+| Managing stores as part of the registry | `prompts/datastore-portability` README §6.5 (and §6.3, that `ShardedPool` knows nothing of the sidecar); its §6.5 point 5 for `results_store_id` | the module docstrings of `runregistrykit` and `runregistrykit.stores`; `begin()`'s docstring |
+| The sidecar's single owner | `prompts/datastore-portability` README §6.5 | `runregistrykit.stores`, module docstring, first paragraph |
+| The legacy sidecar's `datastore`, read by its final component | "prompt 01's rule for legacy shard records" (campaign not named in the prose) | `runregistrykit.stores`, module docstring, "A *legacy* sidecar" |
+| Retirement, and its decisions | `prompts/store-retirement` README §6.2 and its decisions D0 (the sidecar stays as a tombstone), D3 (a reason is required), D4 (`--without-fingerprint`), D5 (the references report), D6 (a retired name is never reused); its prompt 03; "README §5 rule 11" (nothing is cleaned up or retried after a failure) | the `retired` field in the format, the retirement section comment, `retire_store`'s and `_retire_failure`'s docstrings, `begin()`'s comment on a retired store |
+| The reference search, and its issue | the issue tag `[10-store-retire-reports-every-tombstone-as-a-reference]` (the board that held it is not named in the prose) | `_find_references`'s docstring |
+| The fingerprint | `prompts/store-fingerprint` prompt 04 | `runregistrykit.stores`, module docstring, "The fingerprint"; the fingerprint section comment; `runregistrykit.fingerprint` |
+| Amendment | `prompts/store-retirement` prompt 04 (its §2.1, the field owners, and §2.2, the tagged marker), README D5, and the live `backup.retained` of one of SGK's sidecars | the amend section comment, `_FIELD_OWNERS`, `_amend_slot_problems` and `amend_sidecar`'s docstrings |
+| The checkpoint pattern and the provenance stamp | `docs/handover/realistic_large_x.py` (it stamps each cell, and its `load_checkpoint` chose to discard on a script-hash mismatch); the 10 h 33 m resume of the baseline run | `Run.record`'s and `Run.known`'s docstrings; `README.md`, rule 6 |
+| `now_iso`'s format, and `stage_reached` | the hand-written manifest of the baseline run, `handover-A3-baseline-lambdacdm.manifest.json` | `now_iso`'s and `Run.heartbeat`'s docstrings; `begin()`'s on `scope` |
+| `ShardedPool`'s interface and message | "Prompt 02's interface" (`_store_files`) and "prompt 01's log" (`_SHARDS_TABLE_UNREADABLE`), both campaigns not named in the prose | `_store_files`'s docstring (DatastoreKit's `ShardedPool` methods; refusals come through unchanged); the comment on `_SHARDS_TABLE_UNREADABLE` |
