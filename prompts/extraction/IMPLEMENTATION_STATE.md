@@ -1,9 +1,9 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 7 of 11 prompts written (01–03, 04a, 04b, 05a, 05b), 7 landed, 6
+**Last updated:** 2026-10-15 · **Status: LIVE — 7 of 11 prompts written (01–03, 04a, 04b, 05a, 05b), 7 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
-`c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275), and 05b landed, this
-commit, suite 276, review pending.** G1 holds
+`c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
+276).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -62,7 +62,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | `c81ad06` | 135 → 186 |
 | 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | `5302a6f` | 186 → 245 |
 | 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05a-the-guard-and-the-public-names.md)) | `14af805` | 245 → 275 |
-| 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed** 2026-10-15, review pending ([log](logs/05b-the-package-prose-and-the-rules.md)) | this commit | 275 → 276 |
+| 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05b-the-package-prose-and-the-rules.md)) | `1120fb3` | 275 → 276 |
 | 05c | `05c-the-tests-own-names.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
@@ -76,7 +76,8 @@ for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), us
 [`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`f02abc7`), used for 03;
 [`orchestrator/prompt-04a.md`](orchestrator/prompt-04a.md) (`9dc34a5`), used for 04a;
 [`orchestrator/prompt-04b.md`](orchestrator/prompt-04b.md) (`5177ffa`), used for 04b;
-[`orchestrator/prompt-05a.md`](orchestrator/prompt-05a.md) (`d2a3d85`), used for 05a.
+[`orchestrator/prompt-05a.md`](orchestrator/prompt-05a.md) (`d2a3d85`), used for 05a;
+[`orchestrator/prompt-05b.md`](orchestrator/prompt-05b.md) (`bcc0c0a`), used for 05b.
 
 **Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
 with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
@@ -569,6 +570,95 @@ and in `prompts/INDEX.md`; this paragraph and the notes line.
 deletes the file and re-runs the writer whose text this log gives (it refuses to overwrite), and its
 log says so. The other observations need no issue. **Nothing opened**; the index stays at 4.
 
+**Orchestrator review of prompt 05b (2026-10-15).** Dispatched from `bcc0c0a` to one Sonnet
+subagent, with the note's §0: its facts, twelve corrections and readings of the prompt (the widened
+forms re-measured; the forms built from parts and the self-scan kept clean; the config's refusals,
+`ConfigError`s that are `RuntimeError`s not ending "Nothing was written", made exact; the loader's
+class refusal; the durability rule a client's, since an absolute runs root is kept; the public names
+from each `__all__`; the citations table as cited at `c735acf`; the new test adding no hit; how
+`known_hits.json` is rewritten and what it holds; the code-unchanged script; the grep's accounting;
+the suite's per-module counts). Reviewed against its commit `1120fb3`, with nothing landed after it.
+**Every check of the note's §3 passed**, and acceptance 1–3 are met. No stop condition fired.
+
+*At dispatch.* The prompt's gate held at `92f173c` and the note's at `bcc0c0a`: the diff from
+`c735acf` empty, the tree clean, this checkout the only worktree, no `var/`; the suite 275 OK in
+90.6 s. No Ray process; `RAY_ADDRESS` unset. The orchestrator's own trial of the three widened forms
+over `92f173c` gave the prompt's figures exactly: package modules 11 hits in 7 entries, tests 18 in
+11, none in the guard or `test_public_names.py`.
+
+*The checks.*
+1. **Scope.** `1120fb3` touches 12 files: the three package modules that held hits, the guard,
+   `test_fingerprinter.py` (one test added, in `TestProtocolAndLoader`), `known_hits.json`,
+   `README.md`, `PROVENANCE.md` and the records. `client.py`, `__main__.py`, every other test module
+   and fixture, the vocabulary, both scripts, `pyproject.toml`, `CLAUDE.md`, the campaign README, the
+   prompt and the note are unchanged; `git ls-files runregistrykit` is the same 26.
+2. **The code, independently.** The orchestrator's script: `ast.dump` with every docstring removed
+   equals `c735acf`'s for `__init__.py`, `stores.py`, `client.py` and `__main__.py`; `fingerprint.py`
+   differs in the one constant, `describe`'s problems line, and is equal with every string blanked.
+   The guard's code differs in its citation pattern and its citation test only.
+3. **The prose, by reading.** The diff of the three modules read hunk by hunk against `c735acf`:
+   each reason kept in general terms (the poll loops, the scratchpad, the 10 h 33 m resume, the
+   pedigree of the checkpoint discard and of `stage_reached`), each fact kept, each citation that
+   stood alone replaced by its rule (the legacy path read by its final component; a retired name
+   never reused; nothing cleaned up after a failed retirement); the example `campaign="example"`.
+   The two docstrings as corrections 3 and 4. The orchestrator's re-run of §3.4's grep over the five
+   modules' strings and comments finds only general terms, the README by section name and the
+   manifest's keys.
+4. **The guard, by reading.** The six forms, the three new ones from parts (`_PROMPT.capitalize()`,
+   `_DECISION_LETTERS`, `_TAG_OPEN`/`_TAG_CLOSE`); decision ids whole words over the five capitals
+   with one or two digits; the tag as §2.2; the docstring's paragraph in words; 8 new samples and 13
+   near misses, all built from parts; nothing else changed.
+5. **The known hits, independently.** The orchestrator's scanner, written for this review by §2.3's
+   rules and validated first against `92f173c`'s file (equal, scan by scan), over an export of
+   `1120fb3` with the widened pattern: equal to `known_hits.json` in every scan; no package-module
+   entry; the tests' entries `c735acf`'s plus exactly the 11 citation entries, 155 hits in 94; the
+   `owners` string unchanged.
+6. **The suite.** `Ran 276 tests in 90.7s`, OK; the per-module counts the log's
+   (`test_fingerprinter` 31). `git status --short --ignored` the same before and after; no `var/`;
+   this checkout the only worktree; no Ray process. `black --check runregistrykit docs`: 26 files
+   unchanged.
+7. **The README and `PROVENANCE.md`.** Read against SGK's `CLAUDE.md` section and
+   `prompts/run-registry/README.md` §0 at `14bcac0`: the opening paragraph's claims; the six rules
+   with `python -m runregistrykit list`, `Run.heartbeat(pid=...)` and the config's runs root, rule 5
+   as correction 5; the failures true to the source (the orphaned run and the unread registry for
+   discovery; the nineteen loops and fifteen dead jobs for liveness; the three-hour measurement in
+   memory and the lost census for durability; the stamp that proved a script unchanged in four
+   seconds and the resume that crashed on an untaken path for provenance), the origin named once, no
+   client's script, store or campaign. The public names equal each module's `__all__` (20, 26, 4,
+   4, 1); the "Status" paragraph untouched. `PROVENANCE.md`'s 05b section and its eleven-row table
+   of citations, every topic §2.7 lists present.
+8. **The mutations.** (m1)–(m8) extracted from the log and replayed in `bash` (`--check`, apply,
+   `-R --check`, reverse) against the guard's and the fingerprinter's modules, each failing exactly
+   the tests the log names; the tree clean after each. The orchestrator's own: (o1) `E1` in a
+   comment of `client.py` fails nothing, as it must (the rule is no wider than §2.2); (o2) a decision
+   id in the guard's own docstring fails the citation scan and the self-scan test; (o3) the tag form
+   dropped fails the citation scan and four rule subtests; (o4) the decision id's trailing boundary
+   dropped fails four rule subtests (the three-digit and trailing-letter near misses); (o5) a section
+   sign and a digit in a `stores.py` docstring fails the citation scan; (o6) `read_inventory` dropped
+   from `describe`'s line fails §2.4's test; (o7) `realistic_large_x` in a comment of `__init__.py`
+   fails the comment scan; (o8) a tests' entry's count raised by one fails the citation scan. Not
+   pinned, and accepted: the faithfulness of the prose to the old reasons, which is read, not tested.
+9. **The records.** The log has every section of README §5.1 and the prompt's §4.3 additions, 17
+   deviations classified (corrections 1–12 among them; no UNINTENDED DRIFT), the grep's accounting,
+   the writer and the file's diff, and all eight diffs. The board as §4.3: the issue closed into §4,
+   the other three with *Package lines (05b, …)*. The index counts 3 by counting, as its header says.
+10. **The interface and the handover.** No record changes form; the one message changed is printed,
+    not recorded. The handover gives 05c its 155 hits in 94 entries by scan, the writer's use, and
+    the suite at 276.
+
+*Residue fixed in the follow-up.* "this commit" → `1120fb3` on this board, in the log's header, in
+`PROVENANCE.md` and in `prompts/INDEX.md`; 05b marked reviewed here, in README §2 and its header, and
+in `prompts/INDEX.md`; this paragraph and the notes line. And prompt §2.3 rule 6: the rewrite left
+three docstring lines over 100 columns (`__init__.py:385`, `stores.py:121` and `:1455`) and two
+paragraphs broken mid-sentence (`begin()`'s on `results_store_id` and on `scope`); their paragraphs
+are rewrapped, with the code, every word and every paragraph break unchanged from `1120fb3` (checked
+by `ast` and by comparing each string with its whitespace normalised), and the suite 276 OK after.
+Lines over 100 columns that `c735acf` already had are left as they were.
+
+*Accepted as recorded.* The `owners` string of `known_hits.json` still names 05b's share, though it
+is empty; the writer is to be unchanged, and 05c's rewrite restates it. The other observations need
+no issue. **Nothing opened**; the index stays at 3.
+
 ### 1.1 Items
 
 | Item | Prompt | What | State |
@@ -821,7 +911,7 @@ test.
 new `test_package_is_generic.py` and `test_public_names.py` name nothing of SGK (the guard's own
 words are read from the vocabulary file at run time).
 
-**Narrowed (2026-10-15, by 05b, this commit):** the citation scan is widened (U17): `Prompt` or
+**Narrowed (2026-10-15, by 05b, `1120fb3`):** the citation scan is widened (U17): `Prompt` or
 `Prompts` with a capital and two digits, a decision id (`C`, `D`, `G`, `Q` or `U` and one or two
 digits, as a whole word) and an issue tag (`[`, two digits, an optional letter, a hyphen, a slug,
 `]`), each built from parts in the guard, and `known_hits.json` lists what they find in the tests:
@@ -844,7 +934,7 @@ citation pattern, docstring paragraph and citation test changed; neither names S
 
 ### `[00-package-prose-names-sgk]`
 
-**Opened:** 2026-10-14, at planning (C8). **Owner:** 05b. **Closed:** 2026-10-15, by 05b (this commit).
+**Opened:** 2026-10-14, at planning (C8). **Owner:** 05b. **Closed:** 2026-10-15, by 05b (`1120fb3`).
 
 **Assigned (2026-10-15):** to 05b by U15, when 05 was split: 05a's guard lists each of its hits in
 the package modules as known, and 05b rewrites the prose and empties them.
@@ -907,7 +997,7 @@ after it; `stores.py` by +44; `fingerprint.py` by +22; `client.py` and `__main__
 citation `:124`; `fingerprint.py`: the CLI text naming `main.py --inventory` `:151`. Nothing of
 05a's own names a client.
 
-*Resolved (05b, 2026-10-15, this commit).* The docstrings and comments of `runregistrykit/__init__.py`,
+*Resolved (05b, 2026-10-15, `1120fb3`).* The docstrings and comments of `runregistrykit/__init__.py`,
 `stores.py` and `fingerprint.py` no longer name or cite any client: the campaigns, prompts, README
 sections, decisions, issue tags, scripts, stores, incident dates and `CLAUDE.md` as the home of the
 rules are gone, each reason stated in general terms and the rules pointed at by name ("the README's

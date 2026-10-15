@@ -382,11 +382,11 @@ class Run:
 
     @property
     def results_path(self):
-        """The durable thing this job's results live in — a datastore the job's pipeline writes —
-        which the registry names. A datastore once written into a session scratchpad was lost with
-        it, with nothing on disk saying where the results had gone, and a resume must know what it
-        is resuming into. The registry never writes it. It reads it, read-only, in one place:
-        `finish(..., fingerprint=True)` takes its content fingerprint."""
+        """The durable thing this job's results live in — a datastore the job's pipeline
+        writes — which the registry names. A datastore once written into a session scratchpad was
+        lost with it, with nothing on disk saying where the results had gone, and a resume must
+        know what it is resuming into. The registry never writes it. It reads it, read-only, in one
+        place: `finish(..., fingerprint=True)` takes its content fingerprint."""
         recorded = self.manifest.get("results")
         return self._recorded_path(recorded) if recorded else None
 
@@ -641,16 +641,15 @@ def begin(
     child's pid to `heartbeat()` once it has one. Every manifest field but two is one that would
     have caught something in the failures the README's rules answer; there are no others.
 
-    The first is `results_store_id`, which comes with managing stores: it is how a run and its
-    store are matched. When `results` has a problem-free registry sidecar beside it
-    (`runregistrykit.stores`), it holds
-    that sidecar's `store_id`, and otherwise `null`: no store, no sidecar, a legacy sidecar, or a
-    sidecar with a problem. It matches a run to its store after the store has moved, which a path
-    cannot, and it is how `store copy` / `store move` recognise a store a running run is using.
-    The sidecar is read here and never written. Manifests written before the field existed lack
-    it, and are read exactly as before. A `results` whose sidecar is a tombstone
-    (`runregistrykit.stores.retire_store`) is refused before the run directory is created, because a
-    retired name is never reused.
+    The first is `results_store_id`, which comes with managing stores: it is how a run and its store
+    are matched. When `results` has a problem-free registry sidecar beside it
+    (`runregistrykit.stores`), it holds that sidecar's `store_id`, and otherwise `null`: no store,
+    no sidecar, a legacy sidecar, or a sidecar with a problem. It matches a run to its store after
+    the store has moved, which a path cannot, and it is how `store copy` / `store move` recognise a
+    store a running run is using. The sidecar is read here and never written. Manifests written
+    before the field existed lack it, and are read exactly as before. A `results` whose sidecar is a
+    tombstone (`runregistrykit.stores.retire_store`) is refused before the run directory is created,
+    because a retired name is never reused.
 
     The second is `packages`, which is `package_provenance()` of `runregistrykit` and of the client
     config's `distributions`: what was installed of each when the run began. It exists so that a
@@ -666,8 +665,8 @@ def begin(
 
     `scope` is one line saying what the run covers, and is what tells a stranger whether the run
     is still relevant — a manifest written by hand carried it, because `argv` alone is exact and
-    unreadable. Derive it from the job's own arguments
-    rather than typing it: a field somebody must remember to update is a field that goes stale.
+    unreadable. Derive it from the job's own arguments rather than typing it: a field somebody
+    must remember to update is a field that goes stale.
 
     `heartbeat_means` is one line saying what a fresh heartbeat on *this* job actually asserts.
     It exists because the honest answer differs per job — "a unit was recorded" for a script with

@@ -1,7 +1,7 @@
 # Log — prompt 05b: the package prose and the rules
 
 **Subject:** Rewrite the package's prose in its own terms, widen the citation scan, and state the rules in the README
-**Commit:** this commit (on `main`, after `bcc0c0a`)
+**Commit:** `1120fb3` (on `main`, after `bcc0c0a`)
 **Date:** 2026-10-15
 **Agent:** Claude Sonnet 5.5, dispatched by the orchestrator with its brief and the orchestration
 note's section 0 (`brief-05b-section0.md`)

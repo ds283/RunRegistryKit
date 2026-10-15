@@ -118,18 +118,18 @@ run is over.
 required reason, and records the field's old value in an `amend` history entry, so that a
 present-tense claim an unknown field makes (such as a field saying that a copy of the store is
 retained, once the copy is retired) can be corrected by a person without a hand edit of a sidecar,
-and nothing is ever lost. It never touches a known field, `retired` included: those belong to the operation that
-owns them. It never opens the store's files; it reads and writes only the sidecar.
+and nothing is ever lost. It never touches a known field, `retired` included: those belong to the
+operation that owns them. It never opens the store's files; it reads and writes only the sidecar.
 
-**The fingerprint** says what a closed store holds. This module does
-not compute one: the client's config names a fingerprinter (`[stores] fingerprinter`,
-`runregistrykit.fingerprint`), which takes, compares, describes and lists fingerprints, and every
-store operation refuses, before it reads, writes or deletes anything, when the config names none.
-`fingerprint_store` decides when a fingerprint is taken and where it is recorded: it reads the store
-through the fingerprinter, read-only, with no Ray, and writes only the sidecar's `fingerprint`
-field, and only when asked. A listing is the fingerprinter's, generated on demand by
-`write_listing`. Of a fingerprint this module reads only `fingerprint_format`, `encoding_format`,
-`digest` and the `taken` it builds, and of a comparison each entry's `kind` and `text`.
+**The fingerprint** says what a closed store holds. This module does not compute one: the client's
+config names a fingerprinter (`[stores] fingerprinter`, `runregistrykit.fingerprint`), which takes,
+compares, describes and lists fingerprints, and every store operation refuses, before it reads,
+writes or deletes anything, when the config names none. `fingerprint_store` decides when a
+fingerprint is taken and where it is recorded: it reads the store through the fingerprinter,
+read-only, with no Ray, and writes only the sidecar's `fingerprint` field, and only when asked. A
+listing is the fingerprinter's, generated on demand by `write_listing`. Of a fingerprint this module
+reads only `fingerprint_format`, `encoding_format`, `digest` and the `taken` it builds, and of a
+comparison each entry's `kind` and `text`.
 
 `ShardedPool` is imported inside `copy_store`, `move_store` and `retire_store` only, and the
 fingerprinter inside `fingerprint_store` and `write_listing` only, so that importing this module,
@@ -1450,11 +1450,11 @@ def _find_references(
     A sidecar names the store when its ``copied_from.store_id`` is the store's, or when any string
     in it resolves to the primary, to a file in the plan, or to the store's directory.
 
-    A match by the **directory** means that a sidecar names the directory the store sits in. That
-    is how one store's sidecar can name another store that sits alone in a subdirectory of the
-    stores root, and retiring that other store has to report it. It is weaker than a match by the primary: the
-    directory may hold other stores too, and a sidecar naming it names all of them, so the report
-    says only that the sidecar names where the store is.
+    A match by the **directory** means that a sidecar names the directory the store sits in. That is
+    how one store's sidecar can name another store that sits alone in a subdirectory of the stores
+    root, and retiring that other store has to report it. It is weaker than a match by the primary:
+    the directory may hold other stores too, and a sidecar naming it names all of them, so the
+    report says only that the sidecar names where the store is.
 
     The directory is a target **only when it is not the stores root itself** (compared by
     ``realpath``, the resolution ``os.walk`` uses on the root it searches). The stores root is the

@@ -286,7 +286,7 @@ Each prompt's changes, from 03 on:
   test module has it. Every line of the five modules moved down by fifteen or more.
 
 **Prompt 05b, the package prose and the rules**
-(`prompts/extraction/05b-the-package-prose-and-the-rules.md`, this commit):
+(`prompts/extraction/05b-the-package-prose-and-the-rules.md`, `1120fb3`):
 
 - **The prose rewritten.** The docstrings and comments of `runregistrykit/__init__.py`,
   `stores.py` and `fingerprint.py` no longer name or cite any client: no campaign, prompt, README
