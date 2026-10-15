@@ -1,6 +1,6 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 10 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06, 07), 10 landed and
+**Last updated:** 2026-10-15 · **Status: LIVE — 11 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06, 07, 08), 10 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
 276; 05c, `a7d93d5`, suite 276; 06, `9f8ebe4`, suite 276; 07, `aaab408`, suite
@@ -10,7 +10,7 @@ on the source side at SGK `a45aefc`, and on the package side for 01's and 02's f
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
 U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the same day for
-05, U17 for 05b, U13, U18 and U19 for 06, and U20, U21 and U22 for 07, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
+05, U17 for 05b, U13, U18 and U19 for 06, U20, U21 and U22 for 07, and U23 and U24 for 08, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
 **`v0.1.0` is tagged** (annotated, tag object `fd5ce48`) on 06's commit `9f8ebe4`, after CI run
 `38754093289` passed there in all three jobs (`suite (low)`, `suite (high)`, `core`); the tag and
 `main` (to `4ee947b`) are pushed (README §5 rule 12).
@@ -61,6 +61,8 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | **U20** README worktree | 07 corrects the worktree sentences of "Using it", closing `[06-the-readme-places-the-fingerprinter-import-in-the-main-checkout]` | **taken** 2026-10-15 |
 | **U21** SGK's test helpers | no test support shipped; SGK's checklist lists each helper and deleted name its staying tests use, and advises SGK keep its own copies | **taken** 2026-10-15 |
 | **U22** Q5 recipe | described with a sketch proved here; each client writes its own guard | **taken** 2026-10-15 |
+| **U23** store smoke | a self-contained script: its own registry module and fingerprinter in a temporary client root, every `store` command, a fingerprinted run, a worktree run, the refusals | **taken** 2026-10-15 |
+| **U24** release source | the smoke runs against the pin installed from GitHub at both ends, and the core-only form | **taken** 2026-10-15 |
 
 ## 1. Prompts
 
@@ -76,7 +78,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05c-the-tests-own-names.md)) | `a7d93d5` | 276 → 276 |
 | 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/06-release-v0.1.0.md)) | `9f8ebe4` | 276 → 276 |
 | 07 | [`07-the-adoption-checklists.md`](07-the-adoption-checklists.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/07-the-adoption-checklists.md)); one stop (non-binding `fingerprint_of` calls at SGK), ruled by the user | `aaab408` | 276 → 276 |
-| 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
+| 08 | [`08-verification-and-close-out.md`](08-verification-and-close-out.md) | Opus | written 2026-10-15 | — | — |
 
 **Written one at a time** (README §2.1), each after the one before it has landed and been reviewed.
 The holds are for **method**, not scope: every charter is fixed in README §2.

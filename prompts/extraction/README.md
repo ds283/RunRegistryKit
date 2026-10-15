@@ -6,10 +6,10 @@
 measurements made the same day (§0.2). The brief is evidence, not a specification: where it and
 §0.2 disagree, §0.2 says so and is right for this tree. The user's rulings carried in from SGK are
 §6.1; the decisions this campaign needs are §6.2. The user took U2 and U3 on 2026-10-14, as
-recommended, for 01, U4 for 02, U5 and U9 for 03, U6, U7 and U8 for 04, U14 for 04b, U10, U11, U12, U15 and U16 for 05, U17 for 05b, U13, U18 and U19 for 06, and U20, U21 and U22 for 07. **Prompts 01
+recommended, for 01, U4 for 02, U5 and U9 for 03, U6, U7 and U8 for 04, U14 for 04b, U10, U11, U12, U15 and U16 for 05, U17 for 05b, U13, U18 and U19 for 06, U20, U21 and U22 for 07, and U23 and U24 for 08. **Prompts 01
 (`4e0d715`), 02 (`8155445`), 03 (`035e4b5`), 04a (`c81ad06`), 04b (`5302a6f`), 05a (`14af805`), 05b
 (`1120fb3`), 05c (`a7d93d5`), 06 (`9f8ebe4`) and 07 (`aaab408`) have landed and been reviewed; 04 is split into
-04a and 04b, and 05 into 05a, 05b and 05c; `v0.1.0` is tagged on `9f8ebe4`, after CI passed there; E2 holds, `v0.1.0` with `docs/adoption/secondarygwkit.md`** (§2.1).
+04a and 04b, and 05 into 05a, 05b and 05c; `v0.1.0` is tagged on `9f8ebe4`, after CI passed there; E2 holds, `v0.1.0` with `docs/adoption/secondarygwkit.md`; 08 is written** (§2.1).
 
 ## 0. Why this campaign exists
 
@@ -228,7 +228,7 @@ has a `pyproject.toml` with a `[project]` table (SI's holds only pytest settings
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | The tests' SGK names and prose (U16): `TestLiveA3Shape`, `a3_shaped`, `sweep_shaped`, SGK's store stems and run names, the shard fixture's tables, the neutral store's shared columns, `test_package_imports.py`'s `FORBIDDEN`, and the citations; each rename mapped in `PROVENANCE.md`, every assertion kept. Empties the known hits. Closes `[02-the-ported-tests-name-sgk]`. *(At writing: 155 known hits in 94 entries in 14 test modules and fixtures; a fixed rename map of thirteen names (two helpers, a class, six test methods, two constants, three neutral-store columns), each checked against the guard's forbidden words; a trial of the renames, the neutral data and `FORBIDDEN` read from the guard's `project_packages()` (18 names, SGK's three among them) gave 276 tests with only the guard's three known-hit scans failing, leaving 75 hits, all in docstrings and comments; beyond the guard, an SGK campaign inside a run id, `QSI` and `TKN`, SGK's prompt property and test numbers, and a name the package no longer has; `known_hits.json` emptied with the mechanism kept, as DatastoreKit's guard did.)* | Sonnet | landed and reviewed 2026-10-15 (`a7d93d5`) |
 | 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Dependency ranges in `pyproject.toml` (`[stores]`: `datastorekit>=0.4.0` by name, SGK's brief §7). The suite at both ends locally, and with no `datastorekit` installed for the core (U13). A GitHub Actions workflow. `README.md` gains usage and installing. **Tag `v0.1.0`** on its commit once CI is green at both ends. *(At writing: U13, U18 and U19 taken. The wheel ships 19 test modules without their data, so `runregistrykit.tests` is excluded (U19), leaving 10 entries; both ends pass in fresh venvs with `datastorekit` from `v0.4.0`, 276 OK in about 102 s each; without the extra only `test_run_registry` and `test_public_names` load, 37 OK, so the core job runs those by name and a smoke of imports, `--help`, `list` and a `begin` and `finish`, and `[05c-the-import-test-needs-datastorekit]` closes with the import test in the `[stores]` jobs (U18); `datastorekit` is not on PyPI, so the README tells a client to pin it beside the extra; the repository has never run a workflow; Linux not measured. Recommended on Opus, as the sibling release prompts were, for the README's usage.)* | Opus | landed and reviewed 2026-10-15 (`9f8ebe4`) |
 | 07 | [`07-the-adoption-checklists.md`](07-the-adoption-checklists.md) | `docs/adoption/`: a README and one checklist per client, measured read-only at a named client commit against `v0.1.0`. SGK's is E2's (SGK's brief §8.2): the config file with SGK's values, the fingerprinter's protocol and SGK's module, the public name for each SGK call site, the commands, and how to build SGK's Q5 guard. CPBH's and SI's (§8.3), each offering the Q5 pattern, and the substitution of `installed_package_provenance`. A script measures every client's call sites through `git` and `ast`. *(At writing: U20, U21 and U22 taken. SGK's live code imports the registry 13 times in 10 files, 4 at module level; its 4 `begin` calls all bind at `v0.1.0`; `_slug` is its one private name; `fingerprint_of` moved to DatastoreKit with a new required `fingerprint_format`. SGK's 101 staying tests import helpers the wheel does not ship (`StoreTestCase`, `CommandLineTestCase`) and deleted names (`REPO_ROOT`, `DEFAULT_ROOT`, `FINGERPRINT_FORMAT`), so SGK keeps its own copies (U21). CPBH and SI call nothing of the registry; each one's `installed_package_provenance` is the package's `package_provenance` but for a redundant assignment and a default argument; neither ignores `var/`. CPBH has specs, a coverage test and `datastorekit` `v0.4.0`; SI has none of them until its migration lands. The Q5 recipe runs on public names over the neutral store (U22). The README's worktree sentences are 07's to correct (U20).)* | Opus | landed and reviewed 2026-10-15 (`aaab408`) |
-| 08 | `08-verification-and-close-out.md` | `docs/extraction-verification.md` from the package at `v0.1.0` and the records of 01–07; a smoke run of the store layer end to end in a temporary client root at both ends; the campaign closed, with G2–G4 open. | Sonnet | not written |
+| 08 | [`08-verification-and-close-out.md`](08-verification-and-close-out.md) | `docs/extraction-verification.md` from the package at `v0.1.0` and the records of 01–07; a smoke run of the store layer end to end in a temporary client root at both ends; the campaign closed, with G2–G4 open. *(At writing: U23 and U24 taken, and the model changed from Sonnet to Opus by the user. CI passed all three jobs on `aaa1d6d` (run `38787646775`). The pin from GitHub installs at both ends, `commit_id` `9f8ebe4`, with no tests; offline, `uv` reaches `datastorekit` only by the tag's full SHA. A self-contained smoke in a client root holding its own registry module and fingerprinter (U23), against that pin (U24), passes eleven steps at both ends in about 5 s each: every `store` command, a run that takes a fingerprint (the same digest at both ends), a worktree run recorded under the main checkout, and two refusals; Ray is never initialised. A config naming the class fails exactly the steps that load the fingerprinter and deletes nothing; a changed row makes `store fingerprint` differ and `store retire` refuse. `finish` records a fingerprint it cannot take as `fingerprint_error` and stays `done`, so the smoke asserts that key's absence. The equivalence check at `8155445` gives `RESULT: OK`. The offline wheel from `v0.1.0` matches 06's entries and size but not its hash, since `dist-info` carries the build time. 43 commits; 13 issues, 2 left open at the close.)* | Opus | written 2026-10-15 |
 
 **Order.** 01 → 02 → 03 → 04a → 04b → 05a → 05b → 05c → 06 → 07 → 08. 02 follows 01 so that the behaviour every later
 prompt changes is pinned by tests first, as imported. 03 precedes 04 because the fingerprinter is
@@ -357,7 +357,7 @@ From SGK's audit §0 and §8 (2026-10-12), as carried by the brief, and this rep
 
 Each is put with a recommendation, the recommended option first. **U2 and U3 were taken by the user
 on 2026-10-14, for 01, U4 the same day, for 02, U5 and U9, for 03, U6, U7 and U8, for 04, U14 on
-2026-10-15, for 04b, U10, U11, U12, U15 and U16 the same day, for 05, U17, for 05b, U13, U18 and U19, for 06, and U20, U21 and U22, for 07, each as recommended**; the recommendation below is the decision. The others are put when the prompt that needs them is written.
+2026-10-15, for 04b, U10, U11, U12, U15 and U16 the same day, for 05, U17, for 05b, U13, U18 and U19, for 06, U20, U21 and U22, for 07, and U23 and U24, for 08, each as recommended**; the recommendation below is the decision. The others are put when the prompt that needs them is written.
 
 - **U2: the import** *(for 01)*. (a) **Faithful**: SGK's three modules at `a45aefc`, changed only by
   the package's name (D-name), with C1–C9 left as they are and opened as §3 issues, each owned by a
@@ -528,6 +528,26 @@ on 2026-10-14, for 01, U4 the same day, for 02, U5 and U9, for 03, U6, U7 and U8
   each client writes its own test; or (b) the same, and a note that a shared spec-digest helper
   would be a request to DatastoreKit. *Recommended:* (a): the guard is the client's, beside its
   format number. *Taken 2026-10-15, for 07 (prompt 07 §0.6, §2.2): (a).*
+- **U23: the store layer end to end** *(for 08)*. The charter asks for a smoke run of the store
+  layer at both ends. (a) **A self-contained script**, `docs/extraction/store_smoke_run.py`, that
+  writes into a temporary client root a small registry on public `datastorekit` names and a
+  fingerprinter module named by its `runregistrykit.toml`, as a client does, and drives every
+  `store` command, a run that takes a fingerprint, a worktree run and the refusals; it imports
+  nothing of `runregistrykit.tests`, so it runs against an installed wheel; or (b) a script that
+  imports the tests' neutral store, as RayPoolKit's smoke run imported its test patterns, shorter
+  but runnable only from a tree with the tests. *Recommended:* (a): it exercises the path a client
+  takes, the fingerprinter imported from the client's own root, and it can run against the release
+  itself (U24). Probed at 08's writing with the tests' store copied into the root as the client's
+  module: eleven steps passed at both ends. *Taken 2026-10-15, for 08 (prompt 08 §1.1, §2.2): (a).*
+- **U24: the package the smoke runs against** *(for 08)*. (a) **The pin from GitHub**: fresh
+  venvs at both ends installed with `uv pip install --no-cache` from the two lines a client writes
+  (and a third with the core-only form), read-only network; or (b) offline, a wheel rebuilt from
+  `git archive v0.1.0` and `datastorekit` from `uv`'s cache by the tag's full SHA (an offline fetch
+  by tag fails, measured). *Recommended:* (a): no install of the tag has been made anywhere yet (06
+  resolved the form against a scratch clone before the tag existed; CI installs the checkout), and
+  the pin is what every client will write. *Taken 2026-10-15, for 08 (prompt 08 §1.1, §2.3): (a).*
+  The same day the user changed 08's model from the plan's Sonnet to Opus, for the size of its
+  records.
 
 ## 7. Gates outside this repository
 
