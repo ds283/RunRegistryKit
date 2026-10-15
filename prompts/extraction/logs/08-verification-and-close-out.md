@@ -1,7 +1,7 @@
 # Log — prompt 08: verification and close-out
 
 **Subject:** Verify the extraction campaign and close it
-**Commit:** this commit (on `main`, after `302faac`)
+**Commit:** `3aab658` (on `main`, after `302faac`)
 **Date:** 2026-10-15
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (`brief-08-section0.md`, corrections 1-10)
