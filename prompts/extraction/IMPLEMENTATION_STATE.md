@@ -1,9 +1,9 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 9 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06), 8 landed and
+**Last updated:** 2026-10-15 · **Status: LIVE — 9 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06), 9 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
-276; 05c, `a7d93d5`, suite 276), 06 landed, its review pending (this commit, suite 276).** G1 holds
+276; 05c, `a7d93d5`, suite 276; 06, `9f8ebe4`, suite 276).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -68,7 +68,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05a-the-guard-and-the-public-names.md)) | `14af805` | 245 → 275 |
 | 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05b-the-package-prose-and-the-rules.md)) | `1120fb3` | 275 → 276 |
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05c-the-tests-own-names.md)) | `a7d93d5` | 276 → 276 |
-| 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | **landed** 2026-10-15, review pending ([log](logs/06-release-v0.1.0.md)) | this commit | 276 → 276 |
+| 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/06-release-v0.1.0.md)) | `9f8ebe4` | 276 → 276 |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
 | 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
 
@@ -82,7 +82,8 @@ for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), us
 [`orchestrator/prompt-04b.md`](orchestrator/prompt-04b.md) (`5177ffa`), used for 04b;
 [`orchestrator/prompt-05a.md`](orchestrator/prompt-05a.md) (`d2a3d85`), used for 05a;
 [`orchestrator/prompt-05b.md`](orchestrator/prompt-05b.md) (`bcc0c0a`), used for 05b;
-[`orchestrator/prompt-05c.md`](orchestrator/prompt-05c.md) (`bd83b3d`), used for 05c.
+[`orchestrator/prompt-05c.md`](orchestrator/prompt-05c.md) (`bd83b3d`), used for 05c;
+[`orchestrator/prompt-06.md`](orchestrator/prompt-06.md) (`02c7ad7`), used for 06.
 
 **Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
 with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
@@ -745,6 +746,114 @@ made bullets. `PROVENANCE.md`'s stale preamble is left to 08, as the log says. T
 `test_package_is_generic.py:65` for the guard's `datastorekit` import is `:64`; the board's issue
 has it right. **Nothing else opened**; the index stays at 3.
 
+**Orchestrator review of prompt 06 (2026-10-15).** Dispatched from `02c7ad7` to one Opus subagent,
+with the note's §0: its facts and ten corrections and readings of the prompt (GitHub's default
+shell has no `pipefail`, so `shell: bash` and checks that can fail; (d) and (f) in fresh venvs,
+since both succeed in the existing ones; `pip freeze` blind to an editable install's version; (e)
+failing the core job at step 5; the order; the install form resolved; Ray's 3.13 floor on every
+platform; the README read from the code; the per-module counts; `PROVENANCE.md`'s section).
+Reviewed against its commit `9f8ebe4`, with nothing landed after it. **Every check of the note's §3
+passed**, and acceptance 1–5 are met; one README statement is imprecise, opened below. No stop
+condition fired.
+
+*At dispatch.* The prompt's gate held at `dbefdb2` and the note's at `02c7ad7`: the diff from
+`3372292` empty, the tree clean, this checkout the only worktree, no `var/` or `.github/`; the suite
+276 OK in 85.9 s. No Ray process; `RAY_ADDRESS` unset. The orchestrator's trial, in a `git clone` of
+`dbefdb2` with §2.1's `pyproject.toml`: low and high 276 OK in about 106 s each, the core's two
+modules 37 OK, the wheel 10 entries, the release check passing, and the three corrections above
+measured.
+
+*The checks.*
+1. **Scope.** `9f8ebe4` touches 8 files: `pyproject.toml`, `.github/workflows/tests.yml` (new),
+   `README.md`, `PROVENANCE.md`, the log, this board, `prompts/INDEX.md` and `docs/OPEN_ISSUES.md`.
+   Nothing under `runregistrykit/` or `docs/extraction/`, and not `CLAUDE.md`, `LICENSE`,
+   `.gitignore`, the campaign README, the prompt or the note; `git ls-files runregistrykit` the same
+   26.
+2. **`pyproject.toml`.** Its diff is §2.1's three changes and nothing else.
+3. **The wheel, independently.** From a `git archive` export of `9f8ebe4`, nothing copied over:
+   `runregistrykit-0.1.0-py3-none-any.whl`, 54,940 bytes, 10 entries, `METADATA` with `Version:
+   0.1.0`, `Requires-Python: >=3.12`, `Provides-Extra: stores` and `Requires-Dist:
+   datastorekit>=0.4.0; extra == "stores"`. Reinstalled into the orchestrator's 3.13.16 release
+   venv and run from an empty directory with `-I`: the five modules from `site-packages`, none of
+   `ray`, `sqlalchemy` and `datastorekit` loaded, `DatastoreKitFingerprinter` importing, the
+   version and `requires` as above, `import runregistrykit.tests` a `ModuleNotFoundError`, `--help`
+   exit 0.
+4. **The workflow.** By reading: the three triggers, `contents: read`, no secret, cache or action
+   but `checkout@v7` and `setup-python@v7`; `defaults: run: shell: bash`; the matrix exactly low
+   3.12.15 / 2.43.0 / 2.0.39 and high 3.13.16 / 2.55.1 / 2.0.46; the install naming the tag; `black`
+   on low only; the core job on 3.12.15; nothing reading a client. Parsed with PyYAML. **Replayed by
+   the orchestrator** from a fresh `git clone` of `9f8ebe4`, each `run:` text extracted from the YAML
+   by a script of its own and run with `bash --noprofile --norc -eo pipefail`, `pip install` as `uv
+   pip install` and `--upgrade pip` dropped: low and high installs and versions as the matrix,
+   `Ran 276 tests in 119.7s` and `in 119.9s`, OK, side by side; the core job's steps 3–6 in a fresh
+   3.12.15 venv, step 4 "absent", step 5 `Ran 37 tests`, OK, step 6 exit 0 with the run listed
+   `done`. Each of the smoke's seven checks made false in turn (a module set that includes a loaded
+   one, `--help` replaced, a config before the first `list`, the refusal's text, `finish("failed")`,
+   another run id, no config before `begin`): each fails the step.
+5. **The README, by reading and checking.** The opening paragraph, the DatastoreKit paragraph, "The
+   rules", "The public names" and "Licence" unchanged; Status replaced; "Supported versions",
+   "Installing" and "Using it" after the DatastoreKit paragraph and "Developing" before "Licence".
+   Checked by the orchestrator against the code at `9f8ebe4`, in the low venv: `begin`'s, `Run`'s,
+   `list_runs`' and `heartbeat`/`record`/`known`/`finish`'s signatures by `inspect.signature`;
+   `client_root=` on every store function that takes the root; `DatastoreKitFingerprinter`'s
+   signature and the protocol's four methods; `datastorekit`'s `requires` (`ray>=2.43`,
+   `sqlalchemy<2.1,>=2.0.39`); `--help` of the program, `list`, `store` and each of the eight `store`
+   commands, every option and positional as the README gives it; `runregistrykit.toml` read from a
+   temporary directory, empty, with all three keys, with an unknown key, a wrong type, a
+   `[stores] fingerprinter` and an unknown `[stores]` key, each as the README says; `begin()`'s
+   order (the root, the tombstone refusal, then the directory, `manifest.json` once and `status.json`
+   `running`), the run id's form, `record`'s stamps, `known`'s notice, `finish`'s
+   `fingerprint_error`, the liveness rule and `!!`, the `datastorekit` imports inside `copy_store`,
+   `move_store`, `retire_store` and the fingerprinter's `take`, `compare` and `listing`, and the
+   neutral store's `FACTORIES` and `FINGERPRINTER`, read in the code. Every link resolves. **One
+   statement is imprecise**: "imported with the client's root first on `sys.path`" (`:149`), with
+   `:81`'s "the root (for a run in a linked worktree, the main checkout)", places a worktree run's
+   fingerprinter import in the main checkout, where the code imports it from the worktree whose
+   config governs; opened as `[06-the-readme-places-the-fingerprinter-import-in-the-main-checkout]`.
+   "Every store operation … refuses … when the config names none" is the package's own wording
+   (`stores.py:126`, `fingerprint.py:57`), and `store show` refuses; `read_sidecar` and
+   `runs_naming`, readers the core also uses, do not, as in the package; accepted.
+6. **The install form.** In a new throwaway 3.13 venv, `--dry-run` against `git+file://` of this
+   repository at `9f8ebe4`: `runregistrykit[stores]` with the `datastorekit @ …@v0.4.0` line resolves
+   (`datastorekit` 0.4.0 from `c8570e8`); without it, refused, "datastorekit was not found in the
+   package registry"; the core form alone resolves with no `datastorekit`.
+7. **The breakage.** (a), (c) and (e) extracted from the log and replayed in `bash` in the clone
+   (`--check`, apply, the failure, `-R --check`, reverse): (a) applies to the export; (c) refused at
+   3.12.15; (e) step 4 exit 0, step 5 `FAILED (errors=2)`, step 6 exit 1; the clone clean after. The
+   orchestrator's own: (o1) the suite job's install without the URL, into a fresh venv: refused;
+   (o2) the core job's step 5 as discovery: `Ran 49 tests`, `FAILED (errors=12)`, which is why U18
+   names the two modules; (o3) `exclude = ["runregistrykit*"]`: a wheel of five `dist-info` entries
+   and no module.
+8. **The suite.** In `venv/` at `9f8ebe4`: `Ran 276 tests in 111.0s`, OK, run beside the two
+   replays; by the loader, per module as correction 9; `importlib.metadata.version` `0.1.0`. `git
+   status --short --ignored` the same before and after; no `var/`, `build/` or `dist/`; this checkout
+   the only worktree; no Ray process. `black --check runregistrykit docs`: 26 files unchanged.
+9. **The records.** The log has every section of README §5.1 and the prompt's §4.5 additions: the
+   venvs' versions, eight suite verdicts with their times, the install commands and their workflow
+   steps, the release check with the wheel's SHA-256 and file list, the README's checks, the six
+   hazards, (a)–(f) as diffs and commands, `pip freeze` and the version before and after, and 17
+   deviations classified (corrections 1–10 among them; no UNINTENDED DRIFT). The board as §4.5:
+   V1, the "ready to be tagged" line, `[05c-the-import-test-needs-datastorekit]` moved to §4 with
+   U18's reasoning, the two others with *Package lines (06, …)*, still open, owner none. The index
+   counted 2.
+10. **The interface and the handover.** No package module changed, so no record changes form. The
+    handover says `v0.1.0` waits on a push and a green CI on `9f8ebe4`, nothing pushed or tagged.
+
+*Residue fixed in the follow-up.* "this commit" → `9f8ebe4` on this board, in the log's header, in
+`PROVENANCE.md` and in `prompts/INDEX.md`; 06 marked reviewed here, in README §2 and its header,
+and in `prompts/INDEX.md`; this paragraph and the notes line.
+
+*Opened.* `[06-the-readme-places-the-fingerprinter-import-in-the-main-checkout]` (§3), owner to be
+put to the user; the index counts **3**.
+
+*Accepted as recorded.* The judgment calls the log classifies as IMPLEMENTATION CHOICE (deviations
+7, 12–17): Ray's floor re-checked, the job and step names, the smoke's checks shown failing, (a) in
+a throwaway venv, (f)'s unpinned `datastorekit` pulling `ray` 2.59.0, the ranges read from
+`datastorekit`'s metadata, and the README's layout with `black` 25.1.0 named. The log's observation
+that `test_fingerprinter` fails to import in the core venv on `sqlalchemy`, not `datastorekit`, is
+right and changes nothing. *The orchestrator's own slip:* it applied (e) in the clone 8 s before
+its first low and high replays finished; both were re-run untouched (the times above), OK.
+
 ### 1.1 Items
 
 | Item | Prompt | What | State |
@@ -784,7 +893,7 @@ has it right. **Nothing else opened**; the index stays at 3.
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
 opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
-04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three; 05c closed one (§4) and opened one, leaving three; 06 closed one (§4), leaving two. Line numbers are SGK's until 01 imports the code; 01 records
+04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three; 05c closed one (§4) and opened one, leaving three; 06 closed one (§4), leaving two; the orchestrator's review of 06 opened one, leaving three. Line numbers are SGK's until 01 imports the code; 01 records
 each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
 replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
 in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
@@ -940,11 +1049,36 @@ install `datastorekit` from its tag `v0.4.0` and run the whole suite (trialled h
 at Ray 2.43.0 / SQLAlchemy 2.0.39 and Ray 2.55.1 / SQLAlchemy 2.0.46, 276 OK each). The issue stays
 open, owner none: a typed exception remains a request to DatastoreKit (README §8).
 
+### `[06-the-readme-places-the-fingerprinter-import-in-the-main-checkout]`
+
+**Opened:** 2026-10-15, by the orchestrator's review of 06. **Owner:** none; to be put to the user.
+
+`README.md` (at `9f8ebe4`), "Using it", says at `:81-82` that a relative `runs_root` or
+`stores_root` is relative to "the root (for a run in a linked worktree, the main checkout, below)",
+and at `:149-150` that the fingerprinter's module is "imported with the client's root first on
+`sys.path`". Read together, a run launched from a linked worktree imports its fingerprinter from
+the main checkout. The code imports it from the directory whose config governs,
+`ClientRoot.found`, the worktree that is running (`runregistrykit/fingerprint.py:191-193`, and the
+module docstring at `:52-53`); and that config is the worktree's, not the main checkout's
+(`runregistrykit/client.py:53-57`), which the README's worktree paragraph (`:93-96`) does not say.
+The package's own docstrings are right; only the README is imprecise.
+
+*Impact.* None on behaviour, and nothing ships: the wheel carries no README. A client that reads
+the README on GitHub, or a checklist of 07's that cites it, could expect a worktree run to use the
+main checkout's config and fingerprinter, where it uses the worktree's own. A worktree whose
+fingerprinter module or config differs from the main checkout's is exactly the case where the
+difference matters.
+
+*Next step.* One sentence in "Using it": the config that governs, and the directory the
+fingerprinter's module is imported from, are those of the tree that is running (in a linked
+worktree, the worktree), while records go under the main checkout. Which prompt makes it, and
+whether before or after the tag, is put to the user; the tag's code is unaffected either way.
+
 ## 4. Resolved issues
 
 ### `[05c-the-import-test-needs-datastorekit]`
 
-**Opened:** 2026-10-15, by 05c. **Owner:** 06. **Closed:** 2026-10-15, by 06 (this commit).
+**Opened:** 2026-10-15, by 05c. **Owner:** 06. **Closed:** 2026-10-15, by 06 (`9f8ebe4`).
 
 `runregistrykit/tests/test_package_imports.py`, the core's own import test (it checks that importing
 the package loads nothing heavy and that module scope holds only the standard library and the
@@ -970,7 +1104,7 @@ with none of `ray`, `sqlalchemy` and `datastorekit` installed and runs `--help`,
 and `finish`; the import test runs in the `[stores]` jobs, the only place its check that nothing
 heavy loads means anything. 06 closes the issue on that ground (prompt 06 §2.6).
 
-*Resolved (06, 2026-10-15, this commit), by U18, with no change to a test or the guard.*
+*Resolved (06, 2026-10-15, `9f8ebe4`), by U18, with no change to a test or the guard.*
 `test_package_imports.test_import_loads_nothing_heavy` asserts that importing the package and its
 store layer loads none of `ray`, `sqlalchemy` and `datastorekit`; that is a check only where they
 are installed, so it belongs to the `suite` jobs of `.github/workflows/tests.yml`, which run it at

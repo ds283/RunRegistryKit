@@ -345,7 +345,7 @@ Each prompt's changes, from 03 on:
   its scan.
 
 **Prompt 06, supported versions, CI, and ready for `v0.1.0`**
-(`prompts/extraction/06-release-v0.1.0.md`, this commit):
+(`prompts/extraction/06-release-v0.1.0.md`, `9f8ebe4`):
 
 - **No file under `runregistrykit/` changed**: no module, no test and not the guard. The suite is
   276 tests, as 05c left it.

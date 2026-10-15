@@ -1,11 +1,11 @@
 # Log — prompt 06: supported versions, CI, and ready for `v0.1.0`
 
 **Subject:** Declare the supported versions, add CI and make the package ready for v0.1.0
-**Commit:** this commit (on `main`, after `02c7ad7`)
+**Commit:** `9f8ebe4` (on `main`, after `02c7ad7`)
 **Date:** 2026-10-15
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (`orchestrator-section-0.md`, corrections 1-10)
-**Result:** **landed; `v0.1.0` is ready to be tagged on this commit once CI passes there, all three
+**Result:** **landed; `v0.1.0` is ready to be tagged on `9f8ebe4` once CI passes there, all three
 jobs.** `pyproject.toml` says `0.1.0`, `[stores]` is `datastorekit>=0.4.0` and `runregistrykit.tests`
 is excluded from the distribution; nothing else in it changed. `.github/workflows/tests.yml` is new,
 with the jobs `suite (low)`, `suite (high)` and `core`, every `run:` step under `bash -eo pipefail`.
