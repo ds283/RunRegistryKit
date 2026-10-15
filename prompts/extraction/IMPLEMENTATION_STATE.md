@@ -1,11 +1,11 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 10 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06, 07), 10 landed,
-9 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
+**Last updated:** 2026-10-15 · **Status: LIVE — 10 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06, 07), 10 landed and
+reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
-276; 05c, `a7d93d5`, suite 276; 06, `9f8ebe4`, suite 276); 07 landed in this commit, suite 276,
-not yet reviewed.** **E2** (SGK's gate on this campaign) is `v0.1.0` with
-[`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md), from this commit. G1 holds
+276; 05c, `a7d93d5`, suite 276; 06, `9f8ebe4`, suite 276; 07, `aaab408`, suite
+276).** **E2** (SGK's gate on this campaign) is `v0.1.0` with
+[`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md), from `aaab408`. G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -75,7 +75,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05b-the-package-prose-and-the-rules.md)) | `1120fb3` | 275 → 276 |
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05c-the-tests-own-names.md)) | `a7d93d5` | 276 → 276 |
 | 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/06-release-v0.1.0.md)) | `9f8ebe4` | 276 → 276 |
-| 07 | [`07-the-adoption-checklists.md`](07-the-adoption-checklists.md) | Opus | **landed** 2026-10-15 ([log](logs/07-the-adoption-checklists.md)); one stop (non-binding `fingerprint_of` calls at SGK), ruled by the user | this commit | 276 → 276 |
+| 07 | [`07-the-adoption-checklists.md`](07-the-adoption-checklists.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/07-the-adoption-checklists.md)); one stop (non-binding `fingerprint_of` calls at SGK), ruled by the user | `aaab408` | 276 → 276 |
 | 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
 
 **Written one at a time** (README §2.1), each after the one before it has landed and been reviewed.
@@ -89,7 +89,8 @@ for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), us
 [`orchestrator/prompt-05a.md`](orchestrator/prompt-05a.md) (`d2a3d85`), used for 05a;
 [`orchestrator/prompt-05b.md`](orchestrator/prompt-05b.md) (`bcc0c0a`), used for 05b;
 [`orchestrator/prompt-05c.md`](orchestrator/prompt-05c.md) (`bd83b3d`), used for 05c;
-[`orchestrator/prompt-06.md`](orchestrator/prompt-06.md) (`02c7ad7`), used for 06.
+[`orchestrator/prompt-06.md`](orchestrator/prompt-06.md) (`02c7ad7`), used for 06;
+[`orchestrator/prompt-07.md`](orchestrator/prompt-07.md) (`4c01c78`), used for 07.
 
 **Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
 with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
@@ -869,6 +870,117 @@ first and the suite's first on Linux (`ubuntu-24.04`), passed all three jobs: `s
 listing its one run finished. Then the annotated tag `v0.1.0` (tag object `fd5ce48`) made on
 `9f8ebe4` and pushed, and `main` pushed up to `4ee947b`, the review's record.
 
+**Orchestrator review of prompt 07 (2026-10-15).** Dispatched from `4c01c78` to one Opus subagent,
+with the note's §0: its facts and eleven corrections and readings of the prompt (the gate's diff
+holding `f7c1b15`'s index line; the package at `v0.1.0` read through `venv/`'s editable install;
+calls bound only when their callee resolves to the registry, since six SQLAlchemy `begin()` calls
+in SGK share the name; a patch by plain assignment and a patch on an instance; 7 campaign-record
+files naming the registry and 6 importing it; the `int`-keyed polymorphic `Parent.types` of SGK
+and CPBH, which the Q5 sketch must keep apart from `str` keys; six specs of the neutral store's nine
+classes; U20's `:81-82` true and `:149-150` the sentence to correct; `RECORDED_DISTRIBUTIONS` and
+SI's missing pins; the script under `black`; the fixture override). Reviewed against its commit
+`aaab408`, with nothing landed after it. **Every check of the note's §3 passed**, and acceptance
+1–5 are met. **One stop condition fired**, and was put to the user.
+
+*At dispatch.* The prompt's gate held at `f7c1b15`, as correction 1 reads it, and the note's at
+`4c01c78`: the tree clean, this checkout the only worktree, no `var/` or `docs/adoption/`; the
+suite 276 OK in 94.0 s; `black` 26 files unchanged. No Ray process; `RAY_ADDRESS` unset. The
+clients at SGK `14bcac0`, ChamPBH `c21cdfb` (22 uncommitted changes, `status --porcelain` hash
+`fbd525ec…`), SI `5fb4a1d`, DatastoreKit `b01737f`, RayPoolKit `17029d9`, each one worktree and
+no stash. The orchestrator's trial scan of SGK through `git` and `ast` agreed with the prompt's §0
+(13 imports in 10 files, 4 at module level; 12 in the staying tests; 18 string literals; 4 registry
+`begin` calls), and its trial of the Q5 recipe ran on public names over the neutral store.
+
+*The stop.* §5's first condition fired: at SGK `14bcac0` six `fingerprint_of` calls do not bind
+against DatastoreKit's `fingerprint_of(inventory, fingerprint_format, taken=None)`, each for the
+missing format alone: `ObjectFactories/tests/test_quadsource_policy_key.py:413, 416, 419`,
+`docs/runregistry-extraction/fingerprint_both_ways.py:127`, and
+`RunRegistry/tests/test_store_fingerprint.py:147, 162` (in `_FullStores`, `TestGolden`'s base, not
+at the prompt's `:347-383`). The agent stopped and committed nothing; the orchestrator read each
+line at `14bcac0`. **Ruled by the user, 2026-10-15:** a `fingerprint_of` call whose only binding
+failure is the missing `fingerprint_format` is the documented effect of the move (prompt §0.2,
+§2.3 item 4), not a stop; the script keeps "does not bind" with that reason; SGK's checklist lists
+the six with the rewrite, and `:378`, which binds but now passes `taken` as the format; any other
+binding failure or unknown name is still a stop.
+
+*The checks.*
+1. **Scope.** `aaab408` touches 11 files: the five new under `docs/adoption/`, `README.md`,
+   `PROVENANCE.md`, the log, this board, `prompts/INDEX.md` and `docs/OPEN_ISSUES.md`. Nothing
+   under `runregistrykit/` (26 files), `docs/extraction/` or `.github/`, and not `pyproject.toml`,
+   `CLAUDE.md`, `LICENSE`, `.gitignore`, the campaign README or the prompt.
+2. **The clients are untouched.** Each `HEAD`, `status --porcelain` hash, stash count and worktree
+   count after equal those at dispatch. No stray file at `/tmp/x` (the log's deviation 24).
+3. **The script.** Each client run twice by the orchestrator at its commit: exit 0, the outputs
+   byte-identical (SGK 399 lines, CPBH 84, SI 90); `--json` parses; a commit the client lacks
+   exits 2. The figures as the note's facts and the prompt's §0, with the differences the log
+   explains (6 import / 7 name; the printed commands at `:580`, `:595`, `:906` inside strings
+   beginning at `:578`, `:593`, `:904`; 21 `def inventory_spec` in 20 files, the note's 22 counting
+   one under `prompts/`, the orchestrator's slip). The six SQLAlchemy `begin()` calls and the
+   probes' own `copy_store` calls are listed as name-alikes and not bound; the assignment at
+   `sigterm_handler_probe.py:210` is reported "assigned"; `Run._fingerprint_results` at
+   `test_killed_handler.py:333, 432` "patched on an object". Each checklist's appendix equals the
+   orchestrator's run byte for byte.
+4. **The orchestrator's own fixture**, through `path --repository … --commit HEAD`: the three
+   imports (one nested pair), `_slug` renamed, the `DEFAULT_ROOT` patch, `begin` binding and
+   `begin(..., bogus=1)` not, `fingerprint_of(inventory)` not binding with the move's reason and
+   `fingerprint_of(inventory, 6)` binding, `rs.copy_store("a", "b")` through an alias bound, and refused for the `purpose` the fixture omits,
+   `fingerprint_store` "assigned", `session.begin()` a name-alike, `_repo_path` private with
+   `(path)` and `(path, root)`, the printed command, both provenance helpers (one equal, one
+   differing by its changed lines), the campaign record and the Markdown line; exit 3 for
+   `no_such_name`.
+5. **The breakage.** (a0), (a)–(e) extracted from the log and replayed in `bash` (`--check`,
+   apply, the run, `-R --check`, reverse), each as the log says: (a0) exit 1, the table refused;
+   (a) `liveness` reported "deleted"; (b) the fixture's nested imports missed; (c) an uncommitted
+   edit in the fixture changes the output; (d) `fingerprint_of(inventory)` "binds"; (e) the names'
+   order differs from the committed run. The orchestrator's own: (o1) calls matched by name: the
+   SQLAlchemy calls are bound and fail on `campaign`, 25 "not binding for any other reason"; (o2)
+   the assignment rule removed: `:210` drops out of the names table and appears only as "a module
+   used as a value"; (o3) the private comparison reading `v0.1.0` on both sides: `_repo_path` shows
+   `(path, root)` twice. Each shows in the output; the tree clean after each.
+6. **The checklists.** Each opens with its client, path, full SHA, branch, date, subject and tree
+   state, and has the ten items in order under the same names, then the appendix. All 151
+   `path:line` citations outside the appendices extracted by a script of the orchestrator's and
+   read at their commits: each line exists and says what the checklist says (a sample of 30 compared
+   by text; 41 cited by basename after a full path, each resolved in SGK's tree and read).
+   Choices named and not made; **Advice:** marked; corrections 4, 6 and 9's facts present; no
+   campaign record rewritten.
+7. **The package statements**, against `venv/`: the pin lines as the README's "Installing"; the
+   module map's names against each `__all__`; `git_provenance(cwd)`; `ClientRoot`'s fields;
+   `package_provenance(["no-such-distribution-xyz"])` gives `None`; `canonical_json` refuses the
+   key `1` with the text quoted; every README anchor the documents link to exists.
+8. **The Q5 sketch**, copied out of the README by a script and run by the orchestrator: on the
+   neutral store's `FACTORIES`, 6 digests, unchanged passing; a leaf added fails; a bump with no pin
+   fails (`KeyError`); a class added fails; on stand-in registries of the orchestrator's, `int` keys
+   run, a key changed from `1` to `"1"` fails, `1` and `"1"` in one map stay apart, and a bare
+   `str(k)` would not see the change.
+9. **U20.** Three hunks, all in "Using it"; `:81-82`'s meaning kept (the relative roots joined to
+   the record root). Run by the orchestrator in a scratch repository with a linked worktree whose
+   config alone names a fingerprinter in a module only the worktree holds: `root` the main checkout,
+   `found` the worktree, `runs_root` under the main checkout, the fingerprinter loaded.
+10. **The suite and the records.** In `venv/` at `aaab408`: `Ran 276 tests in 102.0s`, OK; `black
+    --check runregistrykit docs` 27 files unchanged; no `var/`; no Ray process. The log has every
+    section of README §5.1 and the prompt's §4.5 additions, with 25 deviations classified (two
+    UNINTENDED DRIFT: a read-only `git worktree list` on the clients, and two scratch writes outside
+    the scratchpad, each removed). The board: A1, G2–G4 with their checklists, E2 holding, the issue
+    moved to §4, the count sentence. The index counted 2.
+
+*Residue fixed in the follow-up.* "this commit" → `aaab408` on this board, in the log's header and
+handover, in `PROVENANCE.md` and in `prompts/INDEX.md`; 07 marked reviewed here, in README §2 and
+its header, and in `prompts/INDEX.md`; this paragraph and the notes line.
+
+*Opened.* Nothing; the index counts **2**.
+
+*Accepted as recorded.* The IMPLEMENTATION CHOICEs of the log, among them exit 1 for a fate table
+that disagrees with the package, `bind_partial` where a call unpacks, the instance-patch rule by
+name, the `path` override, and the Q5 pin as a per-class list. **Noted, not opened:** the script
+exits 0 when a call fails to bind for a reason other than the move's format (the prompt names only
+0, 2 and 3), so a client re-measuring reads that stop from the figures table's "not binding for
+any other reason" row, not from the exit status. The two UNINTENDED DRIFT items changed nothing
+(check 2). The log's observations on SGK (two staying tests patch a deleted `DEFAULT_ROOT` to keep
+a driver's run out of `var/runs/`; a test asserts the spelling `"RunRegistry.begin"`; SGK's golden
+fingerprint lacks `encoding_format`; SGK counts 14 sidecars where this README says 18) are SGK's to
+act on, through its checklist.
+
 ### 1.1 Items
 
 | Item | Prompt | What | State |
@@ -888,7 +1000,7 @@ listing its one run finished. Then the annotated tag `v0.1.0` (tag object `fd5ce
 | **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ✅ 2026-10-15: the docstrings and comments of `__init__.py`, `stores.py` and `fingerprint.py` rewritten in the package's own terms, every reason and fact kept and no client, campaign, prompt, decision, issue tag or incident left (`known_hits.json` has no package-module entry in any scan; `ast` with docstrings removed equals `c735acf`'s but for the one constant); `describe`'s problems line points at `datastorekit.store_inventory.read_inventory`, one test; `load_fingerprinter`'s docstring names the class refusal, and `retire_store`'s and `amend_sidecar`'s say the config's `ConfigError`s are in the config's words (no message changed); the guard's citation pattern gains `Prompt NN`, a decision id and an issue tag (U17), which finds 18 more hits in 11 entries of the tests, listed for 05c; `README.md` gains "The rules" (six, each with its failure) and "The public names" (U11); `PROVENANCE.md` gains 05b's section and "Where the prose's citations pointed"; (m1)–(m8) caught |
 | **T3** | 05c | the tests' SGK names and prose renamed (U16) | ✅ 2026-10-15: sixteen names renamed (the prompt's thirteen and three more: `hand_written_shaped`, `script_written_shaped`, `TestHandWrittenShape`, eight test methods, `INTEGRAL_CLASS`, `SOLUTION_CLASS`, and the neutral store's `producer_serial`, `tagged_serial`, `log10_step`), each mapped in `PROVENANCE.md` with its test ids; the fixtures' client data neutral with the same shapes; `FORBIDDEN` read from the guard's `project_packages()` (22 names for 7); the docstrings and comments of 14 modules and fixtures in the package's terms; `known_hits.json` written by 05a's writer, **empty in every scan** (155 hits in 94 entries before), the guard's docstring paragraph saying so and nothing else of it changed; `ast` with docstrings removed equals `8766714`'s after the map, but for `FORBIDDEN`; the suite 276, per module the same; (m1)–(m6) caught |
 | **V1** | 06 | versions, CI, `v0.1.0` | ✅ 2026-10-15, tagged `v0.1.0` on `9f8ebe4` after CI passed there: `pyproject.toml` at `0.1.0`, `[stores]` `datastorekit>=0.4.0` by name and floor, `runregistrykit.tests` excluded (U19), nothing else changed; the wheel `runregistrykit-0.1.0-py3-none-any.whl`, 54,940 bytes, 10 entries, no test, passes the release check in a 3.13.16 venv (the five modules from `site-packages`, nothing heavy loaded, `import runregistrykit.tests` a `ModuleNotFoundError`); `.github/workflows/tests.yml` with `suite (low)`, `suite (high)` and `core` (U13, U18), every `run:` step under `bash -eo pipefail`, replayed here step by step as GitHub runs it, all three passing, and each check of the core smoke shown able to fail; the suite 276 OK in `venv/` before and after the reinstall and in fresh low and high venvs, 37 OK in the core venv; the README's Status, "Supported versions", "Installing", "Using it" and "Developing", 90 statements checked against the code; the Installing form resolves against a scratch clone and refuses without the client's `datastorekit` line; (a)–(f) each fail as expected. Linux measured by CI run `38754093289` on `9f8ebe4`: low 276 OK in 68 s with `black` clean, high 276 OK in 38 s, core 37 OK and its smoke passing |
-| **A1** | 07 | the three checklists and their script (SGK's E2) | ✅ 2026-10-15 (this commit): `docs/adoption/` holds a README (the release and pin, the module map, what a client adds, what changes and what does not, the Q5 recipe with a sketch proved on public names, re-measuring), the checklists for SGK (`14bcac0`), CPBH (`c21cdfb`) and SI (`5fb4a1d`), ten items each with the script's output as appendix, and `measure_client_registry.py` (read through `git` only; callees resolved through the registry's names; each fate checked against the package at run time; bind verdicts by `inspect.signature`; deterministic; exits 0/1/2/3). SGK: 13 imports in 10 files (4 at module level), 15 names, 4 `begin` calls binding, 4 `fingerprint_of` calls missing the new format (the stop, ruled the move's documented effect), 18 string literals; its staying tests 12 imports in 5 modules. CPBH and SI: 0 imports; each helper the package's `package_provenance` but `origin = None`. `README.md`'s worktree sentences corrected (U20). The Q5 sketch's four breakages fail; (a)–(e) caught; the suite 276 |
+| **A1** | 07 | the three checklists and their script (SGK's E2) | ✅ 2026-10-15 (`aaab408`): `docs/adoption/` holds a README (the release and pin, the module map, what a client adds, what changes and what does not, the Q5 recipe with a sketch proved on public names, re-measuring), the checklists for SGK (`14bcac0`), CPBH (`c21cdfb`) and SI (`5fb4a1d`), ten items each with the script's output as appendix, and `measure_client_registry.py` (read through `git` only; callees resolved through the registry's names; each fate checked against the package at run time; bind verdicts by `inspect.signature`; deterministic; exits 0/1/2/3). SGK: 13 imports in 10 files (4 at module level), 15 names, 4 `begin` calls binding, 4 `fingerprint_of` calls missing the new format (the stop, ruled the move's documented effect), 18 string literals; its staying tests 12 imports in 5 modules. CPBH and SI: 0 imports; each helper the package's `package_provenance` but `origin = None`. `README.md`'s worktree sentences corrected (U20). The Q5 sketch's four breakages fail; (a)–(e) caught; the suite 276 |
 | **Z1** | 08 | the verification document; the close | ⬜ |
 
 **Legend.** ⬜ not yet · ✅ done.
@@ -899,10 +1011,10 @@ listing its one run finished. Then the annotated tag `v0.1.0` (tag object `fd5ce
 |---|---|
 | **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. **Package side holds for 01's files** 2026-10-14 (`4e0d715`): `docs/extraction/compare_with_source.py` exits 0: the 25 rows and the shard fixture's blob equal; `__init__.py`, `stores.py`, `__main__.py` and `tests/__init__.py` equal their sources but for 23 D-name lines (6, 13, 4, 0), none unclassified, none left unrenamed; 11 files pending (8 for 02, 3 for 04); 11 not imported and absent; 1 declared new file. **Package side for 02's eight files holds** 2026-10-14 (`8155445`): the check, extended, exits 0: 12 files checked (4 by 01, 8 by 02); each equals `black` of its renamed source; D-name 106, D-fix 5, D-fmt 12 lines in 3 hunks (all in `test_store_copy_move.py`); 3 files pending (04); 11 not imported and absent; 1 declared new file |
 | **E1** | **holds** 2026-10-14: DatastoreKit `v0.4.0` (`c8570e8`, tag object `8e7c1d7`) |
-| **G2** | not yet (SGK adopts `v0.1.0` in its `runregistry-extraction` 05–08); its checklist is [`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md) (07, this commit) |
-| **G3** | not yet (CPBH adopts); its checklist is [`docs/adoption/champbh.md`](../../docs/adoption/champbh.md) (07, this commit) |
-| **G4** | not yet (SI adopts, after its `dk-and-rpk-migration`); its checklist is [`docs/adoption/stochasticinstantons.md`](../../docs/adoption/stochasticinstantons.md) (07, this commit) |
-| **E2** (SGK's) | **holds** 2026-10-15: `v0.1.0` (tag object `fd5ce48` on `9f8ebe4`) with SGK's checklist, [`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md), from this commit; to be reported to the user (SGK's brief §8) |
+| **G2** | not yet (SGK adopts `v0.1.0` in its `runregistry-extraction` 05–08); its checklist is [`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md) (07, `aaab408`) |
+| **G3** | not yet (CPBH adopts); its checklist is [`docs/adoption/champbh.md`](../../docs/adoption/champbh.md) (07, `aaab408`) |
+| **G4** | not yet (SI adopts, after its `dk-and-rpk-migration`); its checklist is [`docs/adoption/stochasticinstantons.md`](../../docs/adoption/stochasticinstantons.md) (07, `aaab408`) |
+| **E2** (SGK's) | **holds** 2026-10-15: `v0.1.0` (tag object `fd5ce48` on `9f8ebe4`) with SGK's checklist, [`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md), from `aaab408`; to be reported to the user (SGK's brief §8) |
 
 ## 3. Active and unresolved issues
 
@@ -1069,7 +1181,7 @@ open, owner none: a typed exception remains a request to DatastoreKit (README §
 ### `[06-the-readme-places-the-fingerprinter-import-in-the-main-checkout]`
 
 **Opened:** 2026-10-15, by the orchestrator's review of 06. **Owner:** 07 (U20). **Closed:**
-2026-10-15, by 07 (this commit).
+2026-10-15, by 07 (`aaab408`).
 
 `README.md` (at `9f8ebe4`), "Using it", says at `:81-82` that a relative `runs_root` or
 `stores_root` is relative to "the root (for a run in a linked worktree, the main checkout, below)",
@@ -1096,7 +1208,7 @@ whether before or after the tag, is put to the user; the tag's code is unaffecte
 "Using it" and nothing else in the README (prompt 07 §2.4), since its checklists cite that section
 and SGK's adoption checks a worktree run.
 
-*Resolved (07, 2026-10-15, this commit), by U20.* "Using it" now names the two directories.
+*Resolved (07, 2026-10-15, `aaab408`), by U20.* "Using it" now names the two directories.
 - **The record root** (`ClientRoot.root`), the main checkout for a run in a linked worktree: records
   and the paths in them are under it, and a relative `runs_root` or `stores_root` is joined to it.
   This keeps the meaning of the old `:81-82`, which was true of the code (`client.py:34`,

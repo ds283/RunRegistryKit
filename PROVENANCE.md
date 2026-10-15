@@ -364,8 +364,8 @@ Each prompt's changes, from 03 on:
 - **`README.md`.** Its Status paragraph says what `v0.1.0` is, and it gains the sections
   "Supported versions", "Installing", "Using it" and "Developing".
 
-**Prompt 07, the adoption checklists** (`prompts/extraction/07-the-adoption-checklists.md`, this
-commit):
+**Prompt 07, the adoption checklists** (`prompts/extraction/07-the-adoption-checklists.md`,
+`aaab408`):
 
 - **No file under `runregistrykit/` changed**: no module, no test, and not the guard. The suite is
   276 tests, as 06 left it, and the package's code is `v0.1.0`'s.

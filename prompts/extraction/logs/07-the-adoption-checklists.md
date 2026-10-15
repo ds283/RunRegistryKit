@@ -1,7 +1,7 @@
 # Log — prompt 07: the adoption checklists
 
 **Subject:** Write the adoption checklists and correct the README's worktree sentences
-**Commit:** this commit (on `main`, after `4c01c78`)
+**Commit:** `aaab408` (on `main`, after `4c01c78`)
 **Date:** 2026-10-15
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (`note-07-section0.md`, corrections 1-11)
@@ -22,7 +22,7 @@ orchestration note (`note-07-section0.md`, corrections 1-11)
 - **No tag made, nothing pushed.**
 
 **E2** (SGK's gate on this campaign) is `v0.1.0` (tag object `fd5ce48` on `9f8ebe4`) with
-`docs/adoption/secondarygwkit.md`, at this commit.
+`docs/adoption/secondarygwkit.md`, at `aaab408`.
 
 ## What shipped
 
@@ -1160,8 +1160,8 @@ other difference between a client and `v0.1.0` is the client's to act on, by its
 ## State handed to the next prompt
 
 - `docs/adoption/` holds the README, three checklists and `measure_client_registry.py`.
-  **E2 is `v0.1.0` (tag object `fd5ce48`, `9f8ebe4`) with `docs/adoption/secondarygwkit.md`**, at this
-  commit; it is to be reported to the user with the tag, its commit and the checklist's path (SGK's
+  **E2 is `v0.1.0` (tag object `fd5ce48`, `9f8ebe4`) with `docs/adoption/secondarygwkit.md`**, at
+  `aaab408`; it is to be reported to the user with the tag, its commit and the checklist's path (SGK's
   brief §8, `:155`).
 - `README.md`'s "Using it" distinguishes the record root from the directory whose config governs.
 - No file under `runregistrykit/` changed. `git diff 9f8ebe4 -- runregistrykit pyproject.toml` is
