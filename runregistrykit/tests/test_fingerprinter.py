@@ -1,6 +1,6 @@
 """The client fingerprinter (`runregistrykit.fingerprint`): the protocol, the shipped
-`DatastoreKitFingerprinter`, the loader and the config key; the store layer's need of one (D4); what
-the package reads of a fingerprint (U7); the neutral store; and two guards of the sidecar reader.
+`DatastoreKitFingerprinter`, the loader and the config key; the store layer's need of one; what
+the package reads of a fingerprint; the neutral store; and two guards of the sidecar reader.
 
 Every directory is a `tempfile` one, and every client root is built in one (`client_fixtures`). A
 module a test writes into a client root has a name no other test uses, and the test restores
@@ -37,7 +37,7 @@ from runregistrykit.tests.neutral_store import (
 from runregistrykit.tests.store_fixtures import (
     StoreTestCase,
     load,
-    sweep_shaped,
+    script_written_shaped,
     write_sidecar_json,
 )
 from runregistrykit.tests.test_store_command_line import CommandLineTestCase
@@ -256,7 +256,7 @@ class TestProtocolAndLoader(unittest.TestCase):
                     self.assertIn(fragment, message)
 
     def test_a_class_is_refused_and_an_instance_of_it_loads(self):
-        """U14 (b): a class with the four methods passes the protocol's check, so the loader
+        """A class with the four methods passes the protocol's check, so the loader
         refuses a class before it; the shipped class, and a client's own."""
         name = a_module_name(self)
         for spec in (
@@ -324,7 +324,7 @@ class _NoFingerprinterCase(CommandLineTestCase):
         self.registry = self.a_registry_store("R")
         self.bare = self.a_store("N")
         self.legacy = self.a_store("L")
-        write_sidecar_json(self.legacy, sweep_shaped(self.top / "X"))
+        write_sidecar_json(self.legacy, script_written_shaped(self.top / "X"))
         self.client = enter_client_root(self, "")
         self.config = os.path.join(self.client, CONFIG_FILE)
 
@@ -334,7 +334,7 @@ class _NoFingerprinterCase(CommandLineTestCase):
 
 
 class TestTheStoreLayerRequiresOne(_NoFingerprinterCase):
-    """D4: every store operation, and every store command, refuses before anything else."""
+    """Every store operation, and every store command, refuses before anything else."""
 
     def test_each_store_operation_is_refused_and_writes_nothing(self):
         listing = self.top / "listing.txt"
@@ -499,7 +499,7 @@ class _RetireCase(CommandLineTestCase):
 
 
 class TestRetireLoadsTheFingerprinterFirst(_RetireCase):
-    """U14 (a): on a first retirement a fingerprinter that cannot be loaded is a refusal, a
+    """On a first retirement a fingerprinter that cannot be loaded is a refusal, a
     `ConfigError` as the loader raised it, before anything is written, with the flag or without;
     never the `--without-fingerprint` condition. The store could be fingerprinted with the right
     config."""
@@ -647,7 +647,7 @@ class TestRetirePrecedence(_RetireCase):
 
 
 class TestOpacity(StoreTestCase):
-    """U7: the sidecar reader reads a fingerprint's format, digest and `taken`, and its
+    """The sidecar reader reads a fingerprint's format, digest and `taken`, and its
     `encoding_format` only if present."""
 
     def with_fingerprint(self, primary, value):
@@ -852,8 +852,8 @@ class TestNeutralStore(unittest.TestCase):
         self.assertFalse(ray.is_initialized())
 
     def test_the_baseline_has_no_problem_and_the_ported_names_are_its(self):
-        self.assertEqual(ported.QSI, neutral_store.INTEGRAL)
-        self.assertEqual(ported.TKN, neutral_store.SOLUTION)
+        self.assertEqual(ported.INTEGRAL_CLASS, neutral_store.INTEGRAL)
+        self.assertEqual(ported.SOLUTION_CLASS, neutral_store.SOLUTION)
         self.assertEqual(ported.COMPUTE_TARGETS, neutral_store.COMPUTE_TARGETS)
         self.assertEqual(ported.SOLVER_COLUMNS, neutral_store.SOLVER_COLUMNS)
         self.assertIs(ported._factories, FACTORIES)
@@ -867,8 +867,7 @@ class TestNeutralStore(unittest.TestCase):
 
 
 class TestSidecarGuards(StoreTestCase):
-    """`[02-the-sidecar-readers-guards-are-unpinned]`: what the reader refuses of a registry
-    sidecar's `sidecar_format` and `store_id`."""
+    """What the reader refuses of a registry sidecar's `sidecar_format` and `store_id`."""
 
     def with_field(self, name, value):
         self.made = getattr(self, "made", 0) + 1

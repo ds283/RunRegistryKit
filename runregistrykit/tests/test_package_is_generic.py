@@ -43,10 +43,9 @@ store layer or the fingerprinter; in the tests, the standard library, the packag
 its tests are known to hold, as ``[file, word, count]`` entries, sorted, counted by file and word
 and not by line, so that an edit does not renumber the rest. Each scan must find exactly its
 entries: a new hit fails, and so does a known hit that is no longer found or whose count changed.
-Entries under ``runregistrykit/tests/`` are the tests' to remove, the rest the package modules'.
-The file is data and not a constant here because this module is scanned too. It holds no entry for
-this module, and the words this module's own tests use are read from the vocabulary file at run
-time, never written here.
+The list is empty in every scan, so a hit in any file fails its scan. The file is data and not a
+constant here because this module is scanned too. It holds no entry for this module, and the words
+this module's own tests use are read from the vocabulary file at run time, never written here.
 
 No Ray is initialised, no store is opened and no client is read.
 """

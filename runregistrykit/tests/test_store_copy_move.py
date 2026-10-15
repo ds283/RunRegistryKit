@@ -1,11 +1,10 @@
-"""The registry's copy and move of a store, with its sidecar. `prompts/datastore-portability`
-prompt 03 §2 P11 and §3 tests 5-8.
+"""The registry's copy and move of a store, with its sidecar.
 
-`ShardedPool.copy_store` / `move_store` (prompt 02) move a store's files and know nothing about
+DatastoreKit's `ShardedPool.copy_store` / `move_store` move a store's files and know nothing about
 its sidecar. `runregistrykit.stores.copy_store` / `move_store` call them, then carry the sidecar: a
 copy is a new store with a new `store_id`, and a move keeps the id and renames the one sidecar.
-Both refuse a store that any `running` run names. The interruption tests back the table in
-`logs/03-the-registry-owns-the-store-sidecar.md`, one test per row.
+Both refuse a store that any `running` run names. The interruption tests are one test per case of
+a copy or move that fails at a given step.
 
 Stores are placeholder stores in a temporary directory, and every "does it open" question is asked
 through the constructor's read-and-check on an `object.__new__` instance. No Ray is initialised
@@ -159,7 +158,7 @@ class TestMove(StoreTestCase):
 
 
 class TestRefusals(StoreTestCase):
-    """One test per refusal in P11. Each asserts that the error names the offending file or run
+    """One test per refusal. Each asserts that the error names the offending file or run
     and that nothing was created, changed or removed anywhere under the temporary directory.
     """
 
@@ -232,8 +231,8 @@ class TestRefusals(StoreTestCase):
 
     def test_a_match_by_results_store_id_alone(self):
         """The run was begun against the store where it was. The store's directory was then moved
-        by hand, which works since prompt 01, so its `results` path names somewhere else. Only
-        the store_id says it is the same store."""
+        by hand, so its `results` path names somewhere else. Only the store_id says it is the same
+        store."""
         old = self.a_registry_store("B")
         run = self.a_running_run("by-id", old)
         store_id = stores.read_sidecar(old).store_id
@@ -326,9 +325,9 @@ class TestRefusals(StoreTestCase):
                     )
                 self.assertNamesAndNothingChanged(before, refused.exception, "purpose")
 
-    def test_prompt_02s_refusals_pass_through(self):
+    def test_datastorekits_refusals_pass_through(self):
         src = self.a_registry_store()
-        # a destination primary that exists, with no sidecar: prompt 02's refusal
+        # a destination primary that exists, with no sidecar: DatastoreKit's refusal
         dst = self.top / "C" / "c.sqlite"
         dst.parent.mkdir()
         dst.write_text("somebody else's file")
@@ -347,11 +346,11 @@ class TestRefusals(StoreTestCase):
 
 
 class TestInterruption(StoreTestCase):
-    """The log's interruption table, one test method per row, every layout a subtest.
+    """The interruption cases, one test method per case, every layout a subtest.
 
-    In each row the step after the named one is made to fail, and the state is what a process
-    that died there would leave: nothing is cleaned up. `assertProperty` checks prompt §2 P11's
-    property at both store names, and each row checks what its line of the table says.
+    In each case the step after the named one is made to fail, and the state is what a process
+    that died there would leave: nothing is cleaned up. `assertProperty` checks the sidecars'
+    property at both store names, and each case checks what is left of that interruption.
     """
 
     def _each_layout(self, operation, patcher, check):
@@ -400,7 +399,7 @@ class TestInterruption(StoreTestCase):
             self.assertIn("No sidecar was written or moved", message)
             self.assertEqual(load(stores.sidecar_path(src)), before)
             self.assertOpens(src)
-            # prompt 02's state C3: shards and no primary, which the constructor refuses
+            # the state with shards and no primary, which the constructor refuses
             self.assertFalse(os.path.lexists(dst))
             self.assertTrue(os.path.lexists(dst.parent / shard_file_name(dst, 0)))
             self.assertEqual(stores.read_sidecar(dst).kind, "absent")
@@ -480,7 +479,7 @@ class TestInterruption(StoreTestCase):
 
         def check(src, dst, before, message):
             self.assertIn('failed at step "rename shard #1"', message)
-            # the source sidecar still describes the store beside it, which prompt 02's check
+            # the source sidecar still describes the store beside it, which the constructor's check
             # refuses because shard #0 has gone
             self.assertEqual(load(stores.sidecar_path(src)), before)
             self.assertTrue(stores.read_sidecar(src).ok)

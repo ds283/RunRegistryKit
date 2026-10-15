@@ -365,7 +365,7 @@ class TestWalk(ClientRootTestCase):
 
 
 class TestWorktree(ClientRootTestCase):
-    """Q3: a run in a linked worktree is recorded under the main checkout, with its own tree's
+    """A run in a linked worktree is recorded under the main checkout, with its own tree's
     provenance."""
 
     def a_main_checkout_and_a_worktree(self):
@@ -638,7 +638,7 @@ class TestCommandLine(ClientRootTestCase):
 
 
 class TestRecordedDistributions(ClientRootTestCase):
-    """U9: `runregistrykit` is always recorded, besides the config's distributions."""
+    """`runregistrykit` is always recorded, besides the config's distributions."""
 
     def test_packages_holds_the_registry_and_the_configs_distributions_once_each(self):
         d = self.a_config('distributions = ["datastorekit", "runregistrykit"]\n')

@@ -11,6 +11,6 @@ disagree. See `CLAUDE.md` for the maintenance rule.
 
 | Issue | Owner | Hook |
 |---|---|---|
-| `[02-the-ported-tests-name-sgk]` | 05c | The ported tests and shard fixtures carry SGK's tables, store stems, driver path, `TestLiveA3Shape` and campaign citations; each hit is listed by the guard (`known_hits.json`) |
 | `[00-the-shard-fixtures-reach-into-shardedpool]` | none | The carried shard fixtures set private `ShardedPool` attributes |
+| `[05c-the-import-test-needs-datastorekit]` | 06 | The core's import test imports the guard, which imports `datastorekit`, so it no longer imports without it |
 | `[00-a-refusal-matches-datastorekit-message-text]` | none | An unreadable store is recognised by matching DatastoreKit's message text |

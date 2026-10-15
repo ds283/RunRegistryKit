@@ -1,6 +1,5 @@
 """The store sidecar's name, reader and writer, create and adopt, and the run manifest's
-`results_store_id`. `prompts/datastore-portability` prompt 03 §2 P9, P10, P12 and §3 tests 1-4
-and 9.
+`results_store_id`.
 
 A `<stem>.manifest.json` beside a store used to be written by hand, or by a measurement script,
 and one of them names a different store from the one it sits beside. `runregistrykit.stores` now
@@ -18,9 +17,9 @@ import runregistrykit
 from runregistrykit import stores
 from runregistrykit.tests.store_fixtures import (
     StoreTestCase,
-    a3_shaped,
+    hand_written_shaped,
     load,
-    sweep_shaped,
+    script_written_shaped,
     unknown,
     write_sidecar_json,
 )
@@ -33,14 +32,14 @@ class TestName(StoreTestCase):
         for primary, expected in (
             ("/a/b/store.sqlite", "/a/b/store.manifest.json"),
             ("pcopy.sqlite", "pcopy.manifest.json"),
-            ("/x/handover-atol-sweep.sqlite", "/x/handover-atol-sweep.manifest.json"),
+            ("/x/example-working-copy.sqlite", "/x/example-working-copy.manifest.json"),
             ("/x/a.b.sqlite", "/x/a.b.manifest.json"),
             ("/x/noext", "/x/noext.manifest.json"),
         ):
             with self.subTest(primary=primary):
                 self.assertEqual(stores.sidecar_path(primary), Path(expected))
-        # what both existing sidecars and `prepare()` (`with_suffix(".manifest.json")`) use
-        for stem in ("handover-A3-baseline-lambdacdm", "handover-atol-sweep"):
+        # what both existing sidecars and a script's `with_suffix(".manifest.json")` use
+        for stem in ("example-B2-baseline-run", "example-working-copy"):
             primary = Path("/v") / f"{stem}.sqlite"
             self.assertEqual(
                 stores.sidecar_path(primary), primary.with_suffix(".manifest.json")
@@ -118,7 +117,7 @@ class TestReader(StoreTestCase):
         )  # another store of the same stem, which exists and is populated
         write_sidecar_json(other / "store.sqlite", {"name": "store", "purpose": "X"})
         primary = self.a_store("B")
-        write_sidecar_json(primary, sweep_shaped(other))
+        write_sidecar_json(primary, script_written_shaped(other))
         x_before = tree_state(other)
 
         reading = stores.read_sidecar(primary)
@@ -133,7 +132,9 @@ class TestReader(StoreTestCase):
             ("store.sqlite", False),
         ):
             with self.subTest(value=value):
-                write_sidecar_json(primary, dict(sweep_shaped(other), datastore=value))
+                write_sidecar_json(
+                    primary, dict(script_written_shaped(other), datastore=value)
+                )
                 before = self.state()
                 reading = stores.read_sidecar(primary)
                 self.assertEqual((reading.problems, reading.legacy_path), ([], is_path))
@@ -237,8 +238,8 @@ class TestReader(StoreTestCase):
         payloads = [
             None,
             "{torn",
-            sweep_shaped(other),
-            a3_shaped(other),
+            script_written_shaped(other),
+            hand_written_shaped(other),
             {"sidecar_format": 1, "datastore": "wrong.sqlite"},
         ]
         for payload in payloads:
@@ -346,13 +347,13 @@ class TestCreate(StoreTestCase):
 
 
 class TestAdopt(StoreTestCase):
-    def test_a_sweep_shaped_legacy_sidecar(self):
+    def test_a_script_written_shaped_legacy_sidecar(self):
         """`datastore` and `copied_from` are paths into another directory: `datastore` becomes
         bare, `copied_from` is kept verbatim, and the id and the one `adopt` entry are new.
         """
         other = self.top / "X"
         primary = self.a_store()
-        legacy = sweep_shaped(other)
+        legacy = script_written_shaped(other)
         write_sidecar_json(primary, legacy)
 
         fields = stores.adopt_sidecar(primary)
@@ -369,9 +370,9 @@ class TestAdopt(StoreTestCase):
         self.assertEqual(entry["to"], runregistrykit._repo_path(primary, self.client))
         self.assertTrue(stores.read_sidecar(primary).ok)
 
-    def test_an_a3_shaped_sidecar_keeps_every_unknown_field(self):
+    def test_a_hand_written_shaped_sidecar_keeps_every_unknown_field(self):
         primary = self.a_store()
-        legacy = a3_shaped(self.top / "elsewhere")
+        legacy = hand_written_shaped(self.top / "elsewhere")
         write_sidecar_json(primary, legacy)
         fields = stores.adopt_sidecar(primary)
         self.assertEqual(unknown(fields), unknown(legacy))
@@ -494,12 +495,12 @@ class TestAdopt(StoreTestCase):
 
 
 class TestUnknownFieldsSurvive(StoreTestCase):
-    """Prompt §3 test 2. A writer that rebuilt the object from the fields it knows would pass
+    """A writer that rebuilt the object from the fields it knows would pass
     every test that looks only at known fields."""
 
-    def test_an_a3_shaped_sidecar_through_adopt_copy_and_move(self):
+    def test_a_hand_written_shaped_sidecar_through_adopt_copy_and_move(self):
         primary = self.a_store()
-        legacy = a3_shaped(self.top / "elsewhere")
+        legacy = hand_written_shaped(self.top / "elsewhere")
         write_sidecar_json(primary, legacy)
         original = unknown(json.loads(json.dumps(legacy)))
 
@@ -529,7 +530,7 @@ class TestUnknownFieldsSurvive(StoreTestCase):
 
 
 class TestRunManifests(StoreTestCase):
-    """P12: `begin()` records the store_id of a problem-free registry sidecar beside `results`,
+    """`begin()` records the store_id of a problem-free registry sidecar beside `results`,
     reads the sidecar, and never writes one."""
 
     def test_the_store_id_of_a_registry_sidecar(self):
@@ -543,7 +544,7 @@ class TestRunManifests(StoreTestCase):
     def test_null_for_no_store_no_sidecar_legacy_and_a_problem(self):
         bare = self.a_store("N")
         legacy = self.a_store("L")
-        write_sidecar_json(legacy, sweep_shaped(self.top / "X"))
+        write_sidecar_json(legacy, script_written_shaped(self.top / "X"))
         broken = self.a_registry_store("P")
         fields = load(stores.sidecar_path(broken))
         stores.sidecar_path(broken).write_text(

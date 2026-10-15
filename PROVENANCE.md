@@ -314,6 +314,36 @@ Each prompt's changes, from 03 on:
   for a package module in any scan, and the tests' entries those of 05a plus 18 hits in 11
   entries of the widened scan, for prompt 05c.
 
+**Prompt 05c, the tests' own names**
+(`prompts/extraction/05c-the-tests-own-names.md`, this commit):
+
+- **Names renamed** (U16, README §5 rule 9 lifted for names only): sixteen, in the table "The tests'
+  renames" below, with the test ids that changed: eight test methods, a class, two helpers, two
+  constants and three columns of the neutral store. What each test asserts is unchanged:
+  `ast.dump` of every test module and fixture with docstrings removed equals that at `8766714`,
+  after the renames and the neutral data below are applied to the old tree, but for
+  `test_package_imports.py`'s `FORBIDDEN`.
+- **Fixture data made neutral**, with the same keys, types, nesting and path shapes: the shard
+  fixture's key type, replicated tables and sharded table (`mode`, `["version", "mode"]`,
+  `{"Solution": "k"}`); the values of `hand_written_shaped` and `script_written_shaped` that named
+  a client's purpose, grid criterion, driver, scope, run directory and stage; the two store stems
+  of `test_store_sidecar.py` (`example-B2-baseline-run`, `example-working-copy`); the run
+  directory `pilot-run`; the campaign `example` of two run helpers; and the run id
+  `example-04-test-20260925T100000`. The log lists every value, old and new.
+- **`FORBIDDEN`** (`test_package_imports.py`) no longer writes three of a client's packages: it is
+  `ray`, `sqlalchemy`, `datastorekit` and `config` and every project package the guard reads from
+  the vocabulary (`test_package_is_generic.project_packages()`), 22 names for 7, sorted. The check
+  asserts more than before, never less. The module now imports the guard, and so `datastorekit`.
+- **The tests' prose rewritten** in the package's own terms: no client, script, store, table,
+  class or run; no campaign, prompt, section, property or test number, log, decision, issue tag
+  or incident date of any repository, this one's included; no name the package no longer has.
+  Each test keeps what it checks and why (the reasons an incident gave are stated in general
+  terms); "Where the tests' citations pointed" below says what each module cited.
+- **`known_hits.json`** is rewritten by 05a's writer with one change, its `owners` string: every
+  scan's list is empty (155 hits in 94 entries before). The guard keeps its mechanism, and its
+  docstring's paragraph "The known hits" says the list is empty and that a hit in any file fails
+  its scan.
+
 ## Where the prose's citations pointed
 
 The package's docstrings and comments cited SGK's records. The citations are gone from the prose
@@ -336,3 +366,56 @@ campaign's README.
 | The checkpoint pattern and the provenance stamp | `docs/handover/realistic_large_x.py` (it stamps each cell, and its `load_checkpoint` chose to discard on a script-hash mismatch); the 10 h 33 m resume of the baseline run | `Run.record`'s and `Run.known`'s docstrings; `README.md`, rule 6 |
 | `now_iso`'s format, and `stage_reached` | the hand-written manifest of the baseline run, `handover-A3-baseline-lambdacdm.manifest.json` | `now_iso`'s and `Run.heartbeat`'s docstrings; `begin()`'s on `scope` |
 | `ShardedPool`'s interface and message | "Prompt 02's interface" (`_store_files`) and "prompt 01's log" (`_SHARDS_TABLE_UNREADABLE`), both campaigns not named in the prose | `_store_files`'s docstring (DatastoreKit's `ShardedPool` methods; refusals come through unchanged); the comment on `_SHARDS_TABLE_UNREADABLE` |
+
+## The tests' renames
+
+05c renamed the names below under README §5 rule 9 (as lifted by U16): each names a client, or
+follows a name that does. Ids are `module.Class.method` under `runregistrykit.tests`, old and new,
+so that a reader with SGK's tree can find each test's source. A helper, a constant or a column has
+no test id; its sites are counted in 05c's log.
+
+| # | Old | New | What | Test id, old -> new |
+|---|---|---|---|---|
+| 1 | `a3_shaped` | `hand_written_shaped` | helper, `store_fixtures.py` | none |
+| 2 | `sweep_shaped` | `script_written_shaped` | helper, `store_fixtures.py` | none |
+| 3 | `TestLiveA3Shape` | `TestHandWrittenShape` | class, `test_store_amend.py` | `test_store_amend.TestLiveA3Shape.test_amend_backup_as_prompt_05_will` -> `test_store_amend.TestHandWrittenShape.test_amend_backup_once_it_is_retired` |
+| 4 | `test_amend_backup_as_prompt_05_will` | `test_amend_backup_once_it_is_retired` | method, in the class of row 3 | as row 3 |
+| 5 | `test_a_sweep_shaped_legacy_sidecar` | `test_a_script_written_shaped_legacy_sidecar` | method | `test_store_sidecar.TestAdopt.test_a_sweep_shaped_legacy_sidecar` -> `test_store_sidecar.TestAdopt.test_a_script_written_shaped_legacy_sidecar` |
+| 6 | `test_tolerance_of_a_torn_line_stops_at_the_end_of_the_file` | `test_a_torn_line_is_tolerated_only_at_the_end_of_the_file` | method (`tolerance` is a client's registry key) | `test_run_registry.TestLedgerIsNotTheResultsStore.test_tolerance_of_a_torn_line_stops_at_the_end_of_the_file` -> `...test_a_torn_line_is_tolerated_only_at_the_end_of_the_file` |
+| 7 | `test_deleting_one_quadsourceintegral_row` | `test_deleting_one_integral_row` | method | `test_store_fingerprint.TestLocalised.test_deleting_one_quadsourceintegral_row` -> `...test_deleting_one_integral_row` |
+| 8 | `test_timestamps_labels_and_solver_serials` | `test_timestamps_labels_and_producer_serials` | method | `test_store_fingerprint.TestNotContent.test_timestamps_labels_and_solver_serials` -> `...test_timestamps_labels_and_producer_serials` |
+| 9 | `QSI` | `INTEGRAL_CLASS` | constant, a client's abbreviation of its class; also read as `ported.QSI` in `test_fingerprinter.py` | none |
+| 10 | `TKN` | `SOLUTION_CLASS` | constant, as row 9 | none |
+| 11 | column `solver_serial` (and `SOLVER_COLUMNS`' value) | `producer_serial` | neutral store, `neutral_store.py`; the raw SQL of two tests names it | none |
+| 12 | column `parent_serial` | `tagged_serial` | neutral store's tag table | none |
+| 13 | column `log10_tol` (and `_solution`'s parameter) | `log10_step` | neutral store | none |
+| 14 | `test_an_a3_shaped_sidecar_keeps_every_unknown_field` | `test_a_hand_written_shaped_sidecar_keeps_every_unknown_field` | method (`a3` named a client's store) | `test_store_sidecar.TestAdopt.test_an_a3_shaped_sidecar_keeps_every_unknown_field` -> `...test_a_hand_written_shaped_sidecar_keeps_every_unknown_field` |
+| 15 | `test_an_a3_shaped_sidecar_through_adopt_copy_and_move` | `test_a_hand_written_shaped_sidecar_through_adopt_copy_and_move` | method | `test_store_sidecar.TestUnknownFieldsSurvive.test_an_a3_shaped_sidecar_through_adopt_copy_and_move` -> `...test_a_hand_written_shaped_sidecar_through_adopt_copy_and_move` |
+| 16 | `test_prompt_02s_refusals_pass_through` | `test_datastorekits_refusals_pass_through` | method (named a campaign's prompt; the refusals are DatastoreKit's) | `test_store_copy_move.TestRefusals.test_prompt_02s_refusals_pass_through` -> `...test_datastorekits_refusals_pass_through` |
+
+Rows 14-16 are not in the prompt's map: the prompt's trial left two method names with `a3` (the
+word is not one the guard forbids) that its own check for `a3` in the code requires renamed, and a
+third that named a prompt. Eight test ids change in all (row 3's and row 4's are one test), and the
+suite's count is unchanged at 276.
+
+## Where the tests' citations pointed
+
+The tests' docstrings and comments cited SGK's records, and this campaign's own. The citations are
+gone (prompt 05c); this table says what each module cited, **as cited at `8766714`** (the tests'
+own words; no SGK file was read to check a row), and what the module says it tests now. A record
+is in SGK's repository unless it is marked as this campaign's.
+
+| Module | Cited at `8766714` | What the module says now |
+|---|---|---|
+| `shard_store_fixtures.py` | "prompt 03 of the datastore-generic campaign" (DatastoreKit's constructor refusing a primary with no `replication_in_flight` table); "the audit tool or the sweep script's check" (two SGK programs reading such a primary) | `write_hand_built_primary`'s docstring: the constructor refuses what it builds, and its users read it through `read_pool` and the closed-store operations |
+| `store_fixtures.py` | `prompts/datastore-portability` prompt 03; "the three layouts prompt §3 asks for"; "prompt §2 P11's property" (`assertProperty`); the hand-written `handover-A3-baseline-lambdacdm.manifest.json`; `quadsource_atol_sweep.py` `prepare()` | the module docstring, the layouts' comment, `hand_written_shaped`'s, `script_written_shaped`'s and `assertProperty`'s docstrings, in the package's terms |
+| `test_run_registry.py` | `prompts/run-registry/README.md` §0 item 3 (twice), including its nineteen poll loops and fifteen dead jobs; `prompts/run-registry` prompt 03 (the checkpoint ledger and the results store); "prompts 03 and 06 install the packages"; `scoped_pipeline_run.py --register`; "the campaign" | `TestSelfMatch`'s and `TestLedgerIsNotTheResultsStore`'s docstrings, the `CHECKER` comment, and `test_manifest_records_the_installed_packages`'s comment, in general terms |
+| `test_store_sidecar.py` | `prompts/datastore-portability` prompt 03 §2 P9, P10 and P12 and §3 tests 1-4 and 9; "Prompt §3 test 2"; "P12"; the stems `handover-A3-baseline-lambdacdm` and `handover-atol-sweep`; `prepare()` | the module docstring (name, reader, writer, create and adopt, `results_store_id`), `TestUnknownFieldsSurvive`'s and `TestRunManifests`' docstrings |
+| `test_store_copy_move.py` | `prompts/datastore-portability` prompt 03 §2 P11 and §3 tests 5-8; prompt 01 (a store moved by hand) and prompt 02 (`ShardedPool.copy_store` and `move_store`, their refusals, state C3 and the constructor's check), campaign not named in the prose; "the log's interruption table" (`logs/03-the-registry-owns-the-store-sidecar.md`), one test per row | the module docstring; `TestRefusals`' and `TestInterruption`'s (one test per interruption case); the comments that named DatastoreKit's refusals |
+| `test_store_command_line.py` | `prompts/datastore-portability` prompt 03 §2 "The command line" and §3 test 10 | the module docstring: the `store` commands, and what importing the registry loads |
+| `test_store_amend.py` | `store-retirement` prompt 04 and its §2.1; decision D5 (the guards on what may be amended); "as prompt 05 will" (amending `backup` once a store is retired); "the live A3 shape" | the module docstring and section 3's header: the hand-written shape, amending `backup` once its store is retired |
+| `test_store_amend_residuals.py` | `store-retirement` prompt 06 and its residuals R14 and R15 | the module docstring: the identical-value refusal and the value shaped like the marker |
+| `test_store_fingerprint.py` | `store-fingerprint` prompt 04 and its tests 1-3, 5-7, 10 and 11; "prompt 02's test 1" and "the discriminator of prompt 02" (campaign not named in the prose); `runregistrykit.stores.fingerprint_of` (SGK's name, which the package no longer has); the run id `store-fingerprint-04-test-20260925T100000` | the module docstring (DatastoreKit's `fingerprint_of`, the fingerprinter's `compare`, the sidecar field, `fingerprint_store`, the command, `Run.finish`) and each class's own description |
+| `test_store_retire.py` | `store-retirement` prompt 03; decisions D4 (`--without-fingerprint`) and D6 (a retired name is never reused); "the log's interruption table"; "the 2026-09-23 failure" (a store whose `shards` rows were absolute paths to another store's files); "real multi-shard fixture stores" | the module docstring and section headers; `TestAnotherStoresShards`' docstring states the mechanism; the stores are the neutral store's |
+| `test_store_retire_references.py` | "a3-v2-readiness prompt 06", closing `[10-store-retire-reports-every-tombstone-as-a-reference]`; "the live A3 backup" | the module docstring: what the references report counts as naming a store |
+| `test_client_root.py`, `test_fingerprinter.py` | this campaign's own decisions Q3, U9, U7, U14 and D4 (README §6), and the tag `[02-the-sidecar-readers-guards-are-unpinned]` (this campaign's board) | each class's docstring states what it checks, without the decision |

@@ -1,5 +1,4 @@
 """`python -m runregistrykit store …`, and what importing the registry loads.
-`prompts/datastore-portability` prompt 03 §2 "The command line" and §3 test 10.
 
 Every command is run in a child interpreter. The child runs the package exactly as `python -m
 runregistrykit` does (`runpy.run_module("runregistrykit", run_name="__main__", alter_sys=True)`), and
@@ -19,7 +18,7 @@ from runregistrykit.tests.client_fixtures import PACKAGE_PARENT
 from runregistrykit.tests.store_fixtures import (
     StoreTestCase,
     load,
-    sweep_shaped,
+    script_written_shaped,
     write_sidecar_json,
 )
 
@@ -79,7 +78,7 @@ class TestStoreCommands(CommandLineTestCase):
     def test_show_create_adopt_copy_and_move(self):
         runs = ["--runs-root", self.root]
         legacy = self.a_store("L")
-        write_sidecar_json(legacy, sweep_shaped(self.top / "X"))
+        write_sidecar_json(legacy, script_written_shaped(self.top / "X"))
 
         # show: read-only, and it loads neither ray nor sqlalchemy
         before = self.state()

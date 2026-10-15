@@ -1,14 +1,14 @@
-"""The two residuals prompt 06 fixes in `amend_sidecar` (store-retirement prompt 06):
+"""Two properties of `amend_sidecar`:
 
-- **R14.** The identical-value refusal (`amend_sidecar`'s ninth check) now compares the current
-  and the given value by their canonical JSON text (`json.dumps(…, sort_keys=True)`), not Python
-  `==`. `true`, `1` and `1.0` are three different values, and each amendment between them is
-  accepted, keeping its own type; an object with its keys in another order is still refused,
-  because its canonical text is unchanged.
-- **R15.** A value shaped exactly like the `before`/`after` marker itself — `{"present": ...}` —
-  is taken through add, replace and remove, and read back unambiguously, so that a later change
-  which flattened the wrapper (returning the bare value instead of `{"present": True, "value":
-  …}`) would be caught here.
+- **The identical-value refusal** (`amend_sidecar`'s ninth check) compares the current and the
+  given value by their canonical JSON text (`json.dumps(…, sort_keys=True)`), not Python `==`.
+  `true`, `1` and `1.0` are three different values, and each amendment between them is accepted,
+  keeping its own type; an object with its keys in another order is still refused, because its
+  canonical text is unchanged.
+- **A value shaped like the marker.** A value shaped exactly like the `before`/`after` marker
+  itself — `{"present": ...}` — is taken through add, replace and remove, and read back
+  unambiguously, so that a later change which flattened the wrapper (returning the bare value
+  instead of `{"present": True, "value": …}`) would be caught here.
 
 This module imports `AmendTestCase` and `REASON` from `test_store_amend` rather than copying
 them, so it shares the same lightweight placeholder stores, the same `runs_root` discipline
@@ -23,7 +23,7 @@ from runregistrykit.tests.test_store_amend import AmendTestCase, REASON
 
 
 # =================================================================================================
-# R14 — the identical-value refusal compares canonical JSON text, not Python `==`
+# the identical-value refusal compares canonical JSON text, not Python `==`
 
 
 class TestTypeStrictComparison(AmendTestCase):
@@ -172,7 +172,7 @@ class TestCommandLineTypeChange(AmendTestCase):
 
 
 # =================================================================================================
-# R15 — a value shaped like the marker itself, through add, replace, remove and read-back
+# a value shaped like the marker itself, through add, replace, remove and read-back
 
 
 class TestMarkerShapedValue(AmendTestCase):

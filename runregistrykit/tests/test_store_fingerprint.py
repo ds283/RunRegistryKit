@@ -1,19 +1,19 @@
-"""The store fingerprint (store-fingerprint prompt 04): `runregistrykit.stores.fingerprint_of`,
-`compare_fingerprints`, the sidecar's `fingerprint` field, `fingerprint_store`,
+"""The store fingerprint: DatastoreKit's `fingerprint_of` and the client fingerprinter's `compare`
+(here the neutral store's), the sidecar's `fingerprint` field, `fingerprint_store`,
 `python -m runregistrykit store fingerprint`, and `Run.finish(..., fingerprint=True)`.
 
-1. the fingerprint is physical: other serials, other shards, the same fingerprint;
-2. a difference is localised to the class and tag set that changed, and no other;
-3. what is not content (timestamps, compute-target labels, solver serials) does not matter;
-5. a listing's lines hash to the digests it lists;
-6. fingerprints of different formats are not compared;
-7. the sidecar field: its shape, and copy and move carry it verbatim;
-8. `store fingerprint` without `--write` writes nothing and initialises no Ray;
-9. `store fingerprint --write` changes only the `fingerprint` field, and is refused on a sidecar
-   that is not a problem-free registry sidecar;
-10. a `running` run naming the store makes it refuse, except the run passed as `taken_by`;
-11. `Run.finish(..., fingerprint=True)` records a fingerprint, or why not, and never changes how
-    the run ended;
+- the fingerprint is physical: other serials, other shards, the same fingerprint;
+- a difference is localised to the class and tag set that changed, and no other;
+- what is not content (timestamps, compute-target labels, producer serials) does not matter;
+- a listing's lines hash to the digests it lists;
+- fingerprints of different formats are not compared;
+- the sidecar field: its shape, and copy and move carry it verbatim;
+- `store fingerprint` without `--write` writes nothing and initialises no Ray;
+- `store fingerprint --write` changes only the `fingerprint` field, and is refused on a sidecar
+  that is not a problem-free registry sidecar;
+- a `running` run naming the store makes it refuse, except the run passed as `taken_by`;
+- `Run.finish(..., fingerprint=True)` records a fingerprint, or why not, and never changes how
+  the run ended;
 
 Stores are built with `runregistrykit.tests.neutral_store` in temporary directories, runs in a
 temporary runs root. No Ray is initialised and nothing under `var/` is opened.
@@ -32,7 +32,7 @@ from runregistrykit.stores import fingerprint_store
 from runregistrykit.tests.store_fixtures import (
     StoreTestCase,
     load,
-    sweep_shaped,
+    script_written_shaped,
     write_sidecar_json,
 )
 from runregistrykit.tests.test_store_command_line import CommandLineTestCase
@@ -65,9 +65,9 @@ def fingerprint_of(inventory, taken=None) -> dict:
 # the compute targets, whose labels are not identity
 COMPUTE_TARGETS = ("Solution", "Integral")
 
-QSI = "Integral"
-TKN = "Solution"
-SOLVER_COLUMNS = ("solver_serial",)
+INTEGRAL_CLASS = "Integral"
+SOLUTION_CLASS = "Solution"
+SOLVER_COLUMNS = ("producer_serial",)
 
 
 def without_taken(fingerprint) -> dict:
@@ -149,7 +149,7 @@ class _FullStores(unittest.TestCase):
 
 
 class TestPhysical(_FullStores):
-    """Test 1: the relabelled store, with its rows moved between shards (prompt 02's test 1)."""
+    """The relabelled store, with its rows moved between shards."""
 
     def test_other_serials_and_other_shards(self):
         replicated, sharded, keys = relabel_serials(*full_rows(), offset=37)
@@ -172,7 +172,7 @@ class TestPhysical(_FullStores):
 
 
 class TestLocalised(_FullStores):
-    """Test 2: each change moves exactly the digests it names, and the comparison names exactly
+    """Each change moves exactly the digests it names, and the comparison names exactly
     those classes and tag sets."""
 
     def assertLocalised(self, cls, after_inventory, expected_counts=None):
@@ -215,35 +215,37 @@ class TestLocalised(_FullStores):
             )
         return after
 
-    def test_deleting_one_quadsourceintegral_row(self):
+    def test_deleting_one_integral_row(self):
         inventory = read_inventory(
             self.store(
                 extra_sql={
                     1: [
-                        f"DELETE FROM {QSI} WHERE serial = 3",
-                        f"DELETE FROM {QSI}_tags WHERE parent_serial = 3",
+                        f"DELETE FROM {INTEGRAL_CLASS} WHERE serial = 3",
+                        f"DELETE FROM {INTEGRAL_CLASS}_tags WHERE tagged_serial = 3",
                     ]
                 }
             ).primary,
             _factories,
         )
         after = self.assertLocalised(
-            QSI, inventory, expected_counts={("Run_fixture",): (2, 1)}
+            INTEGRAL_CLASS, inventory, expected_counts={("Run_fixture",): (2, 1)}
         )
-        self.assertEqual(after["classes"][QSI]["count"], 2)
-        self.assertEqual(self.baseline["classes"][QSI]["count"], 3)
+        self.assertEqual(after["classes"][INTEGRAL_CLASS]["count"], 2)
+        self.assertEqual(self.baseline["classes"][INTEGRAL_CLASS]["count"], 3)
 
     def test_deleting_the_row_alone_is_also_a_problem_entry(self):
-        """The discriminator of prompt 02: the row goes and its tag rows stay, so the one
+        """The discriminator: the row goes and its tag rows stay, so the one
         content difference comes with one `orphan-tag` problem entry of its own."""
-        after = self.fingerprint(extra_sql={1: [f"DELETE FROM {QSI} WHERE serial = 3"]})
+        after = self.fingerprint(
+            extra_sql={1: [f"DELETE FROM {INTEGRAL_CLASS} WHERE serial = 3"]}
+        )
         comparison = compare_fingerprints(self.baseline, after)
         self.assertEqual(
             [(e["kind"], e["class"]) for e in comparison],
-            [("tag_set", QSI), ("problems", QSI)],
+            [("tag_set", INTEGRAL_CLASS), ("problems", INTEGRAL_CLASS)],
         )
         self.assertEqual((comparison[0]["recorded"], comparison[0]["current"]), (2, 1))
-        self.assertEqual(after["problems"], {QSI: {"orphan-tag": 1}})
+        self.assertEqual(after["problems"], {INTEGRAL_CLASS: {"orphan-tag": 1}})
         self.assertIn("orphan-tag problems: 0 recorded, 1 now", comparison[1]["text"])
 
     def test_adding_a_tag_to_one_record(self):
@@ -251,7 +253,7 @@ class TestLocalised(_FullStores):
             self.store(
                 extra_sql={
                     1: [
-                        f"INSERT INTO {QSI}_tags (timestamp, parent_serial, tag_serial) "
+                        f"INSERT INTO {INTEGRAL_CLASS}_tags (timestamp, tagged_serial, tag_serial) "
                         f"VALUES ('2026-09-24 12:00:00.000000', 3, 3)"
                     ]
                 }
@@ -259,14 +261,14 @@ class TestLocalised(_FullStores):
             _factories,
         )
         after = self.assertLocalised(
-            QSI,
+            INTEGRAL_CLASS,
             inventory,
             expected_counts={
                 ("Run_fixture",): (2, 1),
                 ("Run_fixture", "unused-tag"): (None, 1),
             },
         )
-        self.assertEqual(after["classes"][QSI]["count"], 3)
+        self.assertEqual(after["classes"][INTEGRAL_CLASS]["count"], 3)
 
     def test_deleting_one_value_row(self):
         inventory = read_inventory(
@@ -275,25 +277,28 @@ class TestLocalised(_FullStores):
             ).primary,
             _factories,
         )
-        after = self.assertLocalised(TKN, inventory)
+        after = self.assertLocalised(SOLUTION_CLASS, inventory)
         self.assertEqual(
-            after["classes"][TKN]["count"], self.baseline["classes"][TKN]["count"]
+            after["classes"][SOLUTION_CLASS]["count"],
+            self.baseline["classes"][SOLUTION_CLASS]["count"],
         )
 
     def test_flipping_one_validated_flag(self):
         inventory = read_inventory(
             self.store(
-                extra_sql={0: [f"UPDATE {TKN} SET validated = 1 WHERE serial = 3"]}
+                extra_sql={
+                    0: [f"UPDATE {SOLUTION_CLASS} SET validated = 1 WHERE serial = 3"]
+                }
             ).primary,
             _factories,
         )
-        self.assertLocalised(TKN, inventory)
+        self.assertLocalised(SOLUTION_CLASS, inventory)
 
 
 class TestNotContent(_FullStores):
-    """Test 3: every timestamp, every compute-target label and every solver serial changed."""
+    """Every timestamp, every compute-target label and every producer serial changed."""
 
-    def test_timestamps_labels_and_solver_serials(self):
+    def test_timestamps_labels_and_producer_serials(self):
         replicated, sharded, keys = full_rows()
         tables = _schema_tables()
         stamp = datetime(2031, 2, 3, 4, 5, 6)
@@ -318,7 +323,7 @@ class TestNotContent(_FullStores):
             self.store(replicated=replicated, sharded=sharded, shard_keys=keys).primary,
             _factories,
         )
-        self.assertEqual(inventory[QSI].earliest_timestamp, stamp)
+        self.assertEqual(inventory[INTEGRAL_CLASS].earliest_timestamp, stamp)
         after = fingerprint_of(inventory)
         self.assertEqual(without_taken(after), without_taken(self.baseline))
         self.assertEqual(compare_fingerprints(self.baseline, after), [])
@@ -331,7 +336,7 @@ class TestNotContent(_FullStores):
 
 
 class TestListing(_FullStores):
-    """Test 5: the lines a listing writes for each class and tag set hash to its digests."""
+    """The lines a listing writes for each class and tag set hash to its digests."""
 
     def test_the_listing_hashes_to_the_fingerprint(self):
         path = self.top / "listing.txt"
@@ -381,7 +386,7 @@ class TestListing(_FullStores):
 
 
 class TestFormats(unittest.TestCase):
-    """Test 6: two fingerprints of different formats are not compared."""
+    """Two fingerprints of different formats are not compared."""
 
     def fingerprint(self, fmt):
         return {
@@ -406,7 +411,7 @@ class TestFormats(unittest.TestCase):
 
 
 class TestSidecarField(StoreTestCase):
-    """Test 7: the `fingerprint` field's shape, and copy and move carry it verbatim."""
+    """The `fingerprint` field's shape, and copy and move carry it verbatim."""
 
     FINGERPRINT = {
         "fingerprint_format": 1,
@@ -417,7 +422,7 @@ class TestSidecarField(StoreTestCase):
             "when": "2026-09-25T10:00:00+01:00",
             "git_head": "c" * 40,
             "git_dirty": False,
-            "run_id": "store-fingerprint-04-test-20260925T100000",
+            "run_id": "example-04-test-20260925T100000",
         },
     }
 
@@ -501,7 +506,7 @@ class _FullStoreCase(CommandLineTestCase):
         if sidecar == "registry":
             stores.create_sidecar(primary, "a full store in a temporary directory")
         elif sidecar == "legacy":
-            write_sidecar_json(primary, sweep_shaped(self.top / "elsewhere"))
+            write_sidecar_json(primary, script_written_shaped(self.top / "elsewhere"))
         elif sidecar == "problem":
             stores.create_sidecar(primary, "a full store with a sidecar problem")
             fields = load(stores.sidecar_path(primary))
@@ -584,15 +589,17 @@ class TestFingerprintCommand(_FullStoreCase):
 
         conn = sqlite3.connect(shard)
         with conn:
-            conn.execute(f"DELETE FROM {QSI} WHERE serial = 3")
+            conn.execute(f"DELETE FROM {INTEGRAL_CLASS} WHERE serial = 3")
         conn.close()
         report, out, _ = self.command(
             "store", "fingerprint", primary, "--runs-root", self.root
         )
         self.assertEqual(report["code"], 1)
         self.assertIn("recorded: 2 difference(s)", out)
-        self.assertIn(f"{QSI}: tag set [Run_fixture] differs: 2 recorded, 1 now", out)
-        self.assertIn(f"{QSI}: orphan-tag problems: 0 recorded, 1 now", out)
+        self.assertIn(
+            f"{INTEGRAL_CLASS}: tag set [Run_fixture] differs: 2 recorded, 1 now", out
+        )
+        self.assertIn(f"{INTEGRAL_CLASS}: orphan-tag problems: 0 recorded, 1 now", out)
 
     def test_write_is_refused_on_an_absent_legacy_or_problem_sidecar(self):
         for kind in ("absent", "legacy", "problem"):
@@ -620,7 +627,7 @@ class TestFingerprintCommand(_FullStoreCase):
 
 
 class TestRunningRefusal(_FullStoreCase):
-    """Test 10: a running run naming the store, alive or stale, by path or by store_id."""
+    """A running run naming the store, alive or stale, by path or by store_id."""
 
     def by_store_id_only(self, run):
         """Point ``run``'s manifest at another path, so that only its results_store_id names
@@ -687,7 +694,7 @@ class TestRunningRefusal(_FullStoreCase):
 
 
 class TestFinish(_FullStoreCase):
-    """Test 11: `Run.finish(..., fingerprint=True)`."""
+    """`Run.finish(..., fingerprint=True)`."""
 
     def test_done_with_the_fingerprint_in_the_status_and_the_sidecar(self):
         primary = self.a_full_store()

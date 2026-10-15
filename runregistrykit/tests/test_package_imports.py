@@ -14,6 +14,7 @@ import tempfile
 import unittest
 
 import runregistrykit
+from runregistrykit.tests.test_package_is_generic import project_packages
 
 PACKAGE_DIR = os.path.dirname(os.path.abspath(runregistrykit.__file__))
 PACKAGE_NAME = "runregistrykit"
@@ -22,15 +23,11 @@ PACKAGE_NAME = "runregistrykit"
 MODULES = ("__init__.py", "stores.py", "__main__.py", "client.py", "fingerprint.py")
 
 # Not one of these may be loaded by importing the package and its store layer: the heavy
-# dependencies of the store layer, and the client modules the imported code was written beside.
-FORBIDDEN = (
-    "ray",
-    "sqlalchemy",
-    "datastorekit",
-    "config",
-    "ObjectFactories",
-    "StoreFixtures",
-    "RunRegistry",
+# dependencies of the store layer, `config`, and the clients' project packages, which the guard
+# reads from the vocabulary file (`test_package_is_generic.project_packages`), so that the check
+# is the same for every client and this module names none.
+FORBIDDEN = tuple(
+    sorted({"ray", "sqlalchemy", "datastorekit", "config"} | project_packages())
 )
 
 # A subprocess that is not broken takes a fraction of a second; one that imports `ray` by mistake

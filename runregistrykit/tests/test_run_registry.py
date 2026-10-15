@@ -1,7 +1,7 @@
 """Tests for `runregistrykit`. No Ray, no datastore, no network; every run directory these build is
 in a temporary directory, and nothing under `var/` is read or written.
 
-The first test is the campaign's whole justification in miniature and is the reason the others are
+The first test is the registry's whole justification in miniature and is the reason the others are
 here at all — see `TestSelfMatch`.
 """
 
@@ -26,7 +26,7 @@ from runregistrykit.tests.client_fixtures import (
 # A liveness check performed from a process whose own command line contains the target's name.
 # `--waiting-for <token>` is argv[1:3] so that it survives any command-line truncation `ps` may
 # apply, and the script's own file name carries the token too — exactly the shape of the poll loop
-# that could never exit (README §0 item 3).
+# that could never exit (see `TestSelfMatch`).
 CHECKER = '''\
 import json, os, subprocess, sys
 
@@ -102,7 +102,7 @@ sys.path.insert(0, {repo!r})
 import runregistrykit
 
 runregistrykit.begin(
-    campaign="run-registry",
+    campaign="example",
     prompt="01",
     slug="crash-in-the-first-second",
     purpose="a job that dies before it does anything",
@@ -126,7 +126,7 @@ class RegistryTestCase(unittest.TestCase):
         kwargs.setdefault("purpose", "a test run, in a temporary directory")
         kwargs.setdefault("argv", ["unittest", slug])
         return runregistrykit.begin(
-            campaign="run-registry",
+            campaign="example",
             prompt="01",
             slug=slug,
             root=self.root,
@@ -154,19 +154,18 @@ class RegistryTestCase(unittest.TestCase):
 
 
 class TestSelfMatch(RegistryTestCase):
-    """The regression that this whole campaign is for.
+    """The regression that this whole registry is for.
 
     `pgrep -f <script-name>`, run from a poll loop whose own command line contains that name,
-    matches a poll loop rather than the job. Nineteen such loops accumulated in one session and
-    none of them could ever exit; fifteen were waiting on a job that had already been killed
-    (`prompts/run-registry/README.md` §0 item 3).
+    matches a poll loop rather than the job. Such loops accumulated, and none of them could ever
+    exit, though many were waiting on a job that had already been killed.
 
     The cohort, not the single process, is what makes the condition unsatisfiable, and this test
     reproduces it as such: one process performs the check while a second waits for the same job,
     both carrying the target's name. On macOS `pgrep` excludes itself *and its ancestors* unless
-    `-a` is given, so a lone poller cannot match itself there — with nineteen of them each matched
-    the other eighteen, and the more there are the more certainly none can exit. The checking
-    process is named after the target as well, so the property the prompt states is the one under
+    `-a` is given, so a lone poller cannot match itself there — with many of them each matched
+    all the others, and the more there are the more certainly none can exit. The checking
+    process is named after the target as well, so the property stated above is the one under
     test whichever platform's exclusion rule applies.
     """
 
@@ -283,7 +282,7 @@ class TestManifest(RegistryTestCase):
         self.assertIn(run.manifest["git_dirty"], (True, False))
 
     def test_manifest_records_the_installed_packages(self):
-        # Deliberately silent on what this venv holds: prompts 03 and 06 install the packages,
+        # Deliberately silent on what this venv holds: the packages installed here may change,
         # and this test must pass unchanged before and after.
         run = self.begin()
         self.assertIn("packages", run.manifest)
@@ -489,11 +488,11 @@ class TestCheckpoint(RegistryTestCase):
 
 
 class TestLedgerIsNotTheResultsStore(RegistryTestCase):
-    """`prompts/run-registry` prompt 03. The manifest's `checkpoint` field used to mean both the
-    unit ledger and the durable thing a job's results live in, so `record()` on a registered
-    pipeline run would have appended a JSON object to a **SQLite datastore**, and `known()` on one
-    would have parsed no line, dropped every one as torn and answered `{}` — "nothing has been done
-    yet" — to a resume that then recomputes everything.
+    """The manifest's `checkpoint` field used to mean both the unit ledger and the durable thing
+    a job's results live in, so `record()` on a registered pipeline run would have appended a JSON
+    object to a **SQLite datastore**, and `known()` on one would have parsed no line, dropped
+    every one as torn and answered `{}` — "nothing has been done yet" — to a resume that then
+    recomputes everything.
 
     The store here is a few bytes of not-JSON in a temporary directory. Nothing opens a real
     datastore, and nothing under `var/` is read or written.
@@ -504,7 +503,7 @@ class TestLedgerIsNotTheResultsStore(RegistryTestCase):
     )
 
     def a_pipeline_run(self, **kwargs):
-        """A run shaped like `scoped_pipeline_run.py --register`: results in a store, no ledger."""
+        """A run whose results are in a store, with no ledger."""
         store = os.path.join(self.root, "results.sqlite")
         with open(store, "wb") as handle:
             handle.write(self.STORE_BYTES)
@@ -563,7 +562,7 @@ class TestLedgerIsNotTheResultsStore(RegistryTestCase):
         self.assertEqual(run.known(notice=notice), {})
         self.assertEqual(notice.text(), "")
 
-    def test_tolerance_of_a_torn_line_stops_at_the_end_of_the_file(self):
+    def test_a_torn_line_is_tolerated_only_at_the_end_of_the_file(self):
         """A kill can truncate the **last** record and nothing else. A half-record with readable
         lines after it is not a truncation, and a file whose unreadable line is not even the start
         of a JSON object was never a ledger."""
@@ -684,24 +683,24 @@ class TestLister(RegistryTestCase):
     def test_a_directory_with_no_manifest_is_reported_not_skipped(self):
         run = self.begin(slug="registered")
         run.finish("done", exit_code=0)
-        os.makedirs(os.path.join(self.root, "a3-pilot"))
-        with open(os.path.join(self.root, "a3-pilot", "run.out"), "w") as handle:
+        os.makedirs(os.path.join(self.root, "pilot-run"))
+        with open(os.path.join(self.root, "pilot-run", "run.out"), "w") as handle:
             handle.write("a run that predates the registry\n")
         with open(os.path.join(self.root, "loose-file.jsonl"), "w") as handle:
             handle.write("{}\n")
 
         entries = runregistrykit.list_runs(root=self.root)
         by_id = {entry["id"]: entry for entry in entries}
-        self.assertEqual(sorted(by_id), sorted(["a3-pilot", run.id]))
-        self.assertFalse(by_id["a3-pilot"]["has_manifest"])
-        self.assertIsNone(by_id["a3-pilot"]["state"])
-        self.assertEqual(by_id["a3-pilot"]["liveness"], "unknown")
+        self.assertEqual(sorted(by_id), sorted(["pilot-run", run.id]))
+        self.assertFalse(by_id["pilot-run"]["has_manifest"])
+        self.assertIsNone(by_id["pilot-run"]["state"])
+        self.assertEqual(by_id["pilot-run"]["liveness"], "unknown")
         self.assertTrue(by_id[run.id]["has_manifest"])
         self.assertEqual(by_id[run.id]["liveness"], "finished")
 
     def test_the_command_line_prints_every_run_and_shouts_about_stale_ones(self):
         self.a_dead_run(slug="crashed")
-        os.makedirs(os.path.join(self.root, "a3-pilot"))
+        os.makedirs(os.path.join(self.root, "pilot-run"))
         done = subprocess.run(
             [sys.executable, "-m", "runregistrykit", "list", "--root", self.root],
             capture_output=True,
@@ -710,7 +709,7 @@ class TestLister(RegistryTestCase):
             timeout=300,
         )
         self.assertEqual(done.returncode, 0, done.stderr)
-        self.assertIn("a3-pilot", done.stdout)
+        self.assertIn("pilot-run", done.stdout)
         self.assertIn("no manifest", done.stdout)
         self.assertIn("!!", done.stdout)
         self.assertIn("say they are running and are not", done.stderr)

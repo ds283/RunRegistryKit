@@ -3,7 +3,7 @@
 **Last updated:** 2026-10-15 · **Status: LIVE — 8 of 11 prompts written (01–03, 04a, 04b, 05a–05c), 7 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
-276).** G1 holds
+276), 05c landed, its review pending (this commit, suite 276).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -63,7 +63,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | `5302a6f` | 186 → 245 |
 | 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05a-the-guard-and-the-public-names.md)) | `14af805` | 245 → 275 |
 | 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05b-the-package-prose-and-the-rules.md)) | `1120fb3` | 275 → 276 |
-| 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | written 2026-10-15 | — | — |
+| 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed** 2026-10-15, review pending ([log](logs/05c-the-tests-own-names.md)) | this commit | 276 → 276 |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
 | 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
@@ -676,7 +676,7 @@ no issue. **Nothing opened**; the index stays at 3.
 | **P2** | 05a | the no-client guard, its vocabulary and its known hits (U10, U16) | ✅ 2026-10-15: `docs/extraction/measure_client_vocabulary.py` writes `runregistrykit/tests/data/client_vocabulary.json` through `git` at SGK `14bcac0`, ChamPBH `c21cdfb`, SI `5fb4a1d` (38 / 27 / 30 registry keys, 194 / 80 / 101 columns, 14 / 11 / 15 packages, 26 / 10 / 6 campaigns, 17 listed words); `test_package_is_generic.py` scans all 24 files, itself included, by four word scans and an import rule, 22 tests; `known_hits.json` holds 69 hits in the package modules (30 entries, 05b's) and 137 in the tests (83 entries, 05c's), written by the guard's own scans; the guard holds none; (m1)–(m11) caught |
 | **N1** | 05a | the public names (`slugify`, `__all__`) and the licence header (U11, U12) | ✅ 2026-10-15: `_slug` is `slugify` (no alias; `run_id` and `begin()` signatures unchanged); each of the five modules declares a sorted `__all__` (20, 26, 4, 4, 1 names) and begins with the 14-line Apache header; `test_public_names.py`, 8 tests |
 | **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ✅ 2026-10-15: the docstrings and comments of `__init__.py`, `stores.py` and `fingerprint.py` rewritten in the package's own terms, every reason and fact kept and no client, campaign, prompt, decision, issue tag or incident left (`known_hits.json` has no package-module entry in any scan; `ast` with docstrings removed equals `c735acf`'s but for the one constant); `describe`'s problems line points at `datastorekit.store_inventory.read_inventory`, one test; `load_fingerprinter`'s docstring names the class refusal, and `retire_store`'s and `amend_sidecar`'s say the config's `ConfigError`s are in the config's words (no message changed); the guard's citation pattern gains `Prompt NN`, a decision id and an issue tag (U17), which finds 18 more hits in 11 entries of the tests, listed for 05c; `README.md` gains "The rules" (six, each with its failure) and "The public names" (U11); `PROVENANCE.md` gains 05b's section and "Where the prose's citations pointed"; (m1)–(m8) caught |
-| **T3** | 05c | the tests' SGK names and prose renamed (U16) | ⬜ |
+| **T3** | 05c | the tests' SGK names and prose renamed (U16) | ✅ 2026-10-15: sixteen names renamed (the prompt's thirteen and three more: `hand_written_shaped`, `script_written_shaped`, `TestHandWrittenShape`, eight test methods, `INTEGRAL_CLASS`, `SOLUTION_CLASS`, and the neutral store's `producer_serial`, `tagged_serial`, `log10_step`), each mapped in `PROVENANCE.md` with its test ids; the fixtures' client data neutral with the same shapes; `FORBIDDEN` read from the guard's `project_packages()` (22 names for 7); the docstrings and comments of 14 modules and fixtures in the package's terms; `known_hits.json` written by 05a's writer, **empty in every scan** (155 hits in 94 entries before), the guard's docstring paragraph saying so and nothing else of it changed; `ast` with docstrings removed equals `8766714`'s after the map, but for `FORBIDDEN`; the suite 276, per module the same; (m1)–(m6) caught |
 | **V1** | 06 | versions, CI, `v0.1.0` | ⬜ |
 | **A1** | 07 | the three checklists and their script (SGK's E2) | ⬜ |
 | **Z1** | 08 | the verification document; the close | ⬜ |
@@ -698,14 +698,14 @@ no issue. **Nothing opened**; the index stays at 3.
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
 opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
-04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three. Line numbers are SGK's until 01 imports the code; 01 records
+04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three; 05c closed one (§4) and opened one, leaving three. Line numbers are SGK's until 01 imports the code; 01 records
 each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
 replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
 in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
 ported tests, read in `runregistrykit/tests/`. **From 03 the three modules' lines are no longer
 SGK's**: each issue's *Package lines (03, …)* gives them at 03's commit, and *Package lines (04a,
 …)* at 04a's, and *Package lines (04b, …)* at 04b's, and *Package lines (05a, …)* at 05a's, and
-*Package lines (05b, …)* at 05b's, read in the package.
+*Package lines (05b, …)* at 05b's, and *Package lines (05c, …)* at 05c's, read in the package.
 
 ### `[00-the-shard-fixtures-reach-into-shardedpool]`
 
@@ -761,6 +761,15 @@ The issue stays open, owner none.
 `test_store_retire.py` are unchanged by 05b, their lines as 05a's. 05b's one new test
 (`test_fingerprinter.py`) touches no private `ShardedPool` attribute. The issue stays open, owner
 none.
+
+*Package lines (05c, 2026-10-15), read in the package.* 05c changed the fixture's names and data,
+not its use of `ShardedPool`: `shard_store_fixtures.py`'s `KEY_TYPE`, `REPLICATED` and `SHARDED` are
+now `"mode"`, `["version", "mode"]` and `{"Solution": "k"}` (`:25-27`, as before), and
+`write_hand_built_primary`'s docstring lost two lines below `bare_pool`, so `bare_pool` is still
+`:30-43` and the private attributes it sets are the same ten (`:33-42`); `read_pool` and
+`write_new_store` (`:46`, `:57`) call the same `_create_engine`, `_read_shard_data` and
+`_write_shard_data`. `store_fixtures.py` gained no use of a
+private attribute (`assertOpens`, `:160-167`, is as 03's). The issue stays open, owner none.
 
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
@@ -821,9 +830,39 @@ owner none.
 log)" from the comment's text, not its line), used at `:1677` and `:1727`, in `retire_store` (05b's
 longer docstring moved the uses by three lines). The issue stays open, owner none.
 
+*Package lines (05c, 2026-10-15), read in the package.* No package module changed in 05c:
+`_SHARDS_TABLE_UNREADABLE` is at `runregistrykit/stores.py:1409-1410`, used at `:1677` and `:1727`.
+The test that reaches the match,
+`test_store_retire.TestWithoutFingerprint.test_an_unreadable_shards_table`, is now at `:802` (05c's
+prose and renames moved it from `:797`), its code unchanged. The issue stays open, owner none.
+
+### `[05c-the-import-test-needs-datastorekit]`
+
+**Opened:** 2026-10-15, by 05c. **Owner:** 06.
+
+`runregistrykit/tests/test_package_imports.py`, the core's own import test (it checks that importing
+the package loads nothing heavy and that module scope holds only the standard library and the
+package), now builds `FORBIDDEN` from the guard's `project_packages()` (prompt 05c section 2.4), so
+it has `from runregistrykit.tests.test_package_is_generic import project_packages` (`:17`), and the
+guard has `from datastorekit import contract` at module scope (`test_package_is_generic.py:64`, for
+`PACKAGE_WORDS`). Before 05c the import test held only the standard library and the package.
+
+*Impact.* `test_package_imports.py` no longer imports without `datastorekit` installed. U13 (open,
+for 06) plans a CI job that runs the core's tests with no `datastorekit`; this test is among them.
+No behaviour of the package changes, and the suite here, with `datastorekit` installed, is 276 OK.
+
+*Next step.* 06: decide how the core job runs the import test (for example by excluding the guard
+and the import test from the no-`datastorekit` job and running them in the `[stores]` job, or by a
+guard that imports `datastorekit` lazily, which would be a change to the guard), with U13.
+
+*Package lines (05c, 2026-10-15).* `runregistrykit/tests/test_package_imports.py:17` (the import)
+and `:24-31` (`FORBIDDEN` and its comment); `runregistrykit/tests/test_package_is_generic.py:64`.
+
+## 4. Resolved issues
+
 ### `[02-the-ported-tests-name-sgk]`
 
-**Opened:** 2026-10-14, by 02. **Owner:** 05c.
+**Opened:** 2026-10-14, by 02. **Owner:** 05c. **Closed:** 2026-10-15, by 05c (this commit).
 
 **Assigned (2026-10-15):** to 05c by U15 and U16: the guard scans the tests (05a lists their hits
 as known), and 05c renames the SGK names rule 9 kept, each mapped in `PROVENANCE.md`, and rewrites
@@ -930,7 +969,19 @@ nothing of SGK and adds no entry.
 (`:166`), moving the lines below it in that file by 15, and `test_package_is_generic.py`, whose
 citation pattern, docstring paragraph and citation test changed; neither names SGK.
 
-## 4. Resolved issues
+*Resolved (05c, 2026-10-15, this commit).* The tests name no client: `known_hits.json` is empty in
+every scan (155 hits in 94 entries before), the guard's five scans find nothing in any of the 24
+Python files, and the guard is otherwise unchanged. Sixteen names were renamed under U16 (the
+helpers `a3_shaped` and `sweep_shaped`, the class `TestLiveA3Shape`, eight test methods, `QSI` and
+`TKN`, and the neutral store's three shared columns), each mapped in `PROVENANCE.md` with its test
+ids; the fixtures' client data is neutral with the same shapes (the shard fixture's key type and
+tables, the stems, the run directory, the campaign, the run id, the sidecar fixtures' values);
+`test_package_imports.py`'s `FORBIDDEN` is read from the guard's `project_packages()` (22 names for
+7); and the docstrings and comments of the tests are in the package's own terms, each test's check
+and reason kept, SGK's history in `PROVENANCE.md` ("Where the tests' citations pointed"). What each
+test asserts is unchanged (`ast` with docstrings removed equals `8766714`'s after the map, but for
+`FORBIDDEN`), and the suite is 276. The import test's new need of `datastorekit` is
+`[05c-the-import-test-needs-datastorekit]`.
 
 ### `[00-package-prose-names-sgk]`
 

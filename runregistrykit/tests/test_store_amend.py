@@ -1,11 +1,11 @@
-"""Amending one unknown field of a sidecar (store-retirement prompt 04):
-`runregistrykit.stores.amend_sidecar`, the `amend` history entry and its markers, the D5 guards, and
+"""Amending one unknown field of a sidecar: `runregistrykit.stores.amend_sidecar`, the `amend`
+history entry and its markers, the guards on what may be amended, and
 `python -m runregistrykit store amend`.
 
 1. replacing an unknown field;
 2. removing one;
-3. the live A3 shape: amending `backup` as prompt 05 will, then `store show`;
-4. every refusal in the prompt's §2.1, each leaving the whole temporary tree unchanged;
+3. the hand-written shape: amending `backup` once its store is retired, then `store show`;
+4. every refusal, each leaving the whole temporary tree unchanged;
 5. the history rule: an `amend` entry's required keys, where it may stand, and that only it has
    them;
 6. copy and move carry an amended field and its entry, unchanged;
@@ -27,9 +27,9 @@ import runregistrykit
 from runregistrykit import stores
 from runregistrykit.stores import KNOWN_FIELDS, amend_sidecar
 from runregistrykit.tests.store_fixtures import (
-    a3_shaped,
+    hand_written_shaped,
     load,
-    sweep_shaped,
+    script_written_shaped,
     write_sidecar_json,
 )
 from runregistrykit.tests.test_store_command_line import (
@@ -199,13 +199,13 @@ class TestRemove(AmendTestCase):
 
 
 # =================================================================================================
-# 3. the live A3 shape
+# 3. the hand-written shape
 
 
-class TestLiveA3Shape(AmendTestCase):
-    def test_amend_backup_as_prompt_05_will(self):
+class TestHandWrittenShape(AmendTestCase):
+    def test_amend_backup_once_it_is_retired(self):
         primary = self.a_store()
-        write_sidecar_json(primary, a3_shaped(primary.parent))
+        write_sidecar_json(primary, hand_written_shaped(primary.parent))
         stores.adopt_sidecar(primary)
         old_backup = self.sidecar(primary)["backup"]
         self.assertTrue(old_backup["retained"])
@@ -301,7 +301,7 @@ class TestRefusals(AmendTestCase):
         unreadable = self.a_store("unreadable")
         stores.sidecar_path(unreadable).write_text("{torn")
         legacy = self.a_store("legacy")
-        write_sidecar_json(legacy, sweep_shaped(self.top / "X"))
+        write_sidecar_json(legacy, script_written_shaped(self.top / "X"))
         problem = self.a_registry_store("problem")
         fields = self.sidecar(problem)
         fields["purpose"] = ""

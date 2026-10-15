@@ -1,5 +1,5 @@
-"""Retiring a store (store-retirement prompt 03): `runregistrykit.stores.retire_store`, the sidecar's
-`retired` field and `retire` history entry, the reader's tombstones, the D6 guards, and
+"""Retiring a store: `runregistrykit.stores.retire_store`, the sidecar's `retired` field and
+`retire` history entry, the reader's tombstones, the guards on a retired name, and
 `python -m runregistrykit store retire`.
 
 1. a retirement: the files go, the sidecar stays as a completed tombstone, the references are
@@ -8,14 +8,14 @@
    store changes;
 3. every refusal, each leaving the whole temporary tree unchanged;
 4. interruption: every point, the reading there, and its completion by a second `store retire`
-   (the log's interruption table, one test per row);
-5. D4, `--without-fingerprint`;
+   (one test per interruption case);
+5. `--without-fingerprint`;
 6. the dry run;
-7. D6: a retired name is never reused;
+7. a retired name is never reused;
 8. the history rule;
 9. the command line, and what importing the registry loads.
 
-Stores are real multi-shard fixture stores (`runregistrykit.tests.neutral_store`), which can be
+Stores are multi-shard stores built by `runregistrykit.tests.neutral_store`, which can be
 fingerprinted, in a temporary directory with a runs root and a stores root of its own. Every call
 passes both roots. No Ray is initialised and nothing under `var/` is opened.
 """
@@ -35,7 +35,11 @@ import runregistrykit
 from runregistrykit import stores
 from runregistrykit.__main__ import main
 from runregistrykit.stores import fingerprint_store, retire_store
-from runregistrykit.tests.store_fixtures import load, sweep_shaped, write_sidecar_json
+from runregistrykit.tests.store_fixtures import (
+    load,
+    script_written_shaped,
+    write_sidecar_json,
+)
 from runregistrykit.tests.test_store_command_line import (
     IMPORTS,
     PACKAGE_PARENT,
@@ -61,7 +65,7 @@ compare_fingerprints = FINGERPRINTER.compare
 
 N_SHARDS = 4
 REASON = "disposable: every number it held is in a committed document"
-QSI = "Integral"
+INTEGRAL_CLASS = "Integral"
 _repo_path = runregistrykit._repo_path
 
 
@@ -342,10 +346,11 @@ class TestRetirement(RetireTestCase):
 
 class TestAnotherStoresShards(RetireTestCase):
     def test_a_primary_naming_another_populated_stores_shards_is_refused(self):
-        """The backup's shape, and the 2026-09-23 failure: B's `shards` rows are absolute paths to
-        A's shards, which exist. A record that is not a bare file name is refused, so retiring B
-        deletes nothing: every file and sidecar of both stores is byte-identical afterwards. B has
-        a registry sidecar, so the refusal is the record's and not the sidecar's."""
+        """The backup's shape: a store whose `shards` rows are absolute paths to another store's
+        files. Here B's `shards` rows are absolute paths to A's shards, which exist. A record
+        that is not a bare file name is refused, so retiring B deletes nothing: every file and
+        sidecar of both stores is byte-identical afterwards. B has a registry sidecar, so the
+        refusal is the record's and not the sidecar's."""
         a = self.a_full_store("A")
         b = self.a_full_store("B", sidecar=False)
         conn = sqlite3.connect(b)
@@ -401,7 +406,7 @@ class TestRefusals(RetireTestCase):
         unreadable = self.a_full_store("unreadable", sidecar=False)
         stores.sidecar_path(unreadable).write_text("{torn")
         legacy = self.a_full_store("legacy", sidecar=False)
-        write_sidecar_json(legacy, sweep_shaped(self.top / "X"))
+        write_sidecar_json(legacy, script_written_shaped(self.top / "X"))
         problem = self.a_full_store("problem")
         fields = self.sidecar(problem)
         fields["purpose"] = ""
@@ -461,14 +466,14 @@ class TestRefusals(RetireTestCase):
         primary = self.a_full_store()
         conn = sqlite3.connect(primary.parent / shard_file_name(primary, 1))
         with conn:
-            conn.execute(f"DELETE FROM {QSI} WHERE serial = 3")
-            conn.execute(f"DELETE FROM {QSI}_tags WHERE parent_serial = 3")
+            conn.execute(f"DELETE FROM {INTEGRAL_CLASS} WHERE serial = 3")
+            conn.execute(f"DELETE FROM {INTEGRAL_CLASS}_tags WHERE tagged_serial = 3")
         conn.close()
         self.refused_retire(
             primary,
             "does not match the fingerprint its sidecar records",
             "1 difference(s)",
-            f"{QSI}: tag set [Run_fixture] differs: 2 recorded, 1 now",
+            f"{INTEGRAL_CLASS}: tag set [Run_fixture] differs: 2 recorded, 1 now",
         )
 
     def test_a_mismatch_in_problems_alone(self):
@@ -476,7 +481,7 @@ class TestRefusals(RetireTestCase):
         conn = sqlite3.connect(primary.parent / shard_file_name(primary, 1))
         with conn:
             conn.execute(
-                f"INSERT INTO {QSI}_tags (timestamp, parent_serial, tag_serial) "
+                f"INSERT INTO {INTEGRAL_CLASS}_tags (timestamp, tagged_serial, tag_serial) "
                 f"VALUES ('2026-09-24 12:00:00.000000', 999, 3)"
             )
         conn.close()
@@ -488,7 +493,7 @@ class TestRefusals(RetireTestCase):
         self.refused_retire(
             primary,
             "does not match",
-            f"{QSI}: orphan-tag problems: 0 recorded, 1 now",
+            f"{INTEGRAL_CLASS}: orphan-tag problems: 0 recorded, 1 now",
         )
 
     def test_a_journal_beside_a_shard(self):
@@ -525,7 +530,7 @@ class TestRefusals(RetireTestCase):
 
 
 # =================================================================================================
-# 4. interruption: one test per row of the log's table
+# 4. interruption: one test per case
 
 
 class TestInterruption(RetireTestCase):
@@ -710,7 +715,7 @@ class TestInterruption(RetireTestCase):
 
 
 # =================================================================================================
-# 5. D4: --without-fingerprint
+# 5. --without-fingerprint
 
 
 class TestWithoutFingerprint(RetireTestCase):
@@ -753,7 +758,7 @@ class TestWithoutFingerprint(RetireTestCase):
                 )
 
     def test_a_running_run_is_still_refused(self):
-        """D4: the flag still refuses a running run, alive or stale. The store has a corrupt
+        """The flag still refuses a running run, alive or stale. The store has a corrupt
         shard, so the flag would apply, and `fingerprint_store`'s own refusal of the run would
         otherwise be taken as the error that prevents a fingerprint."""
         for liveness, make in (
@@ -880,7 +885,7 @@ class TestDryRun(RetireTestCase):
 
 
 # =================================================================================================
-# 7. D6: a retired name is never reused
+# 7. a retired name is never reused
 
 
 class TestNeverReused(RetireTestCase):

@@ -9,12 +9,12 @@ declares its table and whose `inventory_spec()` declares its identity:
 
 - replicated: `version` and `store_tag` (the tables `datastorekit.contract` names), whose labels
   are their identity; ``mode``, the shard key, whose identity is its ``k``; and ``Background``,
-  whose identity is its ``omega`` and its version, and whose ``label`` and ``solver_serial`` are
+  whose identity is its ``omega`` and its version, and whose ``label`` and ``producer_serial`` are
   not;
 - sharded: ``Solution``, tagged through ``Solution_tags``, with a validated flag and a value table
-  ``SolutionValue``, whose identity is its ``log10_tol``, its mode and its background; and
-  ``Integral``, tagged through ``Integral_tags`` ``(timestamp, parent_serial, tag_serial)``, whose
-  identity is its ``q`` and its solution. Neither's ``label`` or ``solver_serial`` is identity.
+  ``SolutionValue``, whose identity is its ``log10_step``, its mode and its background; and
+  ``Integral``, tagged through ``Integral_tags`` ``(timestamp, tagged_serial, tag_serial)``, whose
+  identity is its ``q`` and its solution. Neither's ``label`` or ``producer_serial`` is identity.
 
 Every row has a ``timestamp``, which is never identity. A reference is a column with a foreign key
 to its target's ``serial``, and a reference that is identity is a `Parent` of the spec, so the
@@ -77,7 +77,7 @@ INTEGRAL_TAGS = "Integral_tags"
 # the classes whose rows are computed, and whose labels are not their identity
 COMPUTE_TARGETS = (SOLUTION, INTEGRAL)
 # the columns naming a solver, which are not identity
-SOLVER_COLUMNS = ("solver_serial",)
+SOLVER_COLUMNS = ("producer_serial",)
 
 REPLICATED_TABLES = (VERSION_TABLE, TAG_TABLE, MODE, BACKGROUND)
 
@@ -91,7 +91,7 @@ def _reference(name, target):
 
 
 def _solver():
-    return sqla.Column("solver_serial", sqla.Integer, nullable=True)
+    return sqla.Column("producer_serial", sqla.Integer, nullable=True)
 
 
 class _Factory(SQLAFactoryBase):
@@ -176,7 +176,7 @@ class SolutionFactory(_Factory):
                 _label(),
                 _reference("mode_serial", MODE),
                 _reference("background_serial", BACKGROUND),
-                sqla.Column("log10_tol", sqla.Float, nullable=False),
+                sqla.Column("log10_step", sqla.Float, nullable=False),
                 _solver(),
                 sqla.Column("validated", sqla.Boolean, nullable=True),
             ],
@@ -185,7 +185,7 @@ class SolutionFactory(_Factory):
     @staticmethod
     def inventory_spec():
         return InventorySpec(
-            leaves=("log10_tol",),
+            leaves=("log10_step",),
             parents={
                 "mode": Parent("mode_serial", of=MODE),
                 "background": Parent("background_serial", of=BACKGROUND),
@@ -240,7 +240,7 @@ class IntegralFactory(_Factory):
         return InventorySpec(
             leaves=("q",),
             parents={"solution": Parent("solution_serial", of=SOLUTION)},
-            tags=(INTEGRAL_TAGS, "parent_serial"),
+            tags=(INTEGRAL_TAGS, "tagged_serial"),
         )
 
 
@@ -251,7 +251,7 @@ class IntegralTagsFactory(_Factory):
             "serial": False,
             "timestamp": True,
             "columns": [
-                _reference("parent_serial", INTEGRAL),
+                _reference("tagged_serial", INTEGRAL),
                 _reference(TAG_SERIAL, TAG_TABLE),
             ],
         }
@@ -279,14 +279,14 @@ FINGERPRINTER = DatastoreKitFingerprinter(FACTORIES, NEUTRAL_FORMAT)
 # ---------------------------------------------------------------------------------------------
 
 
-def _solution(serial, mode, log10_tol, validated) -> dict:
+def _solution(serial, mode, log10_step, validated) -> dict:
     return {
         "serial": serial,
         "label": f"fixture-solution-{serial}",
         "mode_serial": mode,
         "background_serial": 1,
-        "log10_tol": log10_tol,
-        "solver_serial": 1,
+        "log10_step": log10_step,
+        "producer_serial": 1,
         "validated": validated,
     }
 
@@ -304,7 +304,7 @@ def _integral(serial, solution, q) -> dict:
         "label": f"fixture-integral-{serial}",
         "solution_serial": solution,
         "q": q,
-        "solver_serial": 1,
+        "producer_serial": 1,
     }
 
 
@@ -326,7 +326,7 @@ FULL_REPLICATED_ROWS: RowSet = {
             "version": 1,
             "label": "fixture-background",
             "omega": 0.31,
-            "solver_serial": 1,
+            "producer_serial": 1,
         }
     ],
 }
@@ -339,15 +339,15 @@ FULL_SHARDED_ROWS: Dict[int, RowSet] = {
         + _tags("solution_serial", 3, (1,)),
         SOLUTION_VALUE: _values(1, (11, 12, 13)) + _values(3, (31, 32)),
         INTEGRAL: [_integral(1, 1, 0.5), _integral(2, 1, 0.25)],
-        INTEGRAL_TAGS: _tags("parent_serial", 1, (1, 2))
-        + _tags("parent_serial", 2, (1,)),
+        INTEGRAL_TAGS: _tags("tagged_serial", 1, (1, 2))
+        + _tags("tagged_serial", 2, (1,)),
     },
     1: {
         SOLUTION: [_solution(2, 2, -5.0, True)],
         SOLUTION_TAGS: _tags("solution_serial", 2, (1, 2)),
         SOLUTION_VALUE: _values(2, (21, 22, 23, 24)),
         INTEGRAL: [_integral(3, 2, 0.5)],
-        INTEGRAL_TAGS: _tags("parent_serial", 3, (1,)),
+        INTEGRAL_TAGS: _tags("tagged_serial", 3, (1,)),
     },
 }
 

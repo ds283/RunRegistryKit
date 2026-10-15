@@ -1,11 +1,10 @@
-"""What the references report of `store retire` counts as naming a store (a3-v2-readiness prompt 06,
-closing `[10-store-retire-reports-every-tombstone-as-a-reference]`).
+"""What the references report of `store retire` counts as naming a store.
 
 `runregistrykit.stores._find_references` takes the primary, every file in the plan and the store's
 directory as targets. Every tombstone records `references.stores_root`, the directory its
 retirement searched, so for a store directly in the stores root the directory is the stores root,
 and each retirement listed every earlier tombstone as naming it. The stores root is therefore not a
-target; a store's own subdirectory, the live A3 backup's shape, still is.
+target; a store's own subdirectory, the backup's shape, still is.
 
 1. three stores directly in the stores root, retired in turn: no report lists an earlier tombstone,
    through a stores root that is a symlink too (the comparison is by `realpath`, not by text);
@@ -14,9 +13,9 @@ target; a store's own subdirectory, the live A3 backup's shape, still is.
 3. a store in a subdirectory, named by another sidecar's field by that subdirectory: reported, a
    directory it shares with another store included, and a store outside the stores root likewise.
 
-`test_store_retire.TestRetirement.test_a_retirement`, unchanged, also requires the subdirectory
-match. Stores are the real multi-shard fixture stores of `test_store_retire`, in a temporary
-directory; no Ray is initialised and nothing under `var/` is opened.
+`test_store_retire.TestRetirement.test_a_retirement` also requires the subdirectory match.
+Stores are the multi-shard stores of `test_store_retire`, in a temporary directory; no Ray is
+initialised and nothing under `var/` is opened.
 """
 
 import os
@@ -133,7 +132,7 @@ class TestTheStoresRootIsNotATarget(ReferencesTestCase):
 
 class TestADirectoryIsStillATarget(ReferencesTestCase):
     def test_a_store_in_a_subdirectory_named_by_the_subdirectory(self):
-        """The live A3 backup's shape: another sidecar names the directory, by its path and by a
+        """The backup's shape: another sidecar names the directory, by its path and by a
         path relative to the repository; and also names the stores root, which is not reported.
         """
         primary = self.a_full_store("S")

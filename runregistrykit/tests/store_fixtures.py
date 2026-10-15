@@ -1,4 +1,4 @@
-"""Shared set-up for the store-sidecar tests (`prompts/datastore-portability` prompt 03).
+"""Shared set-up for the store-sidecar tests.
 
 Not a test module (no ``test_`` prefix); the test modules import it. Every store and every run is
 built in one temporary directory: stores with `runregistrykit/tests/shard_store_fixtures.py` (a real
@@ -26,7 +26,7 @@ from runregistrykit.tests.shard_store_fixtures import (
 
 N_SHARDS = 3
 
-# the three layouts prompt §3 asks for: (destination directory, destination stem)
+# the three layouts of a destination: (destination directory, destination stem)
 LAYOUTS = {
     "same directory, new stem": ("B", "renamed"),
     "new directory, same stem": ("C", "store"),
@@ -34,32 +34,32 @@ LAYOUTS = {
 }
 
 
-def a3_shaped(directory: Path) -> dict:
-    """A legacy sidecar with the shape of the hand-written
-    `handover-A3-baseline-lambdacdm.manifest.json`: top-level provenance, a `status_files`
-    object, nested `run_history` entries with lists inside them, a `restart` object and a
-    `backup` object, with paths in several of them. Written inline; `var/` is never read.
+def hand_written_shaped(directory: Path) -> dict:
+    """A legacy sidecar with the shape of one written by hand: top-level provenance, a
+    `status_files` object, nested `run_history` entries with lists inside them, a `restart`
+    object and a `backup` object, with paths in several of them. Written inline; `var/` is never
+    read.
     """
     return {
         "name": "store",
-        "purpose": "Baseline datastore for a census. The before-picture. Keep.",
+        "purpose": "Baseline datastore for an example. The before-picture. Keep.",
         "datastore": str(directory / "store.sqlite"),
         "created": "2026-09-20T21:02:30+01:00",
         "git_head": "0d7c05c0ddf5b6cd03763307c6a233d70c638fec",
         "git_dirty": True,
-        "grid_criterion": "post prompt 15 (measured curvature criterion)",
-        "driver": "docs/gktk-remedial/scoped_pipeline_run.py (NOT the other copy)",
-        "scope": "8 log-spaced k over 1e5-3e8 /Mpc, --zend 0.1",
+        "grid_criterion": "post refinement 15 (measured criterion)",
+        "driver": "docs/example/driver.py (NOT the other copy)",
+        "scope": "8 log-spaced points over 1e5-3e8 /unit, --limit 0.1",
         "status_files": {
-            "stdout": "var/runs/a3-pilot/run.out",
-            "pid": "var/runs/a3-pilot/run.pid",
+            "stdout": "var/runs/pilot-run/run.out",
+            "pid": "var/runs/pilot-run/run.pid",
         },
         "note": "Pilot: measure cost first.",
         "run_history": [
             {
                 "started": "2026-09-20T21:03:04+01:00",
                 "elapsed": "10h 33m",
-                "stages_complete": ["background", "APPLY GKSOURCE POLICIES"],
+                "stages_complete": ["background", "APPLY EXAMPLE POLICIES"],
                 "size_at_stop": "385 MB across 4 shards",
                 "ratio": 0.9231,
                 "count": 13,
@@ -83,12 +83,12 @@ def a3_shaped(directory: Path) -> dict:
     }
 
 
-def sweep_shaped(other: Path) -> dict:
-    """A legacy sidecar with the shape `quadsource_atol_sweep.py` `prepare()` writes: its
-    `datastore` and `copied_from` are paths into another directory."""
+def script_written_shaped(other: Path) -> dict:
+    """A legacy sidecar with the shape a script writes when it copies a store: its `datastore`
+    and `copied_from` are paths into another directory."""
     return {
         "name": "store",
-        "purpose": "Working copy for a sweep. Disposable.",
+        "purpose": "Working copy for an example. Disposable.",
         "datastore": str(other / "store.sqlite"),
         "copied_from": str(other / "baseline.sqlite"),
         "created": "2026-09-23T12:41:04+0100",
@@ -186,7 +186,7 @@ class StoreTestCase(RegistryTestCase):
         return reading
 
     def assertProperty(self, src: Path, dst: Path, histories: dict):
-        """Prompt §2 P11's property, at the two store names: each reachable sidecar is either
+        """The property of the sidecars at the two store names: each reachable sidecar is either
         problem-free, describing the store beside it with a complete history, or reported as
         having a problem, and no two problem-free sidecars share a store_id. ``histories`` maps
         each primary to the history length a problem-free sidecar there must have."""

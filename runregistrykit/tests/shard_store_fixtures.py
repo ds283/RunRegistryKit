@@ -22,9 +22,9 @@ from typing import Dict, Iterable, Tuple
 from datastorekit.SQL.ShardedPool import ShardedPool
 from datastorekit.shard_paths import shard_file_name
 
-KEY_TYPE = "wavenumber"
-REPLICATED = ["version", "wavenumber"]
-SHARDED = {"GkSource": "k"}
+KEY_TYPE = "mode"
+REPLICATED = ["version", "mode"]
+SHARDED = {"Solution": "k"}
 
 
 def bare_pool(primary: Path) -> ShardedPool:
@@ -88,10 +88,9 @@ def write_hand_built_primary(
     """Build a primary by hand, holding exactly the given ``shards.filename`` records.
 
     It builds no ``replication_in_flight`` table, so the ``ShardedPool`` constructor refuses what
-    it builds (since prompt 03 of the datastore-generic campaign). Its users read it through
-    ``read_pool``, the closed-store operations (``copy_store``, ``move_store``,
-    ``closed_store_files``, ``delete_store``), the audit tool or the sweep script's check, none of
-    which reads that table."""
+    it builds. Its users read it through ``read_pool`` and the closed-store operations
+    (``copy_store``, ``move_store``, ``closed_store_files``, ``delete_store``), none of which
+    reads that table."""
     primary.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(primary)
     try:
