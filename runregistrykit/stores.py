@@ -29,10 +29,13 @@ are defined here and nowhere else, and only the operations below write a sidecar
                     or {"present": false} — a marker one level above the value, never the value
                     itself, so that no JSON value a field could hold is ever mistaken for it.
                     Every other entry's `from` and `to` are both non-empty paths
-    fingerprint     optional: the store's content fingerprint (`fingerprint_of`), as
-                    {"fingerprint_format", "classes", "digest", "problems", "taken"}. Written only
-                    by `fingerprint_store` when asked, which a registered run's
-                    `Run.finish(..., fingerprint=True)` does. Copy and move carry it verbatim,
+    fingerprint     optional: the store's content fingerprint, taken by the client's
+                    fingerprinter (`runregistrykit.fingerprint`) and opaque to this module but
+                    for an integer `fingerprint_format`, an integer `encoding_format` when
+                    present, a 64-hex `digest`, and `taken`, the object this module builds and
+                    hands the fingerprinter. Written only by `fingerprint_store` when asked,
+                    which a registered run's `Run.finish(..., fingerprint=True)` does. Copy and
+                    move carry it verbatim,
                     `taken` included, because neither changes the content it describes. A
                     retirement keeps it unchanged: it is what says what the retired store held
     retired         present only on a **tombstone**, the sidecar `retire_store` leaves behind
@@ -103,25 +106,26 @@ entry, so that a present-tense claim an unknown field makes (such as the live A3
 ever lost. It never touches a known field, `retired` included: those belong to the operation that
 owns them. It never opens the store's files; it reads and writes only the sidecar.
 
-**The fingerprint** (store-fingerprint prompt 04) says what a closed store holds, as digests of its
-structured inventory (`datastorekit.store_inventory.read_inventory`): per class and per tag set a
-count and a SHA-256 digest, and one overall digest. It never holds a listing; `listing_lines`
-generates one on demand, whose lines hash to the digests it lists. `fingerprint_of` and
-`compare_fingerprints` are pure. `fingerprint_store` reads the store read-only, with no Ray, and
-writes only the sidecar's `fingerprint` field, and only when asked.
+**The fingerprint** (store-fingerprint prompt 04) says what a closed store holds. This module does
+not compute one: the client's config names a fingerprinter (`[stores] fingerprinter`,
+`runregistrykit.fingerprint`), which takes, compares, describes and lists fingerprints, and every
+store operation refuses, before it reads, writes or deletes anything, when the config names none.
+`fingerprint_store` decides when a fingerprint is taken and where it is recorded: it reads the store
+through the fingerprinter, read-only, with no Ray, and writes only the sidecar's `fingerprint`
+field, and only when asked. A listing is the fingerprinter's, generated on demand by
+`write_listing`. Of a fingerprint this module reads only `fingerprint_format`, `encoding_format`,
+`digest` and the `taken` it builds, and of a comparison each entry's `kind` and `text`.
 
-`ShardedPool` is imported inside `copy_store`, `move_store` and `retire_store` only, and
-`datastorekit.store_inventory` inside the fingerprint functions only, so that importing this module,
+`ShardedPool` is imported inside `copy_store`, `move_store` and `retire_store` only, and the
+fingerprinter inside `fingerprint_store` and `write_listing` only, so that importing this module,
 like `import runregistrykit`, loads neither `ray` nor `sqlalchemy`.
 """
 
 import copy as _copy
-import hashlib
 import json
 import os
 import re
 import uuid
-from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -137,6 +141,7 @@ from . import (
     read_json,
     write_json_atomic,
 )
+from .fingerprint import load_fingerprinter, require_fingerprinter
 
 SIDECAR_FORMAT = 1
 
@@ -187,19 +192,6 @@ INCOMPLETE_MOVE_SUFFIX = ".incomplete-move"
 _STORE_ID = re.compile(r"[0-9a-f]{32}")
 _DIGEST = re.compile(r"[0-9a-f]{64}")
 
-# the fingerprint's format. A fingerprint is compared only with one of the same format; a change to
-# what the inventory records, or to how a digest is formed, bumps this and captures a new golden
-# fingerprint in the same commit, beside the old ones and never over them
-# (`runregistrykit/tests/data/full_store_fingerprint*.json`; `test_store_fingerprint.GOLDEN` names the
-# current one). Format 2: prompts/datastore-integrity prompt 07 put the WKB rows' numeric parent in
-# their key. Format 3: prompt 08 put the QuadSourcePolicy in the QuadSourceIntegral rows' key.
-# Format 4: prompt 09a put the two TkNumericIntegrations, Tq and Tr, in the QuadSource rows' key.
-# Format 5: prompt 09b put the set of Gk numeric and WKB rows each GkSource is assembled from in its
-# key, resolved through GkSource_parents to those rows' own identities. Format 6: prompt 09c put the
-# six stored rows each QuadSourceIntegral is computed from -- its QuadSource, its
-# GkSourcePolicyData, and the Tk numeric and WKB rows for q and r -- in its key, each resolved to its
-# own identity, across shards where it is held on another
-FINGERPRINT_FORMAT = 6
 TAKEN_KEYS = ("when", "git_head", "git_dirty", "run_id")
 
 # both separators, on every platform, as `datastorekit/shard_paths.py` treats a shard record
@@ -411,17 +403,21 @@ def _amend_slot_problems(value, where: str) -> List[str]:
 
 def _fingerprint_problems(value) -> List[str]:
     """Every way ``value`` fails to have a fingerprint's shape: a JSON object with an integer
-    `fingerprint_format`, a `classes` object, a 64-hex `digest` and a `taken` object."""
+    `fingerprint_format`, a 64-hex `digest`, a `taken` object and, if present, an integer
+    `encoding_format`. Nothing else in it is read: the rest is the client fingerprinter's, and a
+    fingerprint written before `encoding_format` existed reads as it did."""
     if not isinstance(value, dict):
         return [f"fingerprint is {value!r}, not an object"]
     problems = []
     fmt = value.get("fingerprint_format")
     if isinstance(fmt, bool) or not isinstance(fmt, int):
         problems.append(f"fingerprint's fingerprint_format {fmt!r} is not an integer")
-    if not isinstance(value.get("classes"), dict):
-        problems.append(
-            f"fingerprint's classes {value.get('classes')!r} is not an object"
-        )
+    if "encoding_format" in value:
+        encoding = value["encoding_format"]
+        if isinstance(encoding, bool) or not isinstance(encoding, int):
+            problems.append(
+                f"fingerprint's encoding_format {encoding!r} is not an integer"
+            )
     digest = value.get("digest")
     if not (isinstance(digest, str) and _DIGEST.fullmatch(digest)):
         problems.append(
@@ -805,6 +801,7 @@ def create_sidecar(primary, purpose, *, client_root=None) -> dict:
     it. It does not open the primary: whether the store is sound is the constructor's question,
     not the note's."""
     client = find_client_root(client_root=client_root)
+    require_fingerprinter(client)
     primary = Path(os.path.abspath(primary))
     path = sidecar_path(primary)
 
@@ -856,6 +853,7 @@ def adopt_sidecar(primary, purpose=None, *, client_root=None) -> dict:
     `copied_from` verbatim, and keeps every unknown field verbatim.
     """
     client = find_client_root(client_root=client_root)
+    require_fingerprinter(client)
     primary = Path(os.path.abspath(primary))
     reading = read_sidecar(primary, client_root=client)
     path = reading.path
@@ -1107,6 +1105,7 @@ def copy_store(src, dst, purpose, runs_root=None, *, client_root=None) -> dict:
             f"written"
         )
     client = find_client_root(client_root=client_root)
+    require_fingerprinter(client)
     src, dst, reading, dst_sidecar = _prepare("copy", src, dst, runs_root, client)
     from datastorekit.SQL.ShardedPool import ShardedPool
 
@@ -1145,6 +1144,7 @@ def move_store(src, dst, runs_root=None, *, client_root=None) -> dict:
     Nothing is written anew and nothing is deleted: the one sidecar is renamed.
     """
     client = find_client_root(client_root=client_root)
+    require_fingerprinter(client)
     src, dst, reading, dst_sidecar = _prepare("move", src, dst, runs_root, client)
     from datastorekit.SQL.ShardedPool import ShardedPool
 
@@ -1180,251 +1180,9 @@ def move_store(src, dst, runs_root=None, *, client_root=None) -> dict:
 # =================================================================================================
 # the fingerprint (store-fingerprint prompt 04)
 #
-# A fingerprint digests the structured inventory, `datastorekit.store_inventory.read_inventory`. A
-# record's canonical form is `record.canonical_json()`, which is `canonical_json(record.as_json())`:
-# its key, its tags, `validated` and `value_count`, and no timestamp. A digest is the SHA-256 of
-# records' canonical JSON, one per line, each followed by "\n", in the order the inventory gives,
-# which is sorted by canonical JSON. So a listing written as those lines hashes to the digest it
-# lists, and filtering a class's lines to one tag set keeps them sorted. Problems are counted beside
-# the digests, never in them: their text names shards and serials, which are store-local.
-
-
-def _sha256_lines(lines) -> str:
-    """SHA-256 (hex) of ``lines``, each followed by a newline."""
-    hasher = hashlib.sha256()
-    for line in lines:
-        hasher.update(line.encode("utf-8"))
-        hasher.update(b"\n")
-    return hasher.hexdigest()
-
-
-def _tag_sets(records) -> list:
-    """``[(tags, lines)]``: each distinct tag set, sorted, with the canonical lines of the records
-    that carry exactly that set, in the records' own order."""
-    groups = {}
-    for record in records:
-        groups.setdefault(tuple(record.tags), []).append(record.canonical_json())
-    return sorted(groups.items())
-
-
-def fingerprint_of(inventory, taken=None) -> dict:
-    """The fingerprint of ``inventory``, what `read_inventory` returns. Pure: it reads nothing.
-
-    - `fingerprint_format`: `FINGERPRINT_FORMAT`;
-    - `classes`: for every class, in the inventory's order, its `count`, its `digest` over every
-      record, and `tag_sets`, one `{"tags", "count", "digest"}` per distinct tag set, sorted by
-      tags. A class with no association table has one, with `tags` `[]`; an empty class has none;
-    - `digest`: SHA-256 of `canonical_json({"fingerprint_format", "classes": {name: {"count",
-      "digest"}}})`;
-    - `problems`: per class that has any, the number of its named problems of each kind (the word
-      before the first colon). Outside every digest;
-    - `taken`: ``taken`` as given (`{"when", "git_head", "git_dirty", "run_id"}`), or `None`.
-      Outside every digest.
-    """
-    # here, not at module scope: that module imports sqlalchemy, and `import runregistrykit` must not
-    from datastorekit.store_inventory import canonical_json
-
-    classes = {}
-    problems = {}
-    for name, cls in inventory.classes.items():
-        lines = [record.canonical_json() for record in cls.records]
-        classes[name] = {
-            "count": len(lines),
-            "digest": _sha256_lines(lines),
-            "tag_sets": [
-                {
-                    "tags": list(tags),
-                    "count": len(group),
-                    "digest": _sha256_lines(group),
-                }
-                for tags, group in _tag_sets(cls.records)
-            ],
-        }
-        kinds = Counter(problem.split(":", 1)[0] for problem in cls.problems)
-        if kinds:
-            problems[name] = dict(sorted(kinds.items()))
-
-    overall = {
-        "fingerprint_format": FINGERPRINT_FORMAT,
-        "classes": {
-            name: {"count": entry["count"], "digest": entry["digest"]}
-            for name, entry in classes.items()
-        },
-    }
-    return {
-        "fingerprint_format": FINGERPRINT_FORMAT,
-        "classes": classes,
-        "digest": hashlib.sha256(canonical_json(overall).encode("utf-8")).hexdigest(),
-        "problems": problems,
-        "taken": dict(taken) if taken is not None else None,
-    }
-
-
-def _tags_text(tags) -> str:
-    return "[" + ", ".join(tags) + "]"
-
-
-def _difference(kind, name, tags, recorded, current, text) -> dict:
-    return {
-        "kind": kind,
-        "class": name,
-        "tags": None if tags is None else list(tags),
-        "recorded": recorded,
-        "current": current,
-        "text": text,
-    }
-
-
-def _presence(recorded, current) -> str:
-    if recorded is None:
-        return "is only in the current fingerprint"
-    return "is only in the recorded fingerprint"
-
-
-def compare_fingerprints(recorded, current) -> list:
-    """The differences between two fingerprints, one entry per difference. Pure.
-
-    Two fingerprints of different formats are not compared: the answer is one entry saying so,
-    because the remedy is to recompute both from the stores. Otherwise each entry names the class,
-    the tag set (or that a tag set, or a class, is present in only one) and the two counts, `None`
-    where absent. Equal overall digests give no content entry. Differences in `problems` are
-    entries of their own, compared whatever the digests say, because problems are outside every
-    digest. `taken` is never compared. Each entry is `{"kind", "class", "tags", "recorded",
-    "current", "text"}`, `kind` being `format`, `class`, `tag_set`, `digest` or `problems`.
-    """
-    recorded_format = recorded.get("fingerprint_format")
-    current_format = current.get("fingerprint_format")
-    if recorded_format != current_format:
-        return [
-            _difference(
-                "format",
-                None,
-                None,
-                recorded_format,
-                current_format,
-                f"the recorded fingerprint is format {recorded_format!r} and this one is format "
-                f"{current_format!r}; fingerprints of different formats are not compared. "
-                f"Recompute both from the stores",
-            )
-        ]
-
-    out = []
-    if recorded.get("digest") != current.get("digest"):
-        before = recorded.get("classes") or {}
-        after = current.get("classes") or {}
-        names = list(after) + [name for name in before if name not in after]
-        for name in names:
-            old, new = before.get(name), after.get(name)
-            if old is None or new is None:
-                out.append(
-                    _difference(
-                        "class",
-                        name,
-                        None,
-                        None if old is None else old.get("count"),
-                        None if new is None else new.get("count"),
-                        f"{name}: the class {_presence(old, new)}",
-                    )
-                )
-                continue
-            if old.get("digest") == new.get("digest"):
-                continue
-            old_sets = {tuple(t["tags"]): t for t in old.get("tag_sets") or []}
-            new_sets = {tuple(t["tags"]): t for t in new.get("tag_sets") or []}
-            found = False
-            for tags in sorted(set(old_sets) | set(new_sets)):
-                a, b = old_sets.get(tags), new_sets.get(tags)
-                if (
-                    a is not None
-                    and b is not None
-                    and a.get("digest") == b.get("digest")
-                ):
-                    continue
-                found = True
-                counts = (
-                    None if a is None else a.get("count"),
-                    None if b is None else b.get("count"),
-                )
-                if a is None or b is None:
-                    text = (
-                        f"{name}: tag set {_tags_text(tags)} {_presence(a, b)} "
-                        f"({counts[0]} recorded, {counts[1]} now)"
-                    )
-                else:
-                    text = (
-                        f"{name}: tag set {_tags_text(tags)} differs: {counts[0]} recorded, "
-                        f"{counts[1]} now"
-                    )
-                out.append(_difference("tag_set", name, tags, *counts, text))
-            if not found:
-                out.append(
-                    _difference(
-                        "class",
-                        name,
-                        None,
-                        old.get("count"),
-                        new.get("count"),
-                        f"{name}: the class digest differs, though no tag set's does "
-                        f"({old.get('count')} recorded, {new.get('count')} now)",
-                    )
-                )
-        if not out:
-            out.append(
-                _difference(
-                    "digest",
-                    None,
-                    None,
-                    recorded.get("digest"),
-                    current.get("digest"),
-                    "the overall digests differ, though no class's does",
-                )
-            )
-
-    before = recorded.get("problems") or {}
-    after = current.get("problems") or {}
-    names = list(after) + [name for name in before if name not in after]
-    for name in names:
-        old, new = before.get(name) or {}, after.get(name) or {}
-        for kind in sorted(set(old) | set(new)):
-            if old.get(kind, 0) != new.get(kind, 0):
-                out.append(
-                    _difference(
-                        "problems",
-                        name,
-                        None,
-                        old.get(kind, 0),
-                        new.get(kind, 0),
-                        f"{name}: {kind} problems: {old.get(kind, 0)} recorded, "
-                        f"{new.get(kind, 0)} now",
-                    )
-                )
-    return out
-
-
-def listing_lines(inventory, fingerprint):
-    """The full listing of ``inventory``, generated on demand and never stored: a header line for
-    the fingerprint, then per class a header and, per tag set, a header and the canonical record
-    lines. Header lines begin `#`; record lines begin `{`. The lines under a tag-set header hash
-    (SHA-256, each line followed by a newline) to that tag set's digest, and a class's record lines,
-    sorted bytewise, hash to the class's digest. ``fingerprint`` is `fingerprint_of(inventory)`.
-    """
-    from datastorekit.store_inventory import canonical_json
-
-    yield (
-        f"# fingerprint_format {fingerprint['fingerprint_format']} "
-        f"digest {fingerprint['digest']}"
-    )
-    for name, cls in inventory.classes.items():
-        entry = fingerprint["classes"][name]
-        yield f"# class {name} count {entry['count']} digest {entry['digest']}"
-        by_tags = {tuple(t["tags"]): t for t in entry["tag_sets"]}
-        for tags, lines in _tag_sets(cls.records):
-            recorded = by_tags[tags]
-            yield (
-                f"# tags {canonical_json(list(tags))} count {recorded['count']} "
-                f"digest {recorded['digest']}"
-            )
-            yield from lines
+# A fingerprint is the client fingerprinter's (`runregistrykit.fingerprint`): it takes, compares,
+# describes and lists one. This module decides when one is taken and where it is recorded, and
+# reads only `fingerprint_format`, `encoding_format`, `digest` and `taken` of it.
 
 
 def check_listing_path(path, primary) -> Path:
@@ -1453,11 +1211,17 @@ def check_listing_path(path, primary) -> Path:
     return path
 
 
-def write_listing(inventory, fingerprint, path, primary) -> Path:
-    """Write `listing_lines` to the **new** file ``path`` (`check_listing_path`), and return it."""
+def write_listing(inventory, fingerprint, path, primary, *, client_root=None) -> Path:
+    """Write the client fingerprinter's listing of ``inventory`` and ``fingerprint`` (what
+    `fingerprint_store` returned) to the **new** file ``path`` (`check_listing_path`), and return
+    it. Refused, before anything is written, when the client's config names no fingerprinter.
+    """
+    client = find_client_root(client_root=client_root)
+    require_fingerprinter(client)
     path = check_listing_path(path, primary)
+    fingerprinter = load_fingerprinter(client)
     with open(path, "x") as handle:
-        for line in listing_lines(inventory, fingerprint):
+        for line in fingerprinter.listing(inventory, fingerprint):
             handle.write(line + "\n")
     return path
 
@@ -1470,32 +1234,49 @@ def _sidecar_refusal(reading) -> str:
     return f"it is {reading.kind}: " + "; ".join(reading.problems)
 
 
+def _malformed_entry(malformed) -> dict:
+    """The comparison entry `fingerprint_store` gives for a recorded fingerprint whose shape is
+    wrong (`_fingerprint_problems`), which no fingerprinter is asked to compare."""
+    return {
+        "kind": "malformed",
+        "class": None,
+        "tags": None,
+        "recorded": None,
+        "current": None,
+        "text": "the recorded fingerprint is malformed: " + "; ".join(malformed),
+    }
+
+
 def fingerprint_store(
     primary, *, write=False, runs_root=None, taken_by=None, client_root=None
 ) -> dict:
     """Fingerprint the closed store ``primary``, compare it with the fingerprint its sidecar
-    records, and, only if ``write``, record it there. In this order:
+    records, and, only if ``write``, record it there. Refused first, before anything is read, when
+    the client's config names no fingerprinter (a `ConfigError`). Then, in this order:
 
     1. refuse a tombstone (`SidecarReading.retired`), whose store is gone; then refuse if any
        `running` run under ``runs_root``, alive or stale, names the store by path or
        by `store_id` (read from the sidecar for this check). The one exception is ``taken_by``,
        the `Run` calling this from its finish, which is still `running` because it has not
        finished. A fingerprint of a store being written describes no instant;
-    2. import `read_inventory`, and the registry `factories` from `config.datastore`, here, so
-       that `import runregistrykit` loads neither ray nor sqlalchemy;
-    3. `read_inventory(primary, factories)`, given the registry, read-only and with no Ray. A
-       reader refusal comes through;
-    4. `fingerprint_of`, with `taken` from `now_iso()`, `git_provenance()` and ``taken_by``'s id;
-    5. `read_sidecar`, and `compare_fingerprints` against a registry sidecar's `fingerprint`;
+    2. `load_fingerprinter`: the client's fingerprinter, imported here, so that `import
+       runregistrykit` loads neither ray nor sqlalchemy;
+    3. `taken`, from `now_iso()`, `git_provenance()` of the working directory and ``taken_by``'s
+       id;
+    4. `fingerprinter.take(primary, taken)`: the fingerprint and the inventory, read-only and with
+       no Ray. A reader refusal comes through;
+    5. `read_sidecar`, and the fingerprinter's `compare` against a registry sidecar's
+       `fingerprint`;
     6. only if ``write``: refuse unless the sidecar is a problem-free registry sidecar, then
        replace **only** its `fingerprint` field, in place, through `_update_sidecar`.
 
     Returns `{"primary", "fingerprint", "recorded", "comparison", "wrote", "sidecar",
     "inventory"}`: `comparison` is `None` when nothing is recorded, `sidecar` is the sidecar's
-    kind, and `inventory` is what was fingerprinted, for a listing. It never writes the store,
-    never initialises Ray, and never deletes anything.
+    kind, and `inventory` is the fingerprinter's, opaque, for its listing. It never writes the
+    store, never initialises Ray, and never deletes anything.
     """
     client = find_client_root(client_root=client_root)
+    require_fingerprinter(client)
     primary = Path(os.path.abspath(primary))
 
     # 1. the running-run refusal, after the refusal of a tombstone: there is no store to read
@@ -1520,23 +1301,18 @@ def fingerprint_store(
             f"person, with Run.finish, first. Nothing was read or written"
         )
 
-    # 2, 3. the inventory, read-only
-    from datastorekit.store_inventory import read_inventory
-    from config.datastore import factories
+    # 2. the client's fingerprinter
+    fingerprinter = load_fingerprinter(client)
 
-    inventory = read_inventory(primary, factories)
-
-    # 4. the fingerprint
+    # 3, 4. the fingerprint, and the inventory, read-only
     provenance = git_provenance(os.getcwd())
-    fingerprint = fingerprint_of(
-        inventory,
-        {
-            "when": now_iso(),
-            "git_head": provenance["git_head"],
-            "git_dirty": provenance["git_dirty"],
-            "run_id": taken_by.id if taken_by is not None else None,
-        },
-    )
+    taken = {
+        "when": now_iso(),
+        "git_head": provenance["git_head"],
+        "git_dirty": provenance["git_dirty"],
+        "run_id": taken_by.id if taken_by is not None else None,
+    }
+    fingerprint, inventory = fingerprinter.take(primary, taken)
 
     # 5. the comparison with what the sidecar records
     reading = read_sidecar(primary, client_root=client)
@@ -1546,18 +1322,9 @@ def fingerprint_store(
         recorded = reading.fields["fingerprint"]
         malformed = _fingerprint_problems(recorded)
         if malformed:
-            comparison = [
-                _difference(
-                    "malformed",
-                    None,
-                    None,
-                    None,
-                    None,
-                    "the recorded fingerprint is malformed: " + "; ".join(malformed),
-                )
-            ]
+            comparison = [_malformed_entry(malformed)]
         else:
-            comparison = compare_fingerprints(recorded, fingerprint)
+            comparison = fingerprinter.compare(recorded, fingerprint)
 
     # 6. the write, only when asked
     wrote = False
@@ -1777,6 +1544,7 @@ def retire_store(
     rewrites no reference.
     """
     client = find_client_root(client_root=client_root)
+    require_fingerprinter(client)
     primary = Path(os.path.abspath(primary))
     runs_root = str(runs_root or client.runs_root)
     stores_root = str(stores_root or client.stores_root)
@@ -2149,6 +1917,7 @@ def amend_sidecar(
     sidecar's new fields.
     """
     client = find_client_root(client_root=client_root)
+    require_fingerprinter(client)
     primary = Path(os.path.abspath(primary))
 
     def refuse(why):

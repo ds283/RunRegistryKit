@@ -1,7 +1,8 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-14 · **Status: LIVE — 4 of 9 prompts written (01–03, 04a), 3 landed and
-reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135).** G1 holds
+**Last updated:** 2026-10-15 · **Status: LIVE — 4 of 9 prompts written (01–03, 04a), 4 landed, 3 of
+them reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135); 04a
+landed (this commit, suite 186), not yet reviewed.** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -52,7 +53,7 @@ and U6, U7 and U8 for 04, as recommended (README §6.2); 04 split into 04a and 0
 | 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | `4e0d715` | 0 → 3 |
 | 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed and reviewed** 2026-10-14 ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | `8155445` | 3 → 108 |
 | 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | `035e4b5` | 108 → 135 |
-| 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | written 2026-10-14 | — | — |
+| 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | this commit | 135 → 186 |
 | 04b | `04b-the-retire-tests.md` | Opus | not written | — | — |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
@@ -299,9 +300,9 @@ opened**; the index stays at 7.
 | **T1** | 02 | the 29 core and 76 shard-fixture tests, and their fixtures | ✅ 2026-10-14: the eight files ported; D-name 83, D-fix 5, D-fmt 12 lines in 3 hunks; the suite is 108, OK; the check extended and bites on (a)–(g), 01's (a)–(i) and (m1)–(m3) |
 | **R1** | 03 | the config file and the root rule (C1–C3, C9; Q2, Q3) | ✅ 2026-10-14: `runregistrykit.toml` read by the new `runregistrykit/client.py`; the walk, `client_root=` and `--client-root`; a linked worktree recorded under the main checkout, a bare repository's refused; provenance from the start directory; `REPO_ROOT`, `DEFAULT_ROOT`, `DEFAULT_STORES_ROOT` deleted; no config a `ConfigError`; C4's relative paths kept; the check retired, exit 0 from `8155445`; 27 new tests, the suite 135; (m1)–(m8) caught |
 | **R2** | 03 | the recorded distributions (C5, U9) | ✅ 2026-10-14: `RECORDED_DISTRIBUTIONS` deleted; `packages` is `runregistrykit` and the config's `distributions`; the pinning test renamed `test_the_recorded_names_are_the_registry_and_the_configs`; (m4) caught by three tests |
-| **F1** | 04a | the fingerprinter protocol and the shipped fingerprinter; layer C and the format deleted (C6, C7) | ⬜ |
-| **F2** | 04a | what the package reads of a fingerprint (U7) | ⬜ |
-| **T2a** | 04a | the neutral store; `test_store_fingerprint`'s 27 and `TestFormats`' 2 ported | ⬜ |
+| **F1** | 04a | the fingerprinter protocol and the shipped fingerprinter; layer C and the format deleted (C6, C7) | ✅ 2026-10-15: `runregistrykit/fingerprint.py` (`Fingerprinter`, `DatastoreKitFingerprinter`, `load_fingerprinter`, `require_fingerprinter`); `[stores] fingerprinter` checked by form at read; every store operation and `store` command refused without one (D4), the check importing nothing; layer C, `FINGERPRINT_FORMAT`, `hashlib` and `Counter` gone from `stores.py`; `fingerprint_store`'s order, refusals and writes kept; (m3)–(m7), (m10), (m11) caught |
+| **F2** | 04a | what the package reads of a fingerprint (U7) | ✅ 2026-10-15: the reader requires an integer format, a 64-hex digest, an object `taken`, and an integer `encoding_format` only if present; `classes` not read; the CLI prints the rest through `describe`; (m1), (m2) caught |
+| **T2a** | 04a | the neutral store; `test_store_fingerprint`'s 27 and `TestFormats`' 2 ported | ✅ 2026-10-15: `runregistrykit/tests/neutral_store.py` on ten public `datastorekit` names; the 29 ported (SGK's ids less `TestGolden` 3 and `TestDrivers` 1), the port script's output differing from the committed file by the shims, the F-client lines and the two U7 variants only; `test_fingerprinter.py`, 22 tests; the suite 186 |
 | **T2b** | 04b | the retire tests' 51 ported onto the neutral store | ⬜ |
 | **P1** | 05 | the prose, the output and the README's rules (C8) | ⬜ |
 | **P2** | 05 | the no-client guard | ⬜ |
@@ -325,72 +326,14 @@ opened**; the index stays at 7.
 ## 3. Active and unresolved issues
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
-opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven.
-Line numbers are SGK's until 01 imports the code; 01 records each issue's package lines. **From 01
-they are the same numbers** for the three modules: D-name replaced one line by one line and `black`
-changed nothing, so every line of them sits where it sat in SGK at `a45aefc` (01's log; each line
-below read in the package). 02's package lines are for the ported tests, read in
-`runregistrykit/tests/`. **From 03 the three modules' lines are no longer SGK's**: each issue's
-*Package lines (03, …)* gives them at 03's commit, read in the package.
-
-### `[00-the-fingerprint-reads-a-clients-registry]`
-
-**Opened:** 2026-10-14, at planning (C6, C7). **Owner:** 04a.
-
-**Assigned (2026-10-14):** to 04a, when 04 was split: 04a deletes layer C and `FINGERPRINT_FORMAT` and
-puts the client's fingerprinter in their place (U6), which is this issue's next step.
-
-`fingerprint_store` imports `from config.datastore import factories` (`stores.py:1494`), SGK's
-registry, and fingerprints with SGK's `FINGERPRINT_FORMAT = 6` (`:206`) through the package's own
-copy of layer C (`:1152-1399`), which DatastoreKit holds since `v0.4.0`.
-
-*Impact.* The store layer works only inside SGK; elsewhere `fingerprint_store`, `Run.finish(…,
-fingerprint=True)` and `store retire` fail with `ModuleNotFoundError`. A second copy of layer C here
-would drift from DatastoreKit's.
-
-*Next step.* 04: the client fingerprinter (D3, U6), layer C and the format deleted.
-
-*Package lines (01, 2026-10-14).* `from config.datastore import factories`
-`runregistrykit/stores.py:1494`, inside `fingerprint_store` (`:1445`); `FINGERPRINT_FORMAT = 6`
-`:206`, its history `:194-205`; layer C `:1152-1399` (`fingerprint_of` `:1182`, called `:1500`;
-`compare_fingerprints` `:1256`, called `:1529`; `listing_lines` `:1376-1399`).
-
-*Package lines (03, 2026-10-14), read in the package.* `from config.datastore import factories`
-`runregistrykit/stores.py:1525`, inside `fingerprint_store` (`:1473`, which now takes
-`client_root=`); `FINGERPRINT_FORMAT = 6` `:202`, its history `:190-201`; layer C `:1180-1427`
-(`fingerprint_of` `:1210`, called `:1531`; `compare_fingerprints` `:1284`, called `:1560`;
-`listing_lines` `:1404-1427`, called `:1460`).
-
-### `[00-the-store-layer-reads-inside-a-fingerprint]`
-
-**Opened:** 2026-10-14, at planning. **Owner:** 04a.
-
-**Assigned (2026-10-14):** to 04a, when 04 was split: 04a settles what the package reads of a
-fingerprint (U7) and moves every other reader behind the fingerprinter.
-
-D3 has the package treat a fingerprint as opaque apart from its versions, its digest and the
-comparison's entries. The imported code reads more: the sidecar reader requires `classes`
-(`stores.py:416-436`, via `:630`); `fingerprint_store` calls layer C's private `_difference`
-(`:1519`); `__main__._print_fingerprint` walks `classes`, `tag_sets` and `problems`
-(`__main__.py:267-287`).
-
-*Impact.* With layer C gone, those readers would bind the package to DatastoreKit's fingerprint
-shape, which D3 rejected, and a DatastoreKit change to it would break `store show` here.
-
-*Next step.* 04, under U7: the package reads only the named fields and `taken`; the rest is printed
-through the fingerprinter.
-
-*Package lines (01, 2026-10-14).* `_fingerprint_problems` `runregistrykit/stores.py:416-436`, called
-by the sidecar reader at `:630`; `fingerprint_store` builds `taken` at `:1500-1508` and calls
-`_difference` at `:1519`; `retire_store` reads `digest` and `taken.when` at `:1887-1894`;
-`runregistrykit/__main__.py`: `_print_fingerprint` `:267-287`, `_fingerprint` reads `taken` and
-`digest` at `:307-327`.
-
-*Package lines (03, 2026-10-14), read in the package.* `_fingerprint_problems`
-`runregistrykit/stores.py:412-432`, called by the sidecar reader at `:629`; `fingerprint_store`
-builds `taken` at `:1531-1539` and calls `_difference` at `:1550`; `retire_store` reads `digest`
-and `taken.when` at `:1931-1938`; `runregistrykit/__main__.py`: `_print_fingerprint` `:274-294`,
-`_fingerprint` (`:297`) reads `taken` and `digest` at `:314-334`.
+opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
+04a closed three (§4), leaving four. Line numbers are SGK's until 01 imports the code; 01 records
+each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
+replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
+in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
+ported tests, read in `runregistrykit/tests/`. **From 03 the three modules' lines are no longer
+SGK's**: each issue's *Package lines (03, …)* gives them at 03's commit, and *Package lines (04a,
+…)* at 04a's, read in the package.
 
 ### `[00-package-prose-names-sgk]`
 
@@ -419,6 +362,15 @@ section SGK's `store-retirement` campaign wrote), not this campaign's (01's log,
 does not exist here is `stores.py:193`, and "(prompt 01's log)" is `stores.py:1598`. The CLI text
 is `runregistrykit/__main__.py:288`. 03 rewrote one C8 sentence, `begin()`'s on `packages`, which
 named the `dk-and-rpk-migration` campaign (03's log, deviation 15).
+
+*Package lines (04a, 2026-10-15), read in the package.* `__init__.py` is unchanged, its lines as
+03's. In `runregistrykit/stores.py` the C8 lines are now `:104` (03's `:101`), `:1410`, `:1420` and
+`:1841` (03's `:1643`, `:1653`, `:2073`), and "(prompt 01's log)" is `:1365`. The format history
+(03's `:194-201`) and the renamed comment citing a path that does not exist here (03's `:193`) are
+deleted with `FINGERPRINT_FORMAT`. 04a's rewritten fingerprint paragraph and section comment keep
+the citation "(store-fingerprint prompt 04)" (`:109`, `:1181`). The CLI text "the store's own text
+is in `main.py --inventory`" moved, unchanged, from `__main__.py:288` into
+`DatastoreKitFingerprinter.describe`, `runregistrykit/fingerprint.py:128`.
 
 ### `[00-the-shard-fixtures-reach-into-shardedpool]`
 
@@ -451,6 +403,13 @@ and sets ten private attributes: `_db_name`, `_primary_file`, `_timeout`, `_Shar
 `store_fixtures.assertOpens` is now `runregistrykit/tests/store_fixtures.py:160-167` (03 added an
 import and a line of `StoreTestCase.setUp` above it).
 
+*Package lines (04a, 2026-10-15).* `shard_store_fixtures.py` and `store_fixtures.py` are unchanged,
+their lines as 03's. The neutral store, `runregistrykit/tests/neutral_store.py`, touches no private
+`ShardedPool` attribute and constructs no pool (pinned by
+`test_fingerprinter.TestNeutralStore.test_it_is_built_from_public_names_only`); it is a second
+fixture beside the carried one, not a replacement for it, since its primary is not one the
+constructor reopens. The issue stays open, owner none.
+
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
 **Opened:** 2026-10-14, at planning. **Owner:** none.
@@ -481,6 +440,10 @@ the one SGK test of it, `test_store_retire.TestWithoutFingerprint.test_an_unread
 *Package lines (03, 2026-10-14), read in the package.* `_SHARDS_TABLE_UNREADABLE`
 `runregistrykit/stores.py:1598-1599` (the comment and the assignment), used at `:1858` and `:1905`,
 in `retire_store`. Still reached by no test.
+
+*Package lines (04a, 2026-10-15), read in the package.* `_SHARDS_TABLE_UNREADABLE`
+`runregistrykit/stores.py:1365-1366` (the comment and the assignment), used at `:1626` and `:1673`,
+in `retire_store`. Still reached by no test; its test is 04b's.
 
 ### `[02-the-ported-tests-name-sgk]`
 
@@ -526,10 +489,119 @@ crasher) and `:129` (the run helper), the citations `:157-162` and `:492`,
 citations `:235, 331, 403, 483`; `test_store_amend.py` `TestLiveA3Shape` `:205`, its comment
 `:202`. 03 added no SGK name to the tests (03's log, deviation 19).
 
+*Package lines (04a, 2026-10-15).* The eight files of 02 and `test_client_root.py` are as 03
+recorded (04a changed in the latter only one test's config and one test, neither naming SGK). The
+port adds, in `runregistrykit/tests/test_store_fingerprint.py`: the citations "(store-fingerprint
+prompt 04)" `:1`, "(prompt 02's test 1)" `:152` and "The discriminator of prompt 02" `:237`; the
+method name `test_deleting_one_quadsourceintegral_row` `:218`, which rule 9 keeps; the constant
+names `QSI` and `TKN` (`:68-69`), SGK's abbreviations, now bound to the neutral store's `Integral`
+and `Solution`; and the run id `store-fingerprint-04-test-20260925T100000` `:420`, an SGK campaign's
+name. Its docstring's first line names `runregistrykit.stores.fingerprint_of`, which the package no
+longer has (SGK's text under D-name). `neutral_store.py` and `test_fingerprinter.py` name nothing of
+SGK.
+
+## 4. Resolved issues
+
+### `[00-the-fingerprint-reads-a-clients-registry]`
+
+**Opened:** 2026-10-14, at planning (C6, C7). **Owner:** 04a. **Closed:** 2026-10-15, by 04a
+(this commit).
+
+**Assigned (2026-10-14):** to 04a, when 04 was split: 04a deletes layer C and `FINGERPRINT_FORMAT` and
+puts the client's fingerprinter in their place (U6), which is this issue's next step.
+
+`fingerprint_store` imports `from config.datastore import factories` (`stores.py:1494`), SGK's
+registry, and fingerprints with SGK's `FINGERPRINT_FORMAT = 6` (`:206`) through the package's own
+copy of layer C (`:1152-1399`), which DatastoreKit holds since `v0.4.0`.
+
+*Impact.* The store layer works only inside SGK; elsewhere `fingerprint_store`, `Run.finish(…,
+fingerprint=True)` and `store retire` fail with `ModuleNotFoundError`. A second copy of layer C here
+would drift from DatastoreKit's.
+
+*Next step.* 04: the client fingerprinter (D3, U6), layer C and the format deleted.
+
+*Package lines (01, 2026-10-14).* `from config.datastore import factories`
+`runregistrykit/stores.py:1494`, inside `fingerprint_store` (`:1445`); `FINGERPRINT_FORMAT = 6`
+`:206`, its history `:194-205`; layer C `:1152-1399` (`fingerprint_of` `:1182`, called `:1500`;
+`compare_fingerprints` `:1256`, called `:1529`; `listing_lines` `:1376-1399`).
+
+*Package lines (03, 2026-10-14), read in the package.* `from config.datastore import factories`
+`runregistrykit/stores.py:1525`, inside `fingerprint_store` (`:1473`, which now takes
+`client_root=`); `FINGERPRINT_FORMAT = 6` `:202`, its history `:190-201`; layer C `:1180-1427`
+(`fingerprint_of` `:1210`, called `:1531`; `compare_fingerprints` `:1284`, called `:1560`;
+`listing_lines` `:1404-1427`, called `:1460`).
+
+*Resolved (04a, 2026-10-15, this commit).* The package no longer imports a client's registry or
+carries a fingerprint format: `from config.datastore import factories`, `FINGERPRINT_FORMAT` and
+its history, and layer C are deleted from `runregistrykit/stores.py`, with the `hashlib` and
+`Counter` imports only it used. A client names its fingerprinter in `runregistrykit.toml`
+(`[stores] fingerprinter = "module:attribute"`, checked by form in `runregistrykit/client.py`), and
+`runregistrykit/fingerprint.py` holds the protocol `Fingerprinter`, the ready-made
+`DatastoreKitFingerprinter(factories, fingerprint_format)` over DatastoreKit's functions, and the
+loader, which puts the client root first on `sys.path`. `fingerprint_store` loads it after its
+refusals (`stores.py:1305`), builds `taken`, and calls `take` and `compare`; `write_listing`
+(`:1214`) calls `listing`; `store fingerprint` calls `describe`. Every store operation, and every
+`store` command, refuses without one (D4), reading the config only. Pinned by
+`test_fingerprinter.TestProtocolAndLoader`, `TestTheStoreLayerRequiresOne`, `TestPrecedence` and
+`TestThroughTheFingerprinter`, and by the 29 ported `test_store_fingerprint` tests on the neutral
+store; (m3)–(m7), (m10) and (m11) of 04a's log each fail at least one of them. The deletion grep
+(prompt §3.4) finds only the ported module's shims.
+
+### `[00-the-store-layer-reads-inside-a-fingerprint]`
+
+**Opened:** 2026-10-14, at planning. **Owner:** 04a. **Closed:** 2026-10-15, by 04a (this
+commit).
+
+**Assigned (2026-10-14):** to 04a, when 04 was split: 04a settles what the package reads of a
+fingerprint (U7) and moves every other reader behind the fingerprinter.
+
+D3 has the package treat a fingerprint as opaque apart from its versions, its digest and the
+comparison's entries. The imported code reads more: the sidecar reader requires `classes`
+(`stores.py:416-436`, via `:630`); `fingerprint_store` calls layer C's private `_difference`
+(`:1519`); `__main__._print_fingerprint` walks `classes`, `tag_sets` and `problems`
+(`__main__.py:267-287`).
+
+*Impact.* With layer C gone, those readers would bind the package to DatastoreKit's fingerprint
+shape, which D3 rejected, and a DatastoreKit change to it would break `store show` here.
+
+*Next step.* 04, under U7: the package reads only the named fields and `taken`; the rest is printed
+through the fingerprinter.
+
+*Package lines (01, 2026-10-14).* `_fingerprint_problems` `runregistrykit/stores.py:416-436`, called
+by the sidecar reader at `:630`; `fingerprint_store` builds `taken` at `:1500-1508` and calls
+`_difference` at `:1519`; `retire_store` reads `digest` and `taken.when` at `:1887-1894`;
+`runregistrykit/__main__.py`: `_print_fingerprint` `:267-287`, `_fingerprint` reads `taken` and
+`digest` at `:307-327`.
+
+*Package lines (03, 2026-10-14), read in the package.* `_fingerprint_problems`
+`runregistrykit/stores.py:412-432`, called by the sidecar reader at `:629`; `fingerprint_store`
+builds `taken` at `:1531-1539` and calls `_difference` at `:1550`; `retire_store` reads `digest`
+and `taken.when` at `:1931-1938`; `runregistrykit/__main__.py`: `_print_fingerprint` `:274-294`,
+`_fingerprint` (`:297`) reads `taken` and `digest` at `:314-334`.
+
+*Resolved (04a, 2026-10-15, this commit).* The package reads of a fingerprint exactly
+`fingerprint_format`, `encoding_format` when present, `digest`, the `taken` it builds, and each
+comparison entry's `kind` and `text` (U7). The sidecar reader's shape check, `_fingerprint_problems`
+(`runregistrykit/stores.py:404-428`), requires an integer `fingerprint_format`, a 64-hex `digest`
+and an object `taken`, and an integer `encoding_format` only if present; it no longer reads
+`classes`. `fingerprint_store` no longer calls `_difference`: its own `malformed` entry is built by
+`_malformed_entry` (`:1237`), with the same six keys and text. `__main__._print_fingerprint`
+(`__main__.py:271`) prints `digest:` and `format:` and then the fingerprinter's `describe` lines;
+the walk of `classes`, `tag_sets` and `problems` is `DatastoreKitFingerprinter.describe`
+(`fingerprint.py:113`). `retire_store` and `_fingerprint` read only `digest` and `taken`, as
+before. Pinned by `test_fingerprinter.TestOpacity` (a fingerprint of the three fields reads as no
+problem; a string, boolean, float or null `encoding_format` is one),
+`TestThroughTheFingerprinter.test_what_the_client_fingerprinter_takes_is_recorded` (a client's own
+fingerprinter's opaque fingerprint, without `classes` or `encoding_format`, is recorded and read)
+and `test_a_recorded_fingerprint_without_encoding_format_is_not_compared`; (m1) and (m2) of 04a's
+log each fail them. The two variants of the ported
+`TestSidecarField.test_each_malformed_fingerprint_is_a_problem` that asserted the `classes` check
+(`"no classes"`, `"classes a list"`) are removed, U7's one named exception to README §5 rule 9.
+
 ### `[02-the-sidecar-readers-guards-are-unpinned]`
 
 **Opened:** 2026-10-14, by the orchestrator's review of 02, from 02's log (observations and its
-(m3) candidates). **Owner:** 04a.
+(m3) candidates). **Owner:** 04a. **Closed:** 2026-10-15, by 04a (this commit).
 
 **Assigned (2026-10-14):** to 04a, when 04 was split: 04a rewrites the reader's shape check and adds
 the two pins before it does (04a §2.6).
@@ -551,7 +623,14 @@ changes. Put to whoever writes 04.
 `runregistrykit/stores.py:573`; the `bool` guard on `sidecar_format` `:578`; `_STORE_ID.fullmatch`
 on `store_id` `:588`. Still pinned by no test.
 
-## 4. Resolved issues
+*Resolved (04a, 2026-10-15, this commit).* Both rules are pinned, by tests added before the shape
+check changed: `test_fingerprinter.TestSidecarGuards.test_a_boolean_sidecar_format_is_a_problem` (a
+registry sidecar whose `sidecar_format` is `true` reads with the problem "sidecar_format is True;
+this reader knows format 1 only") and
+`test_a_store_id_with_more_after_its_32_characters_is_a_problem` (32 hex characters followed by
+`x`, and 33 hex characters, each read with the `store_id` problem). (m8), the `bool` guard dropped
+(`runregistrykit/stores.py:574`), fails the first; (m9), `_STORE_ID.fullmatch` → `.match` on
+`store_id` (`:584`), fails both subtests of the second. `_registry_problems` is `:569`.
 
 ### `[00-the-root-is-the-packages-parent]`
 

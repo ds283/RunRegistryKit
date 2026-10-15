@@ -20,6 +20,13 @@ PACKAGE_PARENT = os.path.dirname(
     os.path.dirname(os.path.abspath(runregistrykit.__file__))
 )
 
+# the config every test's client root holds unless the test writes its own: the neutral store's
+# fingerprinter, which the store layer requires (an empty config names none)
+DEFAULT_CONFIG = """\
+[stores]
+fingerprinter = "runregistrykit.tests.neutral_store:FINGERPRINTER"
+"""
+
 GIT_IDENTITY = (
     "-c",
     "user.name=runregistrykit tests",
@@ -64,7 +71,7 @@ def temporary_directory(test) -> str:
     return os.path.realpath(holder.name)
 
 
-def write_client_root(directory, config="") -> str:
+def write_client_root(directory, config=DEFAULT_CONFIG) -> str:
     """Make ``directory`` a client root: a `runregistrykit.toml` holding ``config``, a
     `.gitignore` holding `var/`, and a git repository with one commit of the two. Returns it.
     """
@@ -79,7 +86,7 @@ def write_client_root(directory, config="") -> str:
     return directory
 
 
-def enter_client_root(test, config="") -> str:
+def enter_client_root(test, config=DEFAULT_CONFIG) -> str:
     """A client root in a `tempfile` directory of its own, made the working directory until
     ``test`` ends. Returns its path."""
     client = write_client_root(temporary_directory(test), config)
@@ -87,4 +94,17 @@ def enter_client_root(test, config="") -> str:
     os.chdir(client)
     # registered after the directory's own cleanup, so that it runs first
     test.addCleanup(os.chdir, previous)
+    return client
+
+
+def enter_client_root_for_class(cls, config=DEFAULT_CONFIG) -> str:
+    """As `enter_client_root`, for a whole test class: made in `setUpClass`, its directory and the
+    working directory restored by class cleanups. Returns its path."""
+    holder = tempfile.TemporaryDirectory()
+    cls.addClassCleanup(holder.cleanup)
+    client = write_client_root(os.path.realpath(holder.name), config)
+    previous = os.getcwd()
+    os.chdir(client)
+    # registered after the directory's own cleanup, so that it runs first
+    cls.addClassCleanup(os.chdir, previous)
     return client

@@ -28,6 +28,7 @@ import time
 
 from . import DEFAULT_STALE_AFTER, ConfigError, find_client_root, list_runs
 from . import stores
+from .fingerprint import load_fingerprinter, require_fingerprinter
 
 
 def _age(seconds) -> str:
@@ -267,31 +268,12 @@ def _amend(args, client) -> int:
     return 0
 
 
-def _short(digest) -> str:
-    return str(digest)[:12]
-
-
-def _print_fingerprint(fingerprint) -> None:
+def _print_fingerprint(fingerprint, fingerprinter) -> None:
     print(f"digest:   {fingerprint['digest']}")
     print(f"format:   {fingerprint['fingerprint_format']}")
-    print("classes:  (count, digest; then each tag set)")
-    width = max((len(name) for name in fingerprint["classes"]), default=0)
-    for name, entry in fingerprint["classes"].items():
-        print(f"  {name:{width}} {entry['count']:>8}  {_short(entry['digest'])}")
-        for tag_set in entry["tag_sets"]:
-            print(
-                f"  {'':{width}} {tag_set['count']:>8}  {_short(tag_set['digest'])}  "
-                f"[{', '.join(tag_set['tags'])}]"
-            )
-    if fingerprint["problems"]:
-        print(
-            "problems: (counts only; the store's own text is in `main.py --inventory`)"
-        )
-        for name, kinds in fingerprint["problems"].items():
-            counted = ", ".join(f"{kind} {n}" for kind, n in kinds.items())
-            print(f"  !! {name}: {counted}")
-    else:
-        print("problems: none")
+    # the rest is the client fingerprinter's description of its own fingerprint
+    for line in fingerprinter.describe(fingerprint):
+        print(line)
 
 
 def _fingerprint(args, client) -> int:
@@ -301,12 +283,14 @@ def _fingerprint(args, client) -> int:
         result = stores.fingerprint_store(
             args.primary, write=args.write, runs_root=args.runs_root, client_root=client
         )
+        # loaded once the fingerprint is taken, so that every refusal comes first
+        fingerprinter = load_fingerprinter(client)
     except RuntimeError as e:
         print(f"!! {e}", file=sys.stderr)
         return 1
 
     print(f"store:    {result['primary']}")
-    _print_fingerprint(result["fingerprint"])
+    _print_fingerprint(result["fingerprint"], fingerprinter)
     recorded, comparison = result["recorded"], result["comparison"]
     if recorded is None:
         print(f"recorded: none recorded (the sidecar is {result['sidecar']})")
@@ -335,7 +319,11 @@ def _fingerprint(args, client) -> int:
             )
     if args.listing is not None:
         path = stores.write_listing(
-            result["inventory"], result["fingerprint"], args.listing, args.primary
+            result["inventory"],
+            result["fingerprint"],
+            args.listing,
+            args.primary,
+            client_root=client,
         )
         print(f">> listing: {path}")
 
@@ -345,6 +333,13 @@ def _fingerprint(args, client) -> int:
 
 
 def _store(args, client) -> int:
+    # every store command, `show` included, needs the config to name a fingerprinter; the check
+    # reads the config only, and imports nothing
+    try:
+        require_fingerprinter(client)
+    except ConfigError as e:
+        print(f"!! {e}", file=sys.stderr)
+        return 1
     # a runs root or stores root not given on the command line is the client config's
     for name, default in (
         ("runs_root", client.runs_root),

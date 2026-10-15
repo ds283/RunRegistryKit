@@ -41,7 +41,7 @@ it.
 | `RunRegistry/tests/test_store_amend_residuals.py` | `0c6e6a2ca5d59b74dcb960111a5cd05ed2d991f4` | ported by 02 | `runregistrykit/tests/`, same name |
 | `RunRegistry/tests/test_store_retire.py` | `3cf05cc02d6b00849a4eff4972ccbedd0a4fa51d` | ported by 04 | `runregistrykit/tests/`, same name |
 | `RunRegistry/tests/test_store_retire_references.py` | `9a3264a7f5977311161f724651b4e1d27cfa0866` | ported by 04 | `runregistrykit/tests/`, same name |
-| `RunRegistry/tests/test_store_fingerprint.py` | `5039b4792210c1227230ec09b48da641b6f62e9f` | ported by 04, less `TestGolden` and `TestDrivers`, which stay in SGK | `runregistrykit/tests/`, same name |
+| `RunRegistry/tests/test_store_fingerprint.py` | `5039b4792210c1227230ec09b48da641b6f62e9f` | ported by 04a, onto the neutral store, less `TestGolden` and `TestDrivers`, which stay in SGK | `runregistrykit/tests/`, same name |
 | `RunRegistry/tests/test_build_rehearsal_scope.py` | `8b3c8519d3956b97cce84ea8224c621f37d88cd0` | not imported: SGK's | — |
 | `RunRegistry/tests/test_killed_handler.py` | `213f2a8d7d017f845b85ea209f8e87886539988b` | not imported: SGK's | — |
 | `RunRegistry/tests/test_pipeline_adoption.py` | `f3205799afa5626fe440e409fce37c1cb9fa04c7` | not imported: SGK's | — |
@@ -56,8 +56,8 @@ it.
 | `StoreFixtures/shard_store_fixtures.py` (outside `RunRegistry/`) | `1375949aacde2263de991785055cd7dfabc57251` | ported by 02 (U4) | `runregistrykit/tests/shard_store_fixtures.py` |
 
 `StoreFixtures/real_store_fixtures.py` (blob `a6d90b86f2517c4e7cc798897534be8ed4b3d7c6`) is not
-imported: it imports SGK's `config` and `ObjectFactories`, and prompt 04's neutral store replaces
-it.
+imported: it imports SGK's `config` and `ObjectFactories`. It is replaced by
+`runregistrykit/tests/neutral_store.py`, 04a.
 
 **New here, with no source:**
 
@@ -198,3 +198,41 @@ Each prompt's changes, from 03 on:
   prompt's §2.7 lists, and `test_the_recorded_names_are_the_two_packages` is renamed
   `test_the_recorded_names_are_the_registry_and_the_configs`. `runregistrykit/tests/test_client_root.py`
   is new.
+
+**Prompt 04a, the client fingerprinter** (`prompts/extraction/04a-the-client-fingerprinter.md`,
+this commit):
+
+- **The fingerprinter.** A new module, `runregistrykit/fingerprint.py`, standard library only at
+  module scope: the runtime-checkable protocol `Fingerprinter` (`take`, `compare`, `describe`,
+  `listing`); `DatastoreKitFingerprinter(factories, fingerprint_format)`, a ready-made one over
+  DatastoreKit's `read_inventory`, `fingerprint_of`, `compare_fingerprints` and `listing_lines`,
+  which a client instantiates with its registry and its format number; and `load_fingerprinter`
+  and `require_fingerprinter`. A client names its fingerprinter in `runregistrykit.toml` as
+  `[stores] fingerprinter = "module:attribute"`, whose form is checked when the file is read; it is
+  imported, with the client root first on `sys.path`, only where a fingerprint is taken, compared,
+  described or listed (`fingerprint_store`, `write_listing`, `store fingerprint`). Every store
+  operation, and every `store` command, refuses without one, before anything is read, written or
+  deleted (SGK's D4); the core needs none.
+- **Layer C and the format deleted.** The package's own copy of the fingerprint functions, SGK's at
+  `a45aefc` `stores.py:1152-1399` (`_sha256_lines`, `_tag_sets`, `fingerprint_of`, `_tags_text`,
+  `_difference`, `_presence`, `compare_fingerprints`, `listing_lines`), and `FINGERPRINT_FORMAT = 6`
+  with its history, SGK's `:194-206`, are deleted. DatastoreKit holds the functions since `v0.4.0`
+  (`datastorekit.store_fingerprint`); SGK's format and its history (formats 2 to 6) stay in SGK,
+  which names its format in its own fingerprinter. `fingerprint_store` keeps its order, its
+  refusals and what it writes; its `taken` stamp is built before the fingerprinter reads the store.
+  The text `store fingerprint` printed of the classes and problems is now the
+  `DatastoreKitFingerprinter`'s `describe`.
+- **What the package reads of a fingerprint** (U7): `fingerprint_format`, `encoding_format` when
+  present, `digest`, the `taken` it builds, and each comparison entry's `kind` and `text`. The
+  sidecar reader no longer requires `classes`, and never requires `encoding_format`, so every
+  fingerprint written before reads as it did.
+- **The tests.** `runregistrykit/tests/neutral_store.py`, new, is a small fingerprintable store on
+  public `datastorekit` names only, with the neutral registry and its fingerprinter, which every
+  test's client root names; it replaces SGK's `real_store_fixtures`. SGK's `test_store_fingerprint`
+  is ported onto it, 29 tests, its classes and table names neutral in constants and literals only,
+  the removed names reached through shims in the test module, and two variants of
+  `test_each_malformed_fingerprint_is_a_problem` (`"no classes"`, `"classes a list"`) removed under
+  U7. `runregistrykit/tests/test_fingerprinter.py` is new. In `test_client_root.py`,
+  `test_the_stores_table_is_accepted_and_kept` is renamed
+  `test_the_fingerprinter_is_kept_and_another_stores_key_refused`, and one test's config names the
+  neutral fingerprinter.

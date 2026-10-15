@@ -203,17 +203,24 @@ class TestConfig(ClientRootTestCase):
         self.assertIn(path, str(refused.exception))
         self.assertIn("cannot be read", str(refused.exception))
 
-    def test_the_stores_table_is_accepted_and_kept(self):
+    def test_the_fingerprinter_is_kept_and_another_stores_key_refused(self):
+        d = self.a_config('[stores]\nfingerprinter = "a.module:an_attribute"\n')
+        self.assertEqual(
+            find_client_root(client_root=d).stores,
+            {"fingerprinter": "a.module:an_attribute"},
+        )
         d = self.a_config(
             "[stores]\n"
             'fingerprinter = "a.module:an_attribute"\n'
             "[stores.more]\n"
             "n = 1\n"
         )
-        self.assertEqual(
-            find_client_root(client_root=d).stores,
-            {"fingerprinter": "a.module:an_attribute", "more": {"n": 1}},
-        )
+        with self.assertRaises(ConfigError) as refused:
+            find_client_root(client_root=d)
+        message = str(refused.exception)
+        self.assertIn(os.path.join(d, CONFIG_FILE), message)
+        self.assertIn("'more'", message)
+        self.assertIn("{'n': 1}", message)
 
     def test_a_client_root_already_found_is_used_as_it_is(self):
         client = find_client_root(client_root=self.a_config(""))
@@ -313,7 +320,10 @@ class TestWalk(ClientRootTestCase):
         self.assertEqual(listed["id"], run.id)
 
     def test_a_live_sidecar_reads_with_no_config_and_a_tombstone_does_not(self):
-        d = self.a_config("")
+        d = self.a_config(
+            "[stores]\n"
+            'fingerprinter = "runregistrykit.tests.neutral_store:FINGERPRINTER"\n'
+        )
         primary = Path(write(os.path.join(d, "S", "store.sqlite")))
         fields = stores.create_sidecar(primary, "a store", client_root=d)
         self.assertTrue(stores.read_sidecar(primary).ok)

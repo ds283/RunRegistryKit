@@ -9,13 +9,18 @@
     distributions  a list of non-empty strings with no duplicates, default []: the installed
                    distributions a run's manifest records under `packages`, besides
                    `runregistrykit`, which is always recorded
-    [stores]       a table, default empty: the store layer's settings. Reserved; nothing reads it
-                   yet, and it is kept as it is
+    [stores]       a table, default empty: the store layer's settings. Its one key is
+                   `fingerprinter`, a string "module:attribute" naming the client's fingerprinter
+                   (`runregistrykit.fingerprint`): a non-empty dotted module path, one colon and a
+                   non-empty dotted attribute path, with no whitespace. Only its form is checked
+                   here, and nothing is imported. The core (`begin()`, `Run`, `list_runs`, `list`)
+                   needs none; every store operation refuses without one
 
 A relative `runs_root` or `stores_root` is joined to the **record root** (below) and normalised
 with `os.path.normpath`; an absolute one is kept as it is. Neither `~` nor an environment variable
 is expanded. Anything else is a `ConfigError` that names the file: a file that is not valid TOML,
-or cannot be read, a key not in the list above, or a value of the wrong type or shape.
+or cannot be read, a key not in the list above (a key of `[stores]` other than `fingerprinter`
+among them), or a value of the wrong type or shape.
 
 **Finding it.** `find_client_root(start)` walks from `start` (made absolute) through each parent
 up to the filesystem root, and the first directory holding a *file* named `runregistrykit.toml`
@@ -142,12 +147,35 @@ def _read_config(path) -> dict:
                 f"{path}: distributions is {value!r}, which names {repeated} more than once"
             )
 
-    if "stores" in data and not isinstance(data["stores"], dict):
-        raise ConfigError(
-            f"{path}: stores is {data['stores']!r}, which is not a table ([stores])"
-        )
+    if "stores" in data:
+        if not isinstance(data["stores"], dict):
+            raise ConfigError(
+                f"{path}: stores is {data['stores']!r}, which is not a table ([stores])"
+            )
+        for key, value in data["stores"].items():
+            if key != "fingerprinter":
+                raise ConfigError(
+                    f"{path}: [stores] has the key {key!r} (= {value!r}), which "
+                    f"{CONFIG_FILE} does not have; its one key is 'fingerprinter'"
+                )
+            if not _is_fingerprinter_spec(value):
+                raise ConfigError(
+                    f"{path}: [stores] fingerprinter is {value!r}, which is not a string "
+                    f'"module:attribute": a dotted module path, one colon and a dotted attribute '
+                    f"path, with no whitespace"
+                )
 
     return {**_DEFAULTS, **data}
+
+
+def _is_fingerprinter_spec(value) -> bool:
+    """Whether ``value`` has the form of `[stores] fingerprinter`: a string, a non-empty dotted
+    module path, one colon, a non-empty dotted attribute path, each part an identifier (so no
+    whitespace). The form only: nothing is imported."""
+    if not isinstance(value, str) or value.count(":") != 1:
+        return False
+    module, attribute = value.split(":")
+    return all(part.isidentifier() for part in module.split(".") + attribute.split("."))
 
 
 def _record_root(found) -> str:
