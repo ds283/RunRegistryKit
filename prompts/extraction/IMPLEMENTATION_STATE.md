@@ -43,7 +43,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, and U10, U11, U12, U15 and U16 
 | **U8** neutral store | own factories and writer, public `datastorekit` names only | **taken** 2026-10-14 |
 | **U9** self-record | `runregistrykit` always in `packages` | **taken** 2026-10-14 |
 | **U10** guard | measured client vocabulary, and an import rule | **taken** 2026-10-15 (05a §2.2, §2.3; a citation scan besides) |
-| **U11** public names | for `_slug` and the like, before the release | **taken** 2026-10-15 (`slug`, `__all__`, 05a §2.4) |
+| **U11** public names | for `_slug` and the like, before the release | **taken** 2026-10-15 (`__all__`, 05a §2.4; the name `slugify`, amended at dispatch from the prompt's `slug`) |
 | **U12** licence header | on every package module but the tests | **taken** 2026-10-15 (05a §2.5) |
 | **U13** versions and CI | Python ≥3.12; `[stores]` `datastorekit>=0.4.0`; DatastoreKit's two ends, and a core job without it | open, for 06 |
 | **U14** retire hazard | 04b loads the fingerprinter before a first retirement plans or fingerprints, and the loader refuses a class | **taken** 2026-10-15 |
@@ -500,7 +500,7 @@ loader's `ConfigError` for a class, where it recorded `take`'s `TypeError`, is t
 | **T2b** | 04b | the retire tests' 51 ported onto the neutral store | ✅ 2026-10-15: `test_store_retire` 41 and `test_store_retire_references` 10, SGK's ids by class; the port script's output differing from the committed files by the `compare_fingerprints` shim only; D-name 18, D-fix 1, N-fix 3, N-class 1, R-root 30, R-cwd 3, D-fmt 13 hunks; no F-client; `test_an_unreadable_shards_table` reaches the DatastoreKit text match, (m1) fails it; (m2), (m3), (m7) caught; the suite 245 |
 | **F3** | 04b | U14: `store retire` loads the fingerprinter before it fingerprints; the loader refuses a class | ✅ 2026-10-15: `retire_store` loads the fingerprinter on a first retirement after steps 1 and 2 and before the plan, its `ConfigError` unwrapped and nothing written, under the flag or not, in a dry run and from the command; the completion path loads none; `load_fingerprinter` refuses a class before its protocol check; 8 tests in `test_fingerprinter.py`; (m4)–(m6), (m8)–(m10) caught |
 | **P2** | 05a | the no-client guard, its vocabulary and its known hits (U10, U16) | ⬜ |
-| **N1** | 05a | the public names (`slug`, `__all__`) and the licence header (U11, U12) | ⬜ |
+| **N1** | 05a | the public names (`slugify`, `__all__`) and the licence header (U11, U12) | ⬜ |
 | **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ⬜ |
 | **T3** | 05c | the tests' SGK names and prose renamed (U16) | ⬜ |
 | **V1** | 06 | versions, CI, `v0.1.0` | ⬜ |
