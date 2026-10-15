@@ -9,7 +9,7 @@ measurements made the same day (§0.2). The brief is evidence, not a specificati
 recommended, for 01, U4 for 02, U5 and U9 for 03, U6, U7 and U8 for 04, U14 for 04b, U10, U11, U12, U15 and U16 for 05, U17 for 05b, and U13, U18 and U19 for 06. **Prompts 01
 (`4e0d715`), 02 (`8155445`), 03 (`035e4b5`), 04a (`c81ad06`), 04b (`5302a6f`), 05a (`14af805`), 05b
 (`1120fb3`), 05c (`a7d93d5`) and 06 (`9f8ebe4`) have landed and been reviewed; 04 is split into
-04a and 04b, and 05 into 05a, 05b and 05c; `v0.1.0` waits on a push and a green CI on `9f8ebe4`** (§2.1).
+04a and 04b, and 05 into 05a, 05b and 05c; `v0.1.0` is tagged on `9f8ebe4`, after CI passed there** (§2.1).
 
 ## 0. Why this campaign exists
 

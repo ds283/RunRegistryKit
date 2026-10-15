@@ -9,8 +9,9 @@ equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
 U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the same day for
 05, U17 for 05b, and U13, U18 and U19 for 06, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
-**`v0.1.0` is ready to be tagged on 06's commit once CI passes there, all three jobs (`suite (low)`,
-`suite (high)`, `core`); no tag has been made, and nothing has been pushed** (README §5 rule 12).
+**`v0.1.0` is tagged** (annotated, tag object `fd5ce48`) on 06's commit `9f8ebe4`, after CI run
+`38754093289` passed there in all three jobs (`suite (low)`, `suite (high)`, `core`); the tag and
+`main` (to `4ee947b`) are pushed (README §5 rule 12).
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -854,6 +855,15 @@ that `test_fingerprinter` fails to import in the core venv on `sqlalchemy`, not 
 right and changes nothing. *The orchestrator's own slip:* it applied (e) in the clone 8 s before
 its first low and high replays finished; both were re-run untouched (the times above), OK.
 
+*The release (2026-10-15), on the user's instructions.* `main` pushed up to `9f8ebe4` alone (a
+fast-forward from `dfcb884`), so that CI ran on 06's commit: run `38754093289`, the repository's
+first and the suite's first on Linux (`ubuntu-24.04`), passed all three jobs: `suite (low)` (Python
+3.12.15, `datastorekit` 0.4.0, Ray 2.43.0, SQLAlchemy 2.0.39) `Ran 276 tests in 68.144s`, OK, and
+`black` 26 files unchanged; `suite (high)` (3.13.16, 0.4.0, 2.55.1, 2.0.46) `Ran 276 tests in
+37.921s`, OK; `core (no store layer)` the three absent, `Ran 37 tests in 1.321s`, OK, and the smoke
+listing its one run finished. Then the annotated tag `v0.1.0` (tag object `fd5ce48`) made on
+`9f8ebe4` and pushed, and `main` pushed up to `4ee947b`, the review's record.
+
 ### 1.1 Items
 
 | Item | Prompt | What | State |
@@ -872,7 +882,7 @@ its first low and high replays finished; both were re-run untouched (the times a
 | **N1** | 05a | the public names (`slugify`, `__all__`) and the licence header (U11, U12) | ✅ 2026-10-15: `_slug` is `slugify` (no alias; `run_id` and `begin()` signatures unchanged); each of the five modules declares a sorted `__all__` (20, 26, 4, 4, 1 names) and begins with the 14-line Apache header; `test_public_names.py`, 8 tests |
 | **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ✅ 2026-10-15: the docstrings and comments of `__init__.py`, `stores.py` and `fingerprint.py` rewritten in the package's own terms, every reason and fact kept and no client, campaign, prompt, decision, issue tag or incident left (`known_hits.json` has no package-module entry in any scan; `ast` with docstrings removed equals `c735acf`'s but for the one constant); `describe`'s problems line points at `datastorekit.store_inventory.read_inventory`, one test; `load_fingerprinter`'s docstring names the class refusal, and `retire_store`'s and `amend_sidecar`'s say the config's `ConfigError`s are in the config's words (no message changed); the guard's citation pattern gains `Prompt NN`, a decision id and an issue tag (U17), which finds 18 more hits in 11 entries of the tests, listed for 05c; `README.md` gains "The rules" (six, each with its failure) and "The public names" (U11); `PROVENANCE.md` gains 05b's section and "Where the prose's citations pointed"; (m1)–(m8) caught |
 | **T3** | 05c | the tests' SGK names and prose renamed (U16) | ✅ 2026-10-15: sixteen names renamed (the prompt's thirteen and three more: `hand_written_shaped`, `script_written_shaped`, `TestHandWrittenShape`, eight test methods, `INTEGRAL_CLASS`, `SOLUTION_CLASS`, and the neutral store's `producer_serial`, `tagged_serial`, `log10_step`), each mapped in `PROVENANCE.md` with its test ids; the fixtures' client data neutral with the same shapes; `FORBIDDEN` read from the guard's `project_packages()` (22 names for 7); the docstrings and comments of 14 modules and fixtures in the package's terms; `known_hits.json` written by 05a's writer, **empty in every scan** (155 hits in 94 entries before), the guard's docstring paragraph saying so and nothing else of it changed; `ast` with docstrings removed equals `8766714`'s after the map, but for `FORBIDDEN`; the suite 276, per module the same; (m1)–(m6) caught |
-| **V1** | 06 | versions, CI, `v0.1.0` | ✅ 2026-10-15 (the tag waits for CI): `pyproject.toml` at `0.1.0`, `[stores]` `datastorekit>=0.4.0` by name and floor, `runregistrykit.tests` excluded (U19), nothing else changed; the wheel `runregistrykit-0.1.0-py3-none-any.whl`, 54,940 bytes, 10 entries, no test, passes the release check in a 3.13.16 venv (the five modules from `site-packages`, nothing heavy loaded, `import runregistrykit.tests` a `ModuleNotFoundError`); `.github/workflows/tests.yml` with `suite (low)`, `suite (high)` and `core` (U13, U18), every `run:` step under `bash -eo pipefail`, replayed here step by step as GitHub runs it, all three passing, and each check of the core smoke shown able to fail; the suite 276 OK in `venv/` before and after the reinstall and in fresh low and high venvs, 37 OK in the core venv; the README's Status, "Supported versions", "Installing", "Using it" and "Developing", 90 statements checked against the code; the Installing form resolves against a scratch clone and refuses without the client's `datastorekit` line; (a)–(f) each fail as expected. **Not measured:** Linux, until CI runs on the push |
+| **V1** | 06 | versions, CI, `v0.1.0` | ✅ 2026-10-15, tagged `v0.1.0` on `9f8ebe4` after CI passed there: `pyproject.toml` at `0.1.0`, `[stores]` `datastorekit>=0.4.0` by name and floor, `runregistrykit.tests` excluded (U19), nothing else changed; the wheel `runregistrykit-0.1.0-py3-none-any.whl`, 54,940 bytes, 10 entries, no test, passes the release check in a 3.13.16 venv (the five modules from `site-packages`, nothing heavy loaded, `import runregistrykit.tests` a `ModuleNotFoundError`); `.github/workflows/tests.yml` with `suite (low)`, `suite (high)` and `core` (U13, U18), every `run:` step under `bash -eo pipefail`, replayed here step by step as GitHub runs it, all three passing, and each check of the core smoke shown able to fail; the suite 276 OK in `venv/` before and after the reinstall and in fresh low and high venvs, 37 OK in the core venv; the README's Status, "Supported versions", "Installing", "Using it" and "Developing", 90 statements checked against the code; the Installing form resolves against a scratch clone and refuses without the client's `datastorekit` line; (a)–(f) each fail as expected. Linux measured by CI run `38754093289` on `9f8ebe4`: low 276 OK in 68 s with `black` clean, high 276 OK in 38 s, core 37 OK and its smoke passing |
 | **A1** | 07 | the three checklists and their script (SGK's E2) | ⬜ |
 | **Z1** | 08 | the verification document; the close | ⬜ |
 
@@ -887,7 +897,7 @@ its first low and high replays finished; both were re-run untouched (the times a
 | **G2** | not yet (SGK adopts `v0.1.0` in its `runregistry-extraction` 05–08) |
 | **G3** | not yet (CPBH adopts) |
 | **G4** | not yet (SI adopts, after its `dk-and-rpk-migration`) |
-| **E2** (SGK's) | not yet: `v0.1.0` (06) with SGK's checklist (07) |
+| **E2** (SGK's) | not yet: `v0.1.0` is tagged (`9f8ebe4`, 2026-10-15); SGK's checklist (07) is not written |
 
 ## 3. Active and unresolved issues
 
