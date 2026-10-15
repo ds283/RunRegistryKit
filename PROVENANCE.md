@@ -200,7 +200,7 @@ Each prompt's changes, from 03 on:
   is new.
 
 **Prompt 04a, the client fingerprinter** (`prompts/extraction/04a-the-client-fingerprinter.md`,
-this commit):
+`c81ad06`):
 
 - **The fingerprinter.** A new module, `runregistrykit/fingerprint.py`, standard library only at
   module scope: the runtime-checkable protocol `Fingerprinter` (`take`, `compare`, `describe`,

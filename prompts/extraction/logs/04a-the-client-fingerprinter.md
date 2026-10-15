@@ -1,7 +1,7 @@
 # Log — prompt 04a: the client fingerprinter
 
 **Subject:** Name the client fingerprinter in the config and delete layer C
-**Commit:** this commit (on `main`, after `9dc34a5`)
+**Commit:** `c81ad06` (on `main`, after `9dc34a5`)
 **Date:** 2026-10-15
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and the orchestration
 note's §0 (`orchestrator-note-04a-section0.md`)
@@ -360,8 +360,8 @@ and StochasticInstantons were not read. Every scratch file, store and client roo
 
 ## The deliberate-breakage record
 
-Each diff below is exactly as applied, to this commit's tree: it was made by a checked replacement
-in the staged file and `git diff` against the index (whose blobs are this commit's), then the file
+Each diff below is exactly as applied, to `c81ad06`'s tree: it was made by a checked replacement
+in the staged file and `git diff` against the index (whose blobs are `c81ad06`'s), then the file
 was restored from the index. A `bash` script then replayed each from its diff file: `git apply
 --check`, `git apply`, `git apply -R --check`, the suite (§3.1's command), `git apply -R`, and `git
 status --short` compared with the state before. All eleven checked both ways, and the status was
@@ -642,7 +642,7 @@ prompt's rule, a ported line rule 9 keeps, or 05's prose.
   `enter_client_root_for_class` serves a class-level fixture. `_SHARDS_TABLE_UNREADABLE` is
   `stores.py:1365-1366`, still reached by no test.
 - **The suite is 186**; 04b's count starts there. It takes about a minute.
-- The board's §3 has four issues, their package lines at this commit recorded there;
+- The board's §3 has four issues, their package lines at `c81ad06` recorded there;
   `docs/OPEN_ISSUES.md` counts 4.
 - Not touched: `runregistrykit/__init__.py`, `pyproject.toml`, `CLAUDE.md`, `docs/extraction/`,
   `tests/__init__.py`, `store_fixtures.py`, `shard_store_fixtures.py`; no client, DatastoreKit or

@@ -1,8 +1,8 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 4 of 9 prompts written (01–03, 04a), 4 landed, 3 of
-them reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135); 04a
-landed (this commit, suite 186), not yet reviewed.** G1 holds
+**Last updated:** 2026-10-15 · **Status: LIVE — 4 of 9 prompts written (01–03, 04a), 4 landed and
+reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
+`c81ad06`, suite 186).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -53,7 +53,7 @@ and U6, U7 and U8 for 04, as recommended (README §6.2); 04 split into 04a and 0
 | 01 | [`01-import-the-registry.md`](01-import-the-registry.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/01-import-the-registry.md)) | `4e0d715` | 0 → 3 |
 | 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed and reviewed** 2026-10-14 ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | `8155445` | 3 → 108 |
 | 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | `035e4b5` | 108 → 135 |
-| 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | this commit | 135 → 186 |
+| 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | `c81ad06` | 135 → 186 |
 | 04b | `04b-the-retire-tests.md` | Opus | not written | — | — |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
@@ -65,7 +65,8 @@ The holds are for **method**, not scope: every charter is fixed in README §2.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`91b7a60`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), used for 02;
-[`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`f02abc7`), used for 03.
+[`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`f02abc7`), used for 03;
+[`orchestrator/prompt-04a.md`](orchestrator/prompt-04a.md) (`9dc34a5`), used for 04a.
 
 **Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
 with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
@@ -291,6 +292,103 @@ is harmless and outside R-cwd; the package's `git` inheriting `GIT_DIR` is by de
 path's threading, checked here by the `ast` walk, is reached by 04's ported tests. **Nothing
 opened**; the index stays at 7.
 
+**Orchestrator review of prompt 04a (2026-10-15).** Dispatched from `9dc34a5` to one Opus subagent,
+with the note's §0: its facts, ten corrections and readings of the prompt (the gate's diff read from
+`2ecb99d`; the two 03 tests §2.3 and §2.4 overturn; `fingerprint_store`'s docstring and the `taken`
+stamp now before the read; the test shapes (m5) and (m10) need; the loader, `sys.path` and
+`sys.modules` in tests; (m3) and D4 already pinned by 02's tests; the class fixture; what the ported
+literals assume of the neutral store; the suite's time) and its two recommendations (a type-and-text
+check against the reader's own exception, with a `StoreSchemaMismatch` case; a refusal-precedence
+test with an unimportable fingerprinter). Reviewed against its commit `c81ad06`, with nothing landed
+after it. **Every check of the note's §3 passed**, and acceptance 1–3 are met. No stop condition
+fired.
+
+*At dispatch.* The note's gate held at `9dc34a5`, with the prompt's gate read from `2ecb99d`
+(correction 1): the tree clean, this checkout the only worktree, no `var/`; the suite 135 OK in
+39.1 s. No Ray process; `RAY_ADDRESS` unset.
+
+*The checks.*
+1. **Scope.** `c81ad06` touches 15 files, the note's §0 list and the records. `runregistrykit/__init__.py`,
+   `pyproject.toml`, `README.md`, `LICENSE`, `.gitignore`, `CLAUDE.md`, `docs/extraction/`,
+   `tests/__init__.py`, `store_fixtures.py`, `shard_store_fixtures.py` and the other 02 and 03 test
+   files are unchanged from `2ecb99d`; `git ls-files runregistrykit` is 03's sixteen and the four new
+   files. `test_package_imports.py` changes in `MODULES` only, `test_client_root.py` in correction 2's
+   two tests only, `client_fixtures.py` in its default config and `enter_client_root_for_class` only.
+2. **By reading.** `fingerprint.py` as §2.2: standard library at module scope, the protocol, the
+   constructor's refusals, `take` returning the reader's exception untouched, `describe` the old
+   `_print_fingerprint` text from `classes:` on line for line; the loader's four refusals, each a
+   `ConfigError` naming the file and the spec. `client.py`'s `[stores]` holds `fingerprinter` only,
+   checked by form at read time. In `stores.py` layer C, `FINGERPRINT_FORMAT`, `hashlib` and
+   `Counter` are gone; `require_fingerprinter` follows the locate in all seven operations and in
+   `write_listing`; `fingerprint_store`'s step 1 is unchanged, the loader follows it, then `taken`
+   and `take`; the `malformed` entry keeps its six keys and text. Outside `fingerprint.py` no package
+   module reads a fingerprint's `classes`, `tag_sets` or `problems` (by grep, each hit read). The CLI
+   checks D4 in `_store` and loads the fingerprinter after `fingerprint_store`.
+3. **The port, independently.** The orchestrator's own re-port of SGK's module from `a45aefc` (D-name,
+   X-drop by `ast`, N-fix, N-class from the log's mapping table, `black`) differs from the committed
+   file only by the shim lines, the two F-client lines, the N-fix import of `_factories` and the two
+   U7 variants (and `COMPUTE_TARGETS`' layout, a trailing comma of the re-port's). The loader's ids are
+   SGK's 29, by class as §2.8 counts.
+4. **The neutral store.** Nine factories on public names (`SQLAFactoryBase`, `build_schema`, the
+   contract's `TAG_*` and `VERSION_*`, `shard_file_name`, `InventorySpec`, `Parent`); no
+   `ShardedPool` attribute, no pool, no Ray; `FIXED_TIMESTAMP` SGK's; `shard_keys` written to a table
+   of its own that nothing reads.
+5. **By probing**, in a scratch client whose config names a module of its own root
+   (`DatastoreKitFingerprinter(FACTORIES, 7)`), not otherwise importable, from a subdirectory under
+   `-I`: `store create`; `finish(fingerprint=True)` records one fingerprint, format 7,
+   `encoding_format` 1, in the status and the sidecar alike; `store fingerprint` matches and lists,
+   the listing's word 6 `encoding_format`; `store show` loads neither `ray` nor `sqlalchemy`. An
+   SGK-shaped fingerprint (format 6, no `encoding_format`) reads with no problem, and with `classes`
+   removed too; `store fingerprint` then exits 1 with DatastoreKit's `format` and `encoding`
+   entries; `encoding_format: "1"` is a problem. With `[stores]` removed, all eight `store` commands
+   exit 1 naming the config file and change nothing; `list` and `begin` run, and `finish` records
+   the `ConfigError`. The loader's refusals fire where §2.2 and §2.3 say (the form at read time).
+6. **The suite.** `Ran 186 tests in 57.0s`, OK; the per-module counts the log's. `git status --short
+   --ignored` the same before and after; no `var/`; this checkout the only worktree; no Ray process.
+   §3.3's import check exits 0; §3.4's grep finds the log's three lines; `black --check runregistrykit
+   docs`: 21 files unchanged.
+7. **The mutations.** (m1)–(m11) extracted from the log and replayed in `bash` (`--check`, apply,
+   `-R --check`, the suite, reverse), each failing exactly the tests the log names, the tree clean
+   after each. The orchestrator's own: (o1) `create_sidecar` loading the fingerprinter in place of the
+   D4 check fails `test_show_create_adopt_copy_and_move` and two `TestPrecedence` tests; (o2) no `bool`
+   guard on `encoding_format` fails `TestOpacity.test_encoding_format_if_present_is_an_integer`; (o3)
+   the loader without its `Fingerprinter` check fails the refusal test's "not a fingerprinter"; (o4)
+   another `[stores]` key accepted fails the renamed 03 test and a `TestProtocolAndLoader` subtest;
+   (o5) a spec with no colon accepted fails three subtests; (o6) `take` dropping `taken` fails seven
+   tests; (o7) a `bool` format accepted fails the constructor test; (o8) a private `ShardedPool` call
+   in the neutral store fails `TestNeutralStore.test_it_is_built_from_public_names_only`.
+8. **The issues.** The three closed in §4 with what resolved them and the tests that pin them; their
+   rows gone from the index. The other four carry their 04a package lines, spot-checked in the
+   package at `c81ad06` (`stores.py:104, 109, 1181, 1365-1366, 1410, 1420, 1626, 1673, 1841`;
+   `fingerprint.py:128`; the port's lines of `[02-the-ported-tests-name-sgk]`).
+9. **The records.** The log has every section of README §5.1, the mapping table, every instance
+   accounted for, the port's diff, 135 → 186 with the per-module counts and the times, all eleven
+   diffs, and 22 deviations, each classified (7 STRUCTURALLY REQUIRED, 15 IMPLEMENTATION CHOICE).
+   `PROVENANCE.md`, the index (4, by counting) and `prompts/INDEX.md` as the prompt's §4.3.
+10. **The interface.** No record changes form: the manifest's, `status.json`'s and the sidecar's keys
+    are those at `2ecb99d`, by the diff and by the probe's records; `taken`'s keys are `TAKEN_KEYS`;
+    a fingerprint gains `encoding_format`, the one planned addition.
+
+*Residue fixed in the follow-up.* "this commit" → `c81ad06` on this board, in the log, in
+`prompts/INDEX.md` and in `PROVENANCE.md`; 04a marked reviewed here, in README §2 and its header, and
+in `prompts/INDEX.md`; this paragraph and the notes line. 03's residue: §4's
+`[00-the-recorded-distributions-are-sgks]` still read "by 03 (this commit)", now `035e4b5`.
+
+*Opened by the review.* The loader accepts a **class** that has the four methods: a
+runtime-checkable protocol checks only that the attributes exist, and a class has them. A config
+naming `module:DatastoreKitFingerprinter` (the class, not an instance), the likeliest slip a client
+makes, loads, and every fingerprint then fails at `take` with a `TypeError`, recorded by `finish` as
+`fingerprint_error`, never a `ConfigError` naming the file (probed). The prompt's §2.2 asks for the
+`isinstance` check only, so the agent built what it asked. Opened as
+`[04a-the-loader-accepts-a-fingerprinter-class]`, owner to be put to the user; the index goes to 5.
+
+*Accepted as recorded.* The log's observations need no issue: the ported module's unused `import
+runregistrykit` and its docstring naming the deleted `stores.fingerprint_of` are rule 9's and 05's
+(recorded under `[02-the-ported-tests-name-sgk]`); the D4 `ConfigError` not ending "Nothing was
+written…" as `retire_store`'s and `amend_sidecar`'s docstrings promise is prose for 05
+(`[00-package-prose-names-sgk]`'s rewrite); the loader leaving each client root on `sys.path` is the
+prompt's rule.
+
 ### 1.1 Items
 
 | Item | Prompt | What | State |
@@ -327,7 +425,7 @@ opened**; the index stays at 7.
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
 opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
-04a closed three (§4), leaving four. Line numbers are SGK's until 01 imports the code; 01 records
+04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five. Line numbers are SGK's until 01 imports the code; 01 records
 each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
 replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
 in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
@@ -500,12 +598,33 @@ name. Its docstring's first line names `runregistrykit.stores.fingerprint_of`, w
 longer has (SGK's text under D-name). `neutral_store.py` and `test_fingerprinter.py` name nothing of
 SGK.
 
+### `[04a-the-loader-accepts-a-fingerprinter-class]`
+
+**Opened:** 2026-10-15, by the orchestrator's review of 04a. **Owner:** none yet; to be put to the
+user.
+
+`load_fingerprinter` (`runregistrykit/fingerprint.py:158-192`) refuses an object that is not a
+`Fingerprinter` by `isinstance` against the runtime-checkable protocol (`:187`), as the prompt's §2.2
+asks. A runtime-checkable protocol checks only that the four attributes exist, and a **class**
+defining the four methods has them. So a config naming `module:DatastoreKitFingerprinter`, the class
+rather than an instance of it, loads (probed by the review).
+
+*Impact.* It is the likeliest slip a client makes in its config. The store layer then fails at the
+first fingerprint, with `TypeError: DatastoreKitFingerprinter.take() missing 1 required positional
+argument: 'taken'`, which `Run.finish(…, fingerprint=True)` records as `fingerprint_error` and `store
+fingerprint` and `store retire` raise, instead of a `ConfigError` naming the config file and the spec
+at load. Nothing is written wrongly; the message misleads.
+
+*Next step.* Refuse a class in the loader (`isinstance(found, type)`) with a `ConfigError` saying
+to name an instance, and a test that fails without it. It changes no record. Recommended owner: 05,
+before the release, since 07's checklists cite the module; to be put to the user.
+
 ## 4. Resolved issues
 
 ### `[00-the-fingerprint-reads-a-clients-registry]`
 
 **Opened:** 2026-10-14, at planning (C6, C7). **Owner:** 04a. **Closed:** 2026-10-15, by 04a
-(this commit).
+(`c81ad06`).
 
 **Assigned (2026-10-14):** to 04a, when 04 was split: 04a deletes layer C and `FINGERPRINT_FORMAT` and
 puts the client's fingerprinter in their place (U6), which is this issue's next step.
@@ -531,7 +650,7 @@ would drift from DatastoreKit's.
 (`fingerprint_of` `:1210`, called `:1531`; `compare_fingerprints` `:1284`, called `:1560`;
 `listing_lines` `:1404-1427`, called `:1460`).
 
-*Resolved (04a, 2026-10-15, this commit).* The package no longer imports a client's registry or
+*Resolved (04a, 2026-10-15, `c81ad06`).* The package no longer imports a client's registry or
 carries a fingerprint format: `from config.datastore import factories`, `FINGERPRINT_FORMAT` and
 its history, and layer C are deleted from `runregistrykit/stores.py`, with the `hashlib` and
 `Counter` imports only it used. A client names its fingerprinter in `runregistrykit.toml`
@@ -579,7 +698,7 @@ builds `taken` at `:1531-1539` and calls `_difference` at `:1550`; `retire_store
 and `taken.when` at `:1931-1938`; `runregistrykit/__main__.py`: `_print_fingerprint` `:274-294`,
 `_fingerprint` (`:297`) reads `taken` and `digest` at `:314-334`.
 
-*Resolved (04a, 2026-10-15, this commit).* The package reads of a fingerprint exactly
+*Resolved (04a, 2026-10-15, `c81ad06`).* The package reads of a fingerprint exactly
 `fingerprint_format`, `encoding_format` when present, `digest`, the `taken` it builds, and each
 comparison entry's `kind` and `text` (U7). The sidecar reader's shape check, `_fingerprint_problems`
 (`runregistrykit/stores.py:404-428`), requires an integer `fingerprint_format`, a 64-hex `digest`
@@ -601,7 +720,7 @@ log each fail them. The two variants of the ported
 ### `[02-the-sidecar-readers-guards-are-unpinned]`
 
 **Opened:** 2026-10-14, by the orchestrator's review of 02, from 02's log (observations and its
-(m3) candidates). **Owner:** 04a. **Closed:** 2026-10-15, by 04a (this commit).
+(m3) candidates). **Owner:** 04a. **Closed:** 2026-10-15, by 04a (`c81ad06`).
 
 **Assigned (2026-10-14):** to 04a, when 04 was split: 04a rewrites the reader's shape check and adds
 the two pins before it does (04a §2.6).
@@ -623,7 +742,7 @@ changes. Put to whoever writes 04.
 `runregistrykit/stores.py:573`; the `bool` guard on `sidecar_format` `:578`; `_STORE_ID.fullmatch`
 on `store_id` `:588`. Still pinned by no test.
 
-*Resolved (04a, 2026-10-15, this commit).* Both rules are pinned, by tests added before the shape
+*Resolved (04a, 2026-10-15, `c81ad06`).* Both rules are pinned, by tests added before the shape
 check changed: `test_fingerprinter.TestSidecarGuards.test_a_boolean_sidecar_format_is_a_problem` (a
 registry sidecar whose `sidecar_format` is `true` reads with the problem "sidecar_format is True;
 this reader knows format 1 only") and
@@ -689,8 +808,8 @@ still reads this checkout's commit (03's log, deviation 7).
 
 ### `[00-the-recorded-distributions-are-sgks]`
 
-**Opened:** 2026-10-14, at planning (C5). **Owner:** 03. **Closed:** 2026-10-14, by 03 (this
-commit).
+**Opened:** 2026-10-14, at planning (C5). **Owner:** 03. **Closed:** 2026-10-14, by 03
+(`035e4b5`).
 
 `RECORDED_DISTRIBUTIONS = ("datastorekit", "raypoolkit")` (`__init__.py:119`) is what every manifest's
 `packages` records, and `test_run_registry.py:393-396` pins it.
