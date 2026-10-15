@@ -1,10 +1,12 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 11 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06, 07, 08), 10 landed and
-reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
-`c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
-276; 05c, `a7d93d5`, suite 276; 06, `9f8ebe4`, suite 276; 07, `aaab408`, suite
-276).** **E2** (SGK's gate on this campaign) is `v0.1.0` with
+**Last updated:** 2026-10-15 · **Status: CLOSED (2026-10-15, by prompt 08) — all 11 prompts landed
+(01–03, 04a, 04b, 05a–05c, 06, 07, 08), the first ten reviewed (01, `4e0d715`, suite 3; 02,
+`8155445`, suite 108; 03, `035e4b5`, suite 135; 04a, `c81ad06`, suite 186; 04b, `5302a6f`, suite
+245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite 276; 05c, `a7d93d5`, suite 276; 06, `9f8ebe4`,
+suite 276; 07, `aaab408`, suite 276), and 08 (this commit, suite 276), which verifies the campaign in
+[`docs/extraction-verification.md`](../../docs/extraction-verification.md) and closes it with G2–G4
+open and two issues open (§3).** **E2** (SGK's gate on this campaign) is `v0.1.0` with
 [`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md), from `aaab408`. G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
@@ -78,7 +80,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05c-the-tests-own-names.md)) | `a7d93d5` | 276 → 276 |
 | 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/06-release-v0.1.0.md)) | `9f8ebe4` | 276 → 276 |
 | 07 | [`07-the-adoption-checklists.md`](07-the-adoption-checklists.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/07-the-adoption-checklists.md)); one stop (non-binding `fingerprint_of` calls at SGK), ruled by the user | `aaab408` | 276 → 276 |
-| 08 | [`08-verification-and-close-out.md`](08-verification-and-close-out.md) | Opus | written 2026-10-15 | — | — |
+| 08 | [`08-verification-and-close-out.md`](08-verification-and-close-out.md) | Opus | **landed** 2026-10-15 ([log](logs/08-verification-and-close-out.md)); the campaign closed | this commit | 276 → 276 |
 
 **Written one at a time** (README §2.1), each after the one before it has landed and been reviewed.
 The holds are for **method**, not scope: every charter is fixed in README §2.
@@ -1003,7 +1005,7 @@ act on, through its checklist.
 | **T3** | 05c | the tests' SGK names and prose renamed (U16) | ✅ 2026-10-15: sixteen names renamed (the prompt's thirteen and three more: `hand_written_shaped`, `script_written_shaped`, `TestHandWrittenShape`, eight test methods, `INTEGRAL_CLASS`, `SOLUTION_CLASS`, and the neutral store's `producer_serial`, `tagged_serial`, `log10_step`), each mapped in `PROVENANCE.md` with its test ids; the fixtures' client data neutral with the same shapes; `FORBIDDEN` read from the guard's `project_packages()` (22 names for 7); the docstrings and comments of 14 modules and fixtures in the package's terms; `known_hits.json` written by 05a's writer, **empty in every scan** (155 hits in 94 entries before), the guard's docstring paragraph saying so and nothing else of it changed; `ast` with docstrings removed equals `8766714`'s after the map, but for `FORBIDDEN`; the suite 276, per module the same; (m1)–(m6) caught |
 | **V1** | 06 | versions, CI, `v0.1.0` | ✅ 2026-10-15, tagged `v0.1.0` on `9f8ebe4` after CI passed there: `pyproject.toml` at `0.1.0`, `[stores]` `datastorekit>=0.4.0` by name and floor, `runregistrykit.tests` excluded (U19), nothing else changed; the wheel `runregistrykit-0.1.0-py3-none-any.whl`, 54,940 bytes, 10 entries, no test, passes the release check in a 3.13.16 venv (the five modules from `site-packages`, nothing heavy loaded, `import runregistrykit.tests` a `ModuleNotFoundError`); `.github/workflows/tests.yml` with `suite (low)`, `suite (high)` and `core` (U13, U18), every `run:` step under `bash -eo pipefail`, replayed here step by step as GitHub runs it, all three passing, and each check of the core smoke shown able to fail; the suite 276 OK in `venv/` before and after the reinstall and in fresh low and high venvs, 37 OK in the core venv; the README's Status, "Supported versions", "Installing", "Using it" and "Developing", 90 statements checked against the code; the Installing form resolves against a scratch clone and refuses without the client's `datastorekit` line; (a)–(f) each fail as expected. Linux measured by CI run `38754093289` on `9f8ebe4`: low 276 OK in 68 s with `black` clean, high 276 OK in 38 s, core 37 OK and its smoke passing |
 | **A1** | 07 | the three checklists and their script (SGK's E2) | ✅ 2026-10-15 (`aaab408`): `docs/adoption/` holds a README (the release and pin, the module map, what a client adds, what changes and what does not, the Q5 recipe with a sketch proved on public names, re-measuring), the checklists for SGK (`14bcac0`), CPBH (`c21cdfb`) and SI (`5fb4a1d`), ten items each with the script's output as appendix, and `measure_client_registry.py` (read through `git` only; callees resolved through the registry's names; each fate checked against the package at run time; bind verdicts by `inspect.signature`; deterministic; exits 0/1/2/3). SGK: 13 imports in 10 files (4 at module level), 15 names, 4 `begin` calls binding, 4 `fingerprint_of` calls missing the new format (the stop, ruled the move's documented effect), 18 string literals; its staying tests 12 imports in 5 modules. CPBH and SI: 0 imports; each helper the package's `package_provenance` but `origin = None`. `README.md`'s worktree sentences corrected (U20). The Q5 sketch's four breakages fail; (a)–(e) caught; the suite 276 |
-| **Z1** | 08 | the verification document; the close | ⬜ |
+| **Z1** | 08 | the verification document; the close | ✅ 2026-10-15 (this commit): `docs/extraction-verification.md`, twelve sections, built from the ten logs, the reviews, the release and 45 commits (`745c9d9` to `302faac`, classed); `docs/extraction/store_smoke_run.py` (U23), a self-contained script whose client root holds its own registry module and fingerprinter, exit 0 at both ends against the pin installed from GitHub (U24), eleven steps, the same digest at both, Ray never initialised, and exit 1 under breakage (a) (the class named: steps 2, 5 and 9 fail, nothing deleted), (b) (a changed row: `store fingerprint` differs, `store retire` refuses) and (c) (the core-only venv: every step needing a store or a fingerprinter fails, caught); the pin's three installs `9f8ebe4`'s five modules byte for byte, no test in `RECORD`; the suite 276 OK in `venv/` and at the high end, the same by module; `black` 28 files unchanged; the equivalence check at `8155445` `RESULT: OK`; the three checklists' appendices reproduced byte for byte; the campaign closed here, in the README, in `prompts/INDEX.md` and in the index |
 
 **Legend.** ⬜ not yet · ✅ done.
 
@@ -1018,11 +1020,15 @@ act on, through its checklist.
 | **G4** | not yet (SI adopts, after its `dk-and-rpk-migration`); its checklist is [`docs/adoption/stochasticinstantons.md`](../../docs/adoption/stochasticinstantons.md) (07, `aaab408`) |
 | **E2** (SGK's) | **holds** 2026-10-15: `v0.1.0` (tag object `fd5ce48` on `9f8ebe4`) with SGK's checklist, [`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md), from `aaab408`; to be reported to the user (SGK's brief §8) |
 
+**2026-10-15, at the close (08, this commit):** G2–G4 have not held, and the campaign closes
+without waiting for them (README §7). From now on a gate is recorded on this board when it holds,
+in a records commit of its own; nothing else on the board changes for it.
+
 ## 3. Active and unresolved issues
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
 opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
-04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three; 05c closed one (§4) and opened one, leaving three; 06 closed one (§4), leaving two; the orchestrator's review of 06 opened one, leaving three; 07 closed one (§4), leaving two. Line numbers are SGK's until 01 imports the code; 01 records
+04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three; 05c closed one (§4) and opened one, leaving three; 06 closed one (§4), leaving two; the orchestrator's review of 06 opened one, leaving three; 07 closed one (§4), leaving two; 08 closed and opened none, leaving two at the close. Line numbers are SGK's until 01 imports the code; 01 records
 each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
 replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
 in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
@@ -1105,6 +1111,11 @@ seen when the pin moves, now holds: both `suite` jobs of `.github/workflows/test
 open, owner none: the fixture still reaches into `ShardedPool`, and a public way to write and
 reopen a small store remains a request to DatastoreKit (README §8).
 
+**Stays open at the close (2026-10-15, 08, this commit).** Owner none. No file under
+`runregistrykit/` changed after 06, so the package lines are 06's. Its remedy, a public way to write
+and reopen a small store, is a request to DatastoreKit (README §8), outside this campaign;
+`docs/extraction-verification.md` §6 records it.
+
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
 **Opened:** 2026-10-14, at planning. **Owner:** none.
@@ -1177,6 +1188,11 @@ prose and renames moved it from `:797`), its code unchanged. The issue stays ope
 install `datastorekit` from its tag `v0.4.0` and run the whole suite (trialled here in fresh venvs
 at Ray 2.43.0 / SQLAlchemy 2.0.39 and Ray 2.55.1 / SQLAlchemy 2.0.46, 276 OK each). The issue stays
 open, owner none: a typed exception remains a request to DatastoreKit (README §8).
+
+**Stays open at the close (2026-10-15, 08, this commit).** Owner none. The package lines are 06's,
+and the test that reaches the match passed again at both ends (276 OK in `venv/` and at the high
+end). Its remedy, a typed exception, is a request to DatastoreKit (README §8), outside this
+campaign; `docs/extraction-verification.md` §6 records it.
 
 ## 4. Resolved issues
 

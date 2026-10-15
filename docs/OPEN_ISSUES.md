@@ -7,7 +7,7 @@ disagree. See `CLAUDE.md` for the maintenance rule.
 
 ## 1. By campaign
 
-### 1.1 `extraction` ([board](../prompts/extraction/IMPLEMENTATION_STATE.md)) — live 2026-10-15
+### 1.1 `extraction` ([board](../prompts/extraction/IMPLEMENTATION_STATE.md)) — closed 2026-10-15
 
 | Issue | Owner | Hook |
 |---|---|---|
