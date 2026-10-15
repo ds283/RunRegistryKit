@@ -3,7 +3,7 @@
 One line per open issue, pointing at the board that holds it. The board is right if the two
 disagree. See `CLAUDE.md` for the maintenance rule.
 
-**Last updated:** 2026-10-15 · **6 open**, all on the `extraction` board.
+**Last updated:** 2026-10-15 · **4 open**, all on the `extraction` board.
 
 ## 1. By campaign
 
@@ -14,6 +14,4 @@ disagree. See `CLAUDE.md` for the maintenance rule.
 | `[00-package-prose-names-sgk]` | 05 | Docstrings cite SGK's campaigns, and the CLI points at SGK's `main.py --inventory` |
 | `[02-the-ported-tests-name-sgk]` | 05 | The ported tests and shard fixtures carry SGK's tables, store stems, driver path, `TestLiveA3Shape` and campaign citations |
 | `[00-the-shard-fixtures-reach-into-shardedpool]` | none | The carried shard fixtures set private `ShardedPool` attributes |
-| `[04a-the-loader-accepts-a-fingerprinter-class]` | 04b | The fingerprinter loader accepts a class with the four methods, which then fails at `take` with a `TypeError` |
-| `[04b-retire-without-fingerprint-deletes-on-a-broken-fingerprinter]` | 04b | Under `--without-fingerprint`, a fingerprinter that cannot be loaded is recorded as the condition and the store is deleted |
 | `[00-a-refusal-matches-datastorekit-message-text]` | none | An unreadable store is recognised by matching DatastoreKit's message text |

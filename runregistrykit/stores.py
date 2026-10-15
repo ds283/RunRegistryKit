@@ -1530,6 +1530,10 @@ def retire_store(
        succeeds the call refuses, since the flag does not apply, and if it fails its error is kept
        verbatim. Under the flag only, a missing shard is left out of the files, planned and
        deleted with ``resume=True``. A `shards` table that cannot be read is refused even so.
+       On a first retirement the client's fingerprinter is loaded before the files are planned,
+       and a `ConfigError` from the load comes through as itself, under the flag or not, before
+       anything is written; the completion of an incomplete retirement takes no fingerprint and
+       loads none.
     4. **The references** (D5): the runs naming the store, and the sidecars under
        ``stores_root`` (default the client config's `stores_root`) that name it. None is ever rewritten.
     5. With ``dry_run``, it stops here, having written and deleted nothing.
@@ -1666,6 +1670,9 @@ def retire_store(
                 )
         new_fields = _copy.deepcopy(fields)
     else:
+        # the fingerprinter first: one that cannot be loaded is a refusal, never the reason a
+        # store cannot be fingerprinted
+        load_fingerprinter(client)
         resume = False
         try:
             planned = ShardedPool.closed_store_files(primary)

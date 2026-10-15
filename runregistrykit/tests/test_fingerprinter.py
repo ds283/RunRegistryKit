@@ -8,6 +8,7 @@ module a test writes into a client root has a name no other test uses, and the t
 """
 
 import ast
+import errno
 import importlib.util
 import json
 import os
@@ -15,6 +16,7 @@ import sys
 import unittest
 import uuid
 from pathlib import Path
+from unittest import mock
 
 from runregistrykit import stores
 from runregistrykit.client import CONFIG_FILE, ConfigError, find_client_root
@@ -238,6 +240,31 @@ class TestProtocolAndLoader(unittest.TestCase):
                 for fragment in fragments:
                     self.assertIn(fragment, message)
 
+    def test_a_class_is_refused_and_an_instance_of_it_loads(self):
+        """U14 (b): a class with the four methods passes the protocol's check, so the loader
+        refuses a class before it; the shipped class, and a client's own."""
+        name = a_module_name(self)
+        for spec in (
+            "runregistrykit.fingerprint:DatastoreKitFingerprinter",
+            f"{name}:Stub",
+        ):
+            with self.subTest(spec):
+                client = enter_client_root(self, config_naming(spec))
+                write_module(client, name, STUB)
+                with self.assertRaises(ConfigError) as refused:
+                    load_fingerprinter(find_client_root())
+                message = str(refused.exception)
+                self.assertIn(os.path.join(client, CONFIG_FILE), message)
+                self.assertIn(spec, message)
+                self.assertIn("is the class", message)
+                self.assertIn("not an instance of it", message)
+        # a precondition: each class passes the protocol's check, which is why it is refused first
+        self.assertIsInstance(DatastoreKitFingerprinter, Fingerprinter)
+        self.assertIsInstance(sys.modules[name].Stub, Fingerprinter)
+
+        enter_client_root(self, config_naming(f"{name}:STUB"))
+        self.assertIs(load_fingerprinter(find_client_root()), sys.modules[name].STUB)
+
     def test_the_config_refuses_a_bad_fingerprinter_or_another_key_when_read(self):
         accepted = ("a:b", "a.b.c:d.e", "_x:_y", NEUTRAL_SPEC)
         for spec in accepted:
@@ -409,6 +436,199 @@ class TestPrecedence(CommandLineTestCase):
             stores.fingerprint_store(gone, runs_root=self.root)
         self.assertNotIsInstance(refused.exception, ConfigError)
         self.assertIn("is a tombstone", str(refused.exception))
+
+
+class _RetireCase(CommandLineTestCase):
+    """A full four-shard store under a stores root of its own, with a registry sidecar and a
+    fingerprint recorded while the config named the neutral fingerprinter. `enter_config` then
+    makes a client root whose config names another fingerprinter, by default one that cannot be
+    loaded, the working directory.
+    """
+
+    REASON = "disposable: a test"
+
+    def setUp(self):
+        super().setUp()
+        self.stores_root = str(self.top / "datastores")
+        os.makedirs(self.stores_root)
+        self.primary = self.a_full_store("S")
+
+    def a_full_store(self, directory):
+        parent = Path(self.stores_root) / directory
+        parent.mkdir()
+        primary = build_full_store(parent, stem="store", shards=4).primary
+        stores.create_sidecar(primary, "a full store in a temporary directory")
+        stores.fingerprint_store(primary, write=True, runs_root=self.root)
+        return primary
+
+    def enter_config(self, spec=None):
+        """A config naming ``spec``, by default a module that exists nowhere: a fresh name, whose
+        cleanup restores `sys.path`, which the loader changes."""
+        self.spec = spec or f"{a_module_name(self)}:FINGERPRINTER"
+        if spec is not None:
+            a_module_name(self)  # for its cleanup alone
+        self.client = enter_client_root(self, config_naming(self.spec))
+        self.config = os.path.join(self.client, CONFIG_FILE)
+
+    def retire(self, primary=None, reason=REASON, **kwargs):
+        return stores.retire_store(
+            primary or self.primary,
+            reason,
+            runs_root=self.root,
+            stores_root=self.stores_root,
+            **kwargs,
+        )
+
+    def sidecar_bytes(self, primary=None):
+        return stores.sidecar_path(primary or self.primary).read_bytes()
+
+
+class TestRetireLoadsTheFingerprinterFirst(_RetireCase):
+    """U14 (a): on a first retirement a fingerprinter that cannot be loaded is a refusal, a
+    `ConfigError` as the loader raised it, before anything is written, with the flag or without;
+    never the `--without-fingerprint` condition. The store could be fingerprinted with the right
+    config."""
+
+    CASES = {
+        "a module that exists nowhere": (None, "ModuleNotFoundError"),
+        "the class": (
+            "runregistrykit.fingerprint:DatastoreKitFingerprinter",
+            "not an instance of it",
+        ),
+    }
+
+    def test_retire_store_raises_the_config_error_and_changes_nothing(self):
+        for label, (spec, fragment) in self.CASES.items():
+            self.enter_config(spec)
+            for kwargs in (
+                {},
+                {"without_fingerprint": True},
+                {"dry_run": True},
+                {"without_fingerprint": True, "dry_run": True},
+            ):
+                with self.subTest(label, **kwargs):
+                    before, sidecar = self.state(), self.sidecar_bytes()
+                    with self.assertRaises(ConfigError) as refused:
+                        self.retire(**kwargs)
+                    message = str(refused.exception)
+                    self.assertIn(self.config, message)
+                    self.assertIn(self.spec, message)
+                    self.assertIn(fragment, message)
+                    self.assertNotIn("a fresh fingerprint could not be taken", message)
+                    self.assertEqual(self.state(), before)
+                    self.assertEqual(self.sidecar_bytes(), sidecar)
+        self.assertTrue(stores.read_sidecar(self.primary).ok)
+
+    def test_store_retire_without_fingerprint_exits_1_naming_the_config_file(self):
+        for label, (spec, fragment) in self.CASES.items():
+            with self.subTest(label):
+                self.enter_config(spec)
+                before, sidecar = self.state(), self.sidecar_bytes()
+                report, _, err = self.command(
+                    "store",
+                    "retire",
+                    self.primary,
+                    "--reason",
+                    self.REASON,
+                    "--without-fingerprint",
+                    "--runs-root",
+                    self.root,
+                    "--stores-root",
+                    self.stores_root,
+                )
+                self.assertEqual(report["code"], 1, err)
+                self.assertIn("!!", err)
+                self.assertIn(self.config, err)
+                self.assertIn(self.spec, err)
+                self.assertIn(fragment, err)
+                self.assertEqual(self.state(), before)
+                self.assertEqual(self.sidecar_bytes(), sidecar)
+
+
+class TestRetirePrecedence(_RetireCase):
+    """Where `retire_store` loads the fingerprinter: after the reason and sidecar refusals and the
+    in-use refusal, before the plan of the files, and not on the completion of an incomplete
+    retirement, which takes no fingerprint. A config naming a module that exists nowhere.
+    """
+
+    FLAGS = (False, True)
+
+    def assertRefusedNotForTheConfig(self, *fragments, **kwargs):
+        before = self.state()
+        with self.assertRaises(RuntimeError) as refused:
+            self.retire(**kwargs)
+        self.assertNotIsInstance(refused.exception, ConfigError)
+        message = str(refused.exception)
+        self.assertNotIn(self.spec, message)
+        self.assertTrue(message.endswith("Nothing was written or deleted"), message)
+        self.assertNamesAndNothingChanged(before, refused.exception, *fragments)
+
+    def test_the_reason_comes_first(self):
+        self.enter_config()
+        for flag in self.FLAGS:
+            with self.subTest(without_fingerprint=flag):
+                self.assertRefusedNotForTheConfig(
+                    "a reason is required", reason="  ", without_fingerprint=flag
+                )
+
+    def test_a_running_run_comes_first(self):
+        run = self.a_running_run("in-use", self.primary)
+        self.enter_config()
+        for flag in self.FLAGS:
+            with self.subTest(without_fingerprint=flag):
+                self.assertRefusedNotForTheConfig(run.id, without_fingerprint=flag)
+        run.finish("killed")
+
+    def test_a_completed_tombstone_comes_first(self):
+        self.retire()
+        self.enter_config()
+        for flag in self.FLAGS:
+            with self.subTest(without_fingerprint=flag):
+                self.assertRefusedNotForTheConfig(
+                    "already retired", without_fingerprint=flag
+                )
+
+    def test_the_fingerprinter_comes_before_the_plan(self):
+        """A `-wal` beside the primary, which the plan refuses: the load comes first."""
+        Path(str(self.primary) + "-wal").write_bytes(b"")
+        self.enter_config()
+        for flag in self.FLAGS:
+            with self.subTest(without_fingerprint=flag):
+                before = self.state()
+                with self.assertRaises(ConfigError) as refused:
+                    self.retire(without_fingerprint=flag)
+                self.assertIn(self.spec, str(refused.exception))
+                self.assertNotIn("-wal", str(refused.exception))
+                self.assertEqual(self.state(), before)
+
+    def test_a_completion_loads_no_fingerprinter(self):
+        """An incomplete retirement made under the neutral fingerprinter completes under the
+        broken config, with the flag and without, deleting what remained."""
+        for flag in self.FLAGS:
+            with self.subTest(without_fingerprint=flag):
+                self.enter_config(NEUTRAL_SPEC)
+                primary = self.a_full_store(f"I{flag}")
+                real, calls = os.unlink, []
+
+                def second_fails(path, *args, **kwargs):
+                    calls.append(path)
+                    if len(calls) == 2:
+                        raise OSError(errno.EIO, "injected failure", str(path))
+                    return real(path, *args, **kwargs)
+
+                with mock.patch("os.unlink", second_fails):
+                    with self.assertRaises(RuntimeError):
+                        self.retire(primary)
+                self.assertIsNotNone(stores.read_sidecar(primary).incomplete_retirement)
+
+                self.enter_config()
+                result = self.retire(primary, without_fingerprint=flag)
+                self.assertTrue(result["completing"])
+                self.assertEqual(len(result["deleted"]), 4)
+                reading = stores.read_sidecar(primary)
+                self.assertTrue(reading.retired)
+                self.assertEqual(reading.problems, [])
+                self.assertEqual(os.listdir(primary.parent), ["store.manifest.json"])
 
 
 class TestOpacity(StoreTestCase):

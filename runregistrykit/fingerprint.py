@@ -37,10 +37,11 @@ a dotted module path, one colon and a dotted attribute path (`runregistrykit.cli
 form when it reads the file). `load_fingerprinter` puts the directory whose config governs
 (`ClientRoot.found`) first on `sys.path` if it is not already there, as running a script from the
 client's root does, and leaves it there; imports the module; resolves the attribute; and checks
-that the object is a `Fingerprinter`. `require_fingerprinter` checks only that the config names
-one, and imports nothing: every store operation makes that check before it reads, writes or
-deletes anything (no degraded mode without one), and only what takes, compares, describes or lists
-a fingerprint imports it.
+that the object is a `Fingerprinter` and not a class (a class with the four methods passes the
+protocol's check; the config names an instance). `require_fingerprinter` checks only that the
+config names one, and imports nothing: every store operation makes that check before it reads,
+writes or deletes anything (no degraded mode without one), and only what takes, compares,
+describes or lists a fingerprint imports it.
 
 This module imports only the standard library and the package at module scope; DatastoreKit is
 imported inside `DatastoreKitFingerprinter`'s methods, so that importing it loads none of `ray`,
@@ -184,6 +185,13 @@ def load_fingerprinter(client) -> Fingerprinter:
                 f"{where}: {module_name} has no attribute {attribute!r} (no {part!r})"
             ) from None
 
+    # before the protocol check, which a class with the four methods passes
+    if isinstance(found, type):
+        raise ConfigError(
+            f"{where} is the class {found.__qualname__}, not an instance of it: name an "
+            f"instance, made in a module of the client's (for DatastoreKitFingerprinter, one "
+            f"made with the client's registry and its format number)"
+        )
     if not isinstance(found, Fingerprinter):
         raise ConfigError(
             f"{where} is {found!r}, which is not a Fingerprinter: it needs the methods take, "

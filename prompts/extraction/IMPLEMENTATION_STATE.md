@@ -1,8 +1,8 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 5 of 9 prompts written (01–03, 04a, 04b), 4 landed and
-reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
-`c81ad06`, suite 186).** G1 holds
+**Last updated:** 2026-10-15 · **Status: LIVE — 5 of 9 prompts written (01–03, 04a, 04b), 5 landed,
+4 of them reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
+`c81ad06`, suite 186; 04b, landed in this commit, suite 245, not yet reviewed).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -56,7 +56,7 @@ U6, U7 and U8 for 04, and U14 on 2026-10-15 for 04b, as recommended (README §6.
 | 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed and reviewed** 2026-10-14 ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | `8155445` | 3 → 108 |
 | 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | `035e4b5` | 108 → 135 |
 | 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | `c81ad06` | 135 → 186 |
-| 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | written 2026-10-15 | — | — |
+| 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | this commit | 186 → 245 |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
@@ -403,8 +403,8 @@ prompt's rule.
 | **F1** | 04a | the fingerprinter protocol and the shipped fingerprinter; layer C and the format deleted (C6, C7) | ✅ 2026-10-15: `runregistrykit/fingerprint.py` (`Fingerprinter`, `DatastoreKitFingerprinter`, `load_fingerprinter`, `require_fingerprinter`); `[stores] fingerprinter` checked by form at read; every store operation and `store` command refused without one (D4), the check importing nothing; layer C, `FINGERPRINT_FORMAT`, `hashlib` and `Counter` gone from `stores.py`; `fingerprint_store`'s order, refusals and writes kept; (m3)–(m7), (m10), (m11) caught |
 | **F2** | 04a | what the package reads of a fingerprint (U7) | ✅ 2026-10-15: the reader requires an integer format, a 64-hex digest, an object `taken`, and an integer `encoding_format` only if present; `classes` not read; the CLI prints the rest through `describe`; (m1), (m2) caught |
 | **T2a** | 04a | the neutral store; `test_store_fingerprint`'s 27 and `TestFormats`' 2 ported | ✅ 2026-10-15: `runregistrykit/tests/neutral_store.py` on ten public `datastorekit` names; the 29 ported (SGK's ids less `TestGolden` 3 and `TestDrivers` 1), the port script's output differing from the committed file by the shims, the F-client lines and the two U7 variants only; `test_fingerprinter.py`, 22 tests; the suite 186 |
-| **T2b** | 04b | the retire tests' 51 ported onto the neutral store | ⬜ |
-| **F3** | 04b | U14: `store retire` loads the fingerprinter before it fingerprints; the loader refuses a class | ⬜ |
+| **T2b** | 04b | the retire tests' 51 ported onto the neutral store | ✅ 2026-10-15: `test_store_retire` 41 and `test_store_retire_references` 10, SGK's ids by class; the port script's output differing from the committed files by the `compare_fingerprints` shim only; D-name 18, D-fix 1, N-fix 3, N-class 1, R-root 30, R-cwd 3, D-fmt 13 hunks; no F-client; `test_an_unreadable_shards_table` reaches the DatastoreKit text match, (m1) fails it; (m2), (m3), (m7) caught; the suite 245 |
+| **F3** | 04b | U14: `store retire` loads the fingerprinter before it fingerprints; the loader refuses a class | ✅ 2026-10-15: `retire_store` loads the fingerprinter on a first retirement after steps 1 and 2 and before the plan, its `ConfigError` unwrapped and nothing written, under the flag or not, in a dry run and from the command; the completion path loads none; `load_fingerprinter` refuses a class before its protocol check; 8 tests in `test_fingerprinter.py`; (m4)–(m6), (m8)–(m10) caught |
 | **P1** | 05 | the prose, the output and the README's rules (C8) | ⬜ |
 | **P2** | 05 | the no-client guard | ⬜ |
 | **V1** | 06 | versions, CI, `v0.1.0` | ⬜ |
@@ -428,13 +428,13 @@ prompt's rule.
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
 opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
-04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six. Line numbers are SGK's until 01 imports the code; 01 records
+04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four. Line numbers are SGK's until 01 imports the code; 01 records
 each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
 replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
 in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
 ported tests, read in `runregistrykit/tests/`. **From 03 the three modules' lines are no longer
 SGK's**: each issue's *Package lines (03, …)* gives them at 03's commit, and *Package lines (04a,
-…)* at 04a's, read in the package.
+…)* at 04a's, and *Package lines (04b, …)* at 04b's, read in the package.
 
 ### `[00-package-prose-names-sgk]`
 
@@ -472,6 +472,15 @@ deleted with `FINGERPRINT_FORMAT`. 04a's rewritten fingerprint paragraph and sec
 the citation "(store-fingerprint prompt 04)" (`:109`, `:1181`). The CLI text "the store's own text
 is in `main.py --inventory`" moved, unchanged, from `__main__.py:288` into
 `DatastoreKitFingerprinter.describe`, `runregistrykit/fingerprint.py:128`.
+
+*Package lines (04b, 2026-10-15), read in the package.* `__init__.py` is unchanged. In
+`runregistrykit/stores.py`, 04b added seven lines inside `retire_store` (`:1533-1536`, `:1673-1675`),
+so the C8 lines before them are 04a's (`:104`, `:1410`, `:1420`; "(prompt 01's log)" `:1365`; the
+citations `:109`, `:1181`) and 04a's `:1841` is now `:1848`. The CLI text is now
+`runregistrykit/fingerprint.py:129` (04b added a docstring line above it). 04b's own prose names
+nothing of SGK. Two docstrings 05 rewrites are 04b's observations: `load_fingerprinter`'s list of
+refusals does not name the class refusal, and the loader's `ConfigError` in `retire_store` does not
+end "Nothing was written or deleted" as the docstring says every refusal does.
 
 ### `[00-the-shard-fixtures-reach-into-shardedpool]`
 
@@ -511,6 +520,13 @@ their lines as 03's. The neutral store, `runregistrykit/tests/neutral_store.py`,
 fixture beside the carried one, not a replacement for it, since its primary is not one the
 constructor reopens. The issue stays open, owner none.
 
+*Package lines (04b, 2026-10-15).* `shard_store_fixtures.py` and `store_fixtures.py` are unchanged,
+their lines as 03's. The ported `runregistrykit/tests/test_store_retire.py` imports
+`stored_records`, `tree_state` and `write_new_store` from the carried fixture (`:49-53`), and calls
+`write_new_store` (which sets `_shard_db_files` and calls `_create_engine` and `_write_shard_data`)
+at `:956`, in `TestNeverReused.test_a_store_written_at_the_retired_name`; its full stores are the
+neutral store's. The issue stays open, owner none.
+
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
 **Opened:** 2026-10-14, at planning. **Owner:** none.
@@ -545,6 +561,20 @@ in `retire_store`. Still reached by no test.
 *Package lines (04a, 2026-10-15), read in the package.* `_SHARDS_TABLE_UNREADABLE`
 `runregistrykit/stores.py:1365-1366` (the comment and the assignment), used at `:1626` and `:1673`,
 in `retire_store`. Still reached by no test; its test is 04b's.
+
+**Narrowed (2026-10-15, by 04b, this commit):** a test now reaches the match.
+`runregistrykit/tests/test_store_retire.py` `TestWithoutFingerprint.test_an_unreadable_shards_table`
+(`:797`), ported unchanged, drops a full store's `shards` table and asserts, with
+`without_fingerprint` true and false, the refusal naming "its shards table could not be read",
+"refused even under --without-fingerprint" and "only by a person, outside the registry", texts only
+the match produces. 04b's (m1), `_SHARDS_TABLE_UNREADABLE` reworded as a DatastoreKit rewording
+would leave it, fails both subtests. The issue stays open, owner none: the test shows a rewording,
+it does not prevent one, and the remedy, a typed exception, is a request to DatastoreKit (README
+§8). The test runs at whichever ends CI tests (06, U13).
+
+*Package lines (04b, 2026-10-15), read in the package.* `_SHARDS_TABLE_UNREADABLE`
+`runregistrykit/stores.py:1365-1366` (the comment and the assignment), used at `:1630` and `:1680`,
+in `retire_store`.
 
 ### `[02-the-ported-tests-name-sgk]`
 
@@ -601,33 +631,24 @@ name. Its docstring's first line names `runregistrykit.stores.fingerprint_of`, w
 longer has (SGK's text under D-name). `neutral_store.py` and `test_fingerprinter.py` name nothing of
 SGK.
 
-### `[04a-the-loader-accepts-a-fingerprinter-class]`
+*Package lines (04b, 2026-10-15).* The files 04a recorded are unchanged but
+`test_fingerprinter.py`, whose eight new tests name nothing of SGK. The port adds, in
+`runregistrykit/tests/test_store_retire.py`: the citations "store-retirement prompt 03" `:1`, "the
+log's interruption table" `:11` and `:528` (SGK's campaign log), SGK's store-retirement decisions
+"D4" and "D6" (`:2`, `:12`, `:14`, `:713`, `:756`, `:883`), "the 2026-09-23 failure" `:345` (an SGK
+incident); "real multi-shard fixture stores" `:18`, whose module path N-fix made
+`runregistrykit.tests.neutral_store`; the constant name `QSI` `:64`, SGK's abbreviation, bound to
+the neutral store's `Integral`; `sweep_shaped` `:38`, used at `:404`. In
+`runregistrykit/tests/test_store_retire_references.py`: "a3-v2-readiness prompt 06" and
+`[10-store-retire-reports-every-tombstone-as-a-reference]` `:1-2`, "the live A3 backup" `:8` and
+`:136`. None is changed under README §5 rule 9.
 
-**Opened:** 2026-10-15, by the orchestrator's review of 04a. **Owner:** 04b.
-
-**Assigned (2026-10-15):** to 04b by U14 (a), taken by the user at 04b's writing: the class it lets
-through also lets `store retire --without-fingerprint` delete a store that can be fingerprinted
-(`[04b-retire-without-fingerprint-deletes-on-a-broken-fingerprinter]`), so the two are fixed
-together (04b §2.4).
-
-`load_fingerprinter` (`runregistrykit/fingerprint.py:158-192`) refuses an object that is not a
-`Fingerprinter` by `isinstance` against the runtime-checkable protocol (`:187`), as the prompt's §2.2
-asks. A runtime-checkable protocol checks only that the four attributes exist, and a **class**
-defining the four methods has them. So a config naming `module:DatastoreKitFingerprinter`, the class
-rather than an instance of it, loads (probed by the review).
-
-*Impact.* It is the likeliest slip a client makes in its config. The store layer then fails at the
-first fingerprint, with `TypeError: DatastoreKitFingerprinter.take() missing 1 required positional
-argument: 'taken'`, which `Run.finish(…, fingerprint=True)` records as `fingerprint_error` and `store
-fingerprint` and `store retire` raise, instead of a `ConfigError` naming the config file and the spec
-at load. Nothing is written wrongly; the message misleads.
-
-*Next step.* Refuse a class in the loader (`isinstance(found, type)`) with a `ConfigError` saying
-to name an instance, and a test that fails without it. It changes no record. 04b §2.4.
+## 4. Resolved issues
 
 ### `[04b-retire-without-fingerprint-deletes-on-a-broken-fingerprinter]`
 
-**Opened:** 2026-10-15, at 04b's writing. **Owner:** 04b.
+**Opened:** 2026-10-15, at 04b's writing. **Owner:** 04b. **Closed:** 2026-10-15, by 04b (this
+commit).
 
 **Assigned (2026-10-15):** to 04b by U14 (a), taken by the user: 04b's §2.3 loads the fingerprinter
 before a first retirement plans or fingerprints, beside the port of the retire tests that exercise
@@ -652,7 +673,58 @@ release.
 `ConfigError` unwrapped and nothing written; tests with an unimportable module and with the class,
 each through the function and the command; (m4) and (m5) of 04b §3.5.
 
-## 4. Resolved issues
+*Resolved (04b, 2026-10-15, this commit).* `retire_store` loads the client's fingerprinter on a
+first retirement (`load_fingerprinter(client)`, `runregistrykit/stores.py:1675`) after the reason,
+sidecar and in-use refusals and before `ShardedPool.closed_store_files` and either fingerprint
+branch; a `ConfigError` from it comes through as the loader raised it, before anything is written,
+with `without_fingerprint` or not and in a dry run, and `store retire` prints it with `!!` and exits
+1. The completion of an incomplete retirement takes no fingerprint and loads none. The flag still
+records, verbatim, a failure of the fingerprint itself, since the load has just succeeded when
+`fingerprint_store` loads again. The docstring's step 3 says so. Pinned by
+`test_fingerprinter.TestRetireLoadsTheFingerprinterFirst` (a module that exists nowhere and the class
+`DatastoreKitFingerprinter`; `retire_store` with no flag, the flag, a dry run and both, and the
+command, each a `ConfigError` naming the file and the spec, the tree and the sidecar's bytes
+unchanged) and `TestRetirePrecedence` (the reason, a running run and a completed tombstone refused
+first, the load before the plan, the completion loading none); 04b's (m4), (m5) and (m8)–(m10) each
+fail them. The ported `TestWithoutFingerprint` (a corrupt shard, a missing shard, a journal) passes
+unchanged with the neutral fingerprinter. No record changes form.
+
+### `[04a-the-loader-accepts-a-fingerprinter-class]`
+
+**Opened:** 2026-10-15, by the orchestrator's review of 04a. **Owner:** 04b. **Closed:**
+2026-10-15, by 04b (this commit).
+
+**Assigned (2026-10-15):** to 04b by U14 (a), taken by the user at 04b's writing: the class it lets
+through also lets `store retire --without-fingerprint` delete a store that can be fingerprinted
+(`[04b-retire-without-fingerprint-deletes-on-a-broken-fingerprinter]`), so the two are fixed
+together (04b §2.4).
+
+`load_fingerprinter` (`runregistrykit/fingerprint.py:158-192`) refuses an object that is not a
+`Fingerprinter` by `isinstance` against the runtime-checkable protocol (`:187`), as the prompt's §2.2
+asks. A runtime-checkable protocol checks only that the four attributes exist, and a **class**
+defining the four methods has them. So a config naming `module:DatastoreKitFingerprinter`, the class
+rather than an instance of it, loads (probed by the review).
+
+*Impact.* It is the likeliest slip a client makes in its config. The store layer then fails at the
+first fingerprint, with `TypeError: DatastoreKitFingerprinter.take() missing 1 required positional
+argument: 'taken'`, which `Run.finish(…, fingerprint=True)` records as `fingerprint_error` and `store
+fingerprint` and `store retire` raise, instead of a `ConfigError` naming the config file and the spec
+at load. Nothing is written wrongly; the message misleads.
+
+*Next step.* Refuse a class in the loader (`isinstance(found, type)`) with a `ConfigError` saying
+to name an instance, and a test that fails without it. It changes no record. 04b §2.4.
+
+*Resolved (04b, 2026-10-15, this commit).* `load_fingerprinter` refuses an object that is a class
+(`isinstance(found, type)`), before its `Fingerprinter` check, which a class with the four methods
+passes (`runregistrykit/fingerprint.py:188-194`): a `ConfigError` naming the config file and the
+spec, saying the object is the class and not an instance of it, and to name an instance (for
+`DatastoreKitFingerprinter`, one made with the client's registry and its format number). The module
+docstring's sentence on the loader says so. Pinned by
+`test_fingerprinter.TestProtocolAndLoader.test_a_class_is_refused_and_an_instance_of_it_loads` (the
+shipped class and a client's own class with the four methods, each refused naming the file and the
+spec, each passing the protocol's check, and an instance of the client's class loading) and by the
+class cases of `TestRetireLoadsTheFingerprinterFirst`; 04b's (m6), the refusal removed, fails them.
+No record changes.
 
 ### `[00-the-fingerprint-reads-a-clients-registry]`
 

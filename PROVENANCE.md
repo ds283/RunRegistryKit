@@ -39,8 +39,8 @@ it.
 | `RunRegistry/tests/test_store_command_line.py` | `6f111e29e9b695340a88bf19eb18a50e89a9ea05` | ported by 02 | `runregistrykit/tests/`, same name |
 | `RunRegistry/tests/test_store_amend.py` | `8b7db110f76ae74bfb4716fe12d7192bac38265e` | ported by 02 | `runregistrykit/tests/`, same name |
 | `RunRegistry/tests/test_store_amend_residuals.py` | `0c6e6a2ca5d59b74dcb960111a5cd05ed2d991f4` | ported by 02 | `runregistrykit/tests/`, same name |
-| `RunRegistry/tests/test_store_retire.py` | `3cf05cc02d6b00849a4eff4972ccbedd0a4fa51d` | ported by 04 | `runregistrykit/tests/`, same name |
-| `RunRegistry/tests/test_store_retire_references.py` | `9a3264a7f5977311161f724651b4e1d27cfa0866` | ported by 04 | `runregistrykit/tests/`, same name |
+| `RunRegistry/tests/test_store_retire.py` | `3cf05cc02d6b00849a4eff4972ccbedd0a4fa51d` | ported by 04b, onto the neutral store | `runregistrykit/tests/`, same name |
+| `RunRegistry/tests/test_store_retire_references.py` | `9a3264a7f5977311161f724651b4e1d27cfa0866` | ported by 04b, onto the neutral store | `runregistrykit/tests/`, same name |
 | `RunRegistry/tests/test_store_fingerprint.py` | `5039b4792210c1227230ec09b48da641b6f62e9f` | ported by 04a, onto the neutral store, less `TestGolden` and `TestDrivers`, which stay in SGK | `runregistrykit/tests/`, same name |
 | `RunRegistry/tests/test_build_rehearsal_scope.py` | `8b3c8519d3956b97cce84ea8224c621f37d88cd0` | not imported: SGK's | — |
 | `RunRegistry/tests/test_killed_handler.py` | `213f2a8d7d017f845b85ea209f8e87886539988b` | not imported: SGK's | — |
@@ -236,3 +236,24 @@ Each prompt's changes, from 03 on:
   `test_the_stores_table_is_accepted_and_kept` is renamed
   `test_the_fingerprinter_is_kept_and_another_stores_key_refused`, and one test's config names the
   neutral fingerprinter.
+
+**Prompt 04b, the retire tests** (`prompts/extraction/04b-the-retire-tests.md`, this commit):
+
+- **The tests.** SGK's `test_store_retire` (41 tests) and `test_store_retire_references` (10) are
+  ported onto the neutral store, each keeping its module, class and method name and what it
+  asserts: the package's name, the fixtures' new homes, the neutral registry and class name
+  (`QSI = "Integral"`) in a constant only, the test's client root for SGK's `REPO_ROOT` (in the
+  `_repo_path` calls, the paths computed against it, and the child process's working directory and
+  path), and `black`; `compare_fingerprints`, which `runregistrykit.stores` no longer has, is a shim
+  in the test module, the neutral fingerprinter's `compare`. With them every SGK test this
+  campaign imports is ported, and the one test that reaches the store layer's match on
+  DatastoreKit's message text, `TestWithoutFingerprint.test_an_unreadable_shards_table`, runs here.
+- **`store retire` loads the fingerprinter first.** On a first retirement `retire_store` loads the
+  client's fingerprinter after its reason, sidecar and in-use refusals and before it plans the
+  store's files, so a fingerprinter that cannot be loaded is a `ConfigError`, before anything is
+  written, with `--without-fingerprint` or not; the flag records only a failure of the fingerprint
+  itself. The completion of an incomplete retirement loads none. No record changes form.
+- **The loader refuses a class.** `load_fingerprinter` refuses a class (such as
+  `DatastoreKitFingerprinter` named in place of an instance of it), which a runtime-checkable
+  protocol's check would let through, as a `ConfigError` naming the config file and the spec.
+- `runregistrykit/tests/test_fingerprinter.py` gains eight tests of the two.
