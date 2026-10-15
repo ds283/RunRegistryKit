@@ -237,7 +237,7 @@ Each prompt's changes, from 03 on:
   `test_the_fingerprinter_is_kept_and_another_stores_key_refused`, and one test's config names the
   neutral fingerprinter.
 
-**Prompt 04b, the retire tests** (`prompts/extraction/04b-the-retire-tests.md`, this commit):
+**Prompt 04b, the retire tests** (`prompts/extraction/04b-the-retire-tests.md`, `5302a6f`):
 
 - **The tests.** SGK's `test_store_retire` (41 tests) and `test_store_retire_references` (10) are
   ported onto the neutral store, each keeping its module, class and method name and what it

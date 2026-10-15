@@ -1,8 +1,8 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 5 of 9 prompts written (01–03, 04a, 04b), 5 landed,
-4 of them reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
-`c81ad06`, suite 186; 04b, landed in this commit, suite 245, not yet reviewed).** G1 holds
+**Last updated:** 2026-10-15 · **Status: LIVE — 5 of 9 prompts written (01–03, 04a, 04b), 5 landed and
+reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
+`c81ad06`, suite 186; 04b, `5302a6f`, suite 245).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -56,7 +56,7 @@ U6, U7 and U8 for 04, and U14 on 2026-10-15 for 04b, as recommended (README §6.
 | 02 | [`02-port-the-core-and-shard-fixture-tests.md`](02-port-the-core-and-shard-fixture-tests.md) | Sonnet | **landed and reviewed** 2026-10-14 ([log](logs/02-port-the-core-and-shard-fixture-tests.md)) | `8155445` | 3 → 108 |
 | 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | `035e4b5` | 108 → 135 |
 | 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | `c81ad06` | 135 → 186 |
-| 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | this commit | 186 → 245 |
+| 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | `5302a6f` | 186 → 245 |
 | 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
@@ -68,7 +68,8 @@ The holds are for **method**, not scope: every charter is fixed in README §2.
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`91b7a60`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), used for 02;
 [`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`f02abc7`), used for 03;
-[`orchestrator/prompt-04a.md`](orchestrator/prompt-04a.md) (`9dc34a5`), used for 04a.
+[`orchestrator/prompt-04a.md`](orchestrator/prompt-04a.md) (`9dc34a5`), used for 04a;
+[`orchestrator/prompt-04b.md`](orchestrator/prompt-04b.md) (`5177ffa`), used for 04b.
 
 **Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
 with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
@@ -391,6 +392,95 @@ written…" as `retire_store`'s and `amend_sidecar`'s docstrings promise is pros
 (`[00-package-prose-names-sgk]`'s rewrite); the loader leaving each client root on `sys.path` is the
 prompt's rule.
 
+**Orchestrator review of prompt 04b (2026-10-15).** Dispatched from `5177ffa` to one Opus session,
+with the note's §0: its facts, ten corrections and readings of the prompt (the gate's diff read from
+`d035ffb`; the load in `retire_store` a check whose result nothing uses, and the CLI needing no
+change; the refusal order §2.3 states pinned by no test it asks for; the probe's "before"; the
+class refusal before the protocol check; the `IMPORTS` child; the trial port's counts; the suite's
+time; the SGK prose the port carries; `PROVENANCE.md`'s rows) and its one recommendation (a
+five-case precedence test for the load). Reviewed against its commit `5302a6f`, with nothing landed
+after it. **Every check of the note's §3 passed**, and acceptance 1–3 are met. No stop condition
+fired.
+
+*At dispatch.* The note's gate held at `5177ffa`, with the prompt's gate read from `d035ffb`
+(correction 1): the tree clean, this checkout the only worktree, no `var/`; the suite 186 OK in
+62.2 s. SGK at `14bcac0`, clean. No Ray process; `RAY_ADDRESS` unset. The orchestrator's trial port
+into an export of `d035ffb` gave 51 OK in 28.9 s, and the hazard U14 answers reproduced there (a
+store that could be fingerprinted retired under the flag, by a module that exists nowhere and by
+the class).
+
+*The checks.*
+1. **Scope.** `5302a6f` touches 10 files, the note's §0 list and the records. `git diff d035ffb
+   5302a6f` over `__init__.py`, `__main__.py`, `client.py`, `pyproject.toml`, `README.md`, `LICENSE`,
+   `.gitignore`, `CLAUDE.md`, `docs/extraction/`, `tests/__init__.py`, the fixtures, every 02, 03 and
+   04a test file but `test_fingerprinter.py`, the campaign README and the prompt is empty; `git
+   ls-files runregistrykit` is 04a's twenty and the two new modules. `stores.py` changes in
+   `retire_store` only (the load and its comment, one docstring sentence), `fingerprint.py` in
+   `load_fingerprinter`'s class refusal and the module docstring's sentence only.
+2. **By reading.** `load_fingerprinter(client)` sits at the head of the first-retirement branch
+   (`stores.py:1675`), after steps 1 and 2 and before `closed_store_files`, outside every `try`; the
+   completion branch does not reach it; no refusal's text changes; the flag branch still records
+   `str(e)` and `type(e).__name__` of whatever `fingerprint_store` raises. The class refusal
+   (`fingerprint.py:188-194`) is a `ConfigError` naming the file and the spec and saying to name an
+   instance. The eight new tests are those the log lists, the precedence test's five cases among
+   them.
+3. **The port, independently.** The orchestrator's own re-port of SGK's two modules from `a45aefc`
+   (D-name, D-fix, N-fix, N-class, R-root, R-cwd, `black`; the dispatch script) differs from the
+   committed files only by the shim block's place and its comment's wording; the references module
+   is identical. Its counts are the log's. The loader's ids are SGK's 51, by class as §3.3 counts.
+4. **By probing**, in a scratch client in an export of `5302a6f`, a full neutral store with a
+   registry sidecar and a recorded fingerprint: with the config naming a module that exists nowhere,
+   and then the class `DatastoreKitFingerprinter`, `retire_store` plain, with the flag, in a dry run
+   and with both each raised the loader's `ConfigError`, unwrapped, and `store retire
+   --without-fingerprint` exited 1 with `!!` naming the config file and the spec; the six files hashed
+   the same after every call. An empty reason was refused first; a `-wal` beside the primary gave
+   the `ConfigError`, not the plan's refusal; a retirement interrupted at the second `os.unlink`
+   under the neutral config completed under the broken one, deleting the four files left. Under the
+   neutral fingerprinter the flag still applies: a corrupt shard is retired with the reader's error
+   recorded, a `-wal` is refused, and a dropped `shards` table is refused "even under
+   --without-fingerprint".
+5. **The suite.** `Ran 245 tests in 92.4s`, OK; the per-module counts the log's. `git status
+   --short --ignored` the same before and after; no `var/`; this checkout the only worktree; no Ray
+   process. §3.4's grep finds `test_package_imports.py:32` alone; `black --check runregistrykit
+   docs`: 23 files unchanged.
+6. **The issues.** The two closed in §4 with what resolved them and the tests that pin them; their
+   rows gone from the index. `[00-a-refusal-matches-datastorekit-message-text]` narrowed, owner
+   none, its row kept; `[02-the-ported-tests-name-sgk]` gains the port's lines. The package lines
+   spot-checked at `5302a6f` (`stores.py:1365-1366, 1630, 1675, 1680, 1848`; `fingerprint.py:129,
+   188-194`; `test_store_retire.py:64, 404, 797, 956`).
+7. **The mutations.** (m1)–(m10) extracted from the log and replayed in `bash` (`--check`, apply,
+   `-R --check`, the suite, reverse), each failing the tests the log names with the counts it
+   records, the tree clean after each. (m8)–(m10) are the note's (o1)–(o3). The orchestrator's own:
+   (o5) the load removed and the flag branch re-raising a `ConfigError` fails six subtests of
+   `TestRetireLoadsTheFingerprinterFirst` and `test_the_fingerprinter_comes_before_the_plan`; (o6) a
+   load failure turned into the flag's condition fails both `TestRetireLoadsTheFingerprinterFirst`
+   tests and the precedence test's plan case; (o7) the stores root compared by text fails
+   `test_through_a_stores_root_that_is_a_symlink`. (o4), the class refusal moved after the protocol
+   check, **passes**, and rightly: a class passes the protocol check, so it reaches the refusal
+   either way, and the two orders behave alike. The note's correction 5 ("or it never fires") was
+   wrong; the agent built the order it asked for, which is harmless.
+8. **The records.** The log has every section of README §5.1, the port script's summary and diff,
+   every instance accounted for, 186 → 245 with the per-module counts and the times, all ten diffs,
+   and 17 deviations, each classified (5 STRUCTURALLY REQUIRED, 9 IMPLEMENTATION CHOICE, 3 as found;
+   no UNINTENDED DRIFT). `PROVENANCE.md`, the index (4, by counting) and `prompts/INDEX.md` as the
+   prompt's §4.3.
+9. **The interface.** No record changes form: the diff touches no writer; the probe's tombstones
+   carry the ten keys and a `fingerprint` condition of `condition` with `digest` or with `error` and
+   `error_type`, as at `d035ffb`.
+10. **The handover.** The log's last section says every test README §4 imports is ported, the suite
+    is 245 in about 90 s, and lists the SGK prose and the two docstrings 05 rewrites.
+
+*Residue fixed in the follow-up.* "this commit" → `5302a6f` on this board, in the log, in
+`prompts/INDEX.md` and in `PROVENANCE.md`; 04b marked reviewed here, in README §2 and its header, and
+in `prompts/INDEX.md`; this paragraph and the notes line.
+
+*Accepted as recorded.* The log's observations need no issue: `load_fingerprinter`'s docstring not
+naming the class refusal, and the loader's `ConfigError` not ending "Nothing was written or deleted"
+as `retire_store`'s docstring says every refusal does, are prose for 05
+(`[00-package-prose-names-sgk]`, where the board now records both); `Run.finish` recording the
+loader's `ConfigError` for a class, where it recorded `take`'s `TypeError`, is the intended effect of
+§2.4; the ported SGK prose is rule 9's and 05's. **Nothing opened**; the index stays at 4.
+
 ### 1.1 Items
 
 | Item | Prompt | What | State |
@@ -562,7 +652,7 @@ in `retire_store`. Still reached by no test.
 `runregistrykit/stores.py:1365-1366` (the comment and the assignment), used at `:1626` and `:1673`,
 in `retire_store`. Still reached by no test; its test is 04b's.
 
-**Narrowed (2026-10-15, by 04b, this commit):** a test now reaches the match.
+**Narrowed (2026-10-15, by 04b, `5302a6f`):** a test now reaches the match.
 `runregistrykit/tests/test_store_retire.py` `TestWithoutFingerprint.test_an_unreadable_shards_table`
 (`:797`), ported unchanged, drops a full store's `shards` table and asserts, with
 `without_fingerprint` true and false, the refusal naming "its shards table could not be read",
@@ -647,8 +737,8 @@ the neutral store's `Integral`; `sweep_shaped` `:38`, used at `:404`. In
 
 ### `[04b-retire-without-fingerprint-deletes-on-a-broken-fingerprinter]`
 
-**Opened:** 2026-10-15, at 04b's writing. **Owner:** 04b. **Closed:** 2026-10-15, by 04b (this
-commit).
+**Opened:** 2026-10-15, at 04b's writing. **Owner:** 04b. **Closed:** 2026-10-15, by 04b
+(`5302a6f`).
 
 **Assigned (2026-10-15):** to 04b by U14 (a), taken by the user: 04b's §2.3 loads the fingerprinter
 before a first retirement plans or fingerprints, beside the port of the retire tests that exercise
@@ -673,7 +763,7 @@ release.
 `ConfigError` unwrapped and nothing written; tests with an unimportable module and with the class,
 each through the function and the command; (m4) and (m5) of 04b §3.5.
 
-*Resolved (04b, 2026-10-15, this commit).* `retire_store` loads the client's fingerprinter on a
+*Resolved (04b, 2026-10-15, `5302a6f`).* `retire_store` loads the client's fingerprinter on a
 first retirement (`load_fingerprinter(client)`, `runregistrykit/stores.py:1675`) after the reason,
 sidecar and in-use refusals and before `ShardedPool.closed_store_files` and either fingerprint
 branch; a `ConfigError` from it comes through as the loader raised it, before anything is written,
@@ -692,7 +782,7 @@ unchanged with the neutral fingerprinter. No record changes form.
 ### `[04a-the-loader-accepts-a-fingerprinter-class]`
 
 **Opened:** 2026-10-15, by the orchestrator's review of 04a. **Owner:** 04b. **Closed:**
-2026-10-15, by 04b (this commit).
+2026-10-15, by 04b (`5302a6f`).
 
 **Assigned (2026-10-15):** to 04b by U14 (a), taken by the user at 04b's writing: the class it lets
 through also lets `store retire --without-fingerprint` delete a store that can be fingerprinted
@@ -714,7 +804,7 @@ at load. Nothing is written wrongly; the message misleads.
 *Next step.* Refuse a class in the loader (`isinstance(found, type)`) with a `ConfigError` saying
 to name an instance, and a test that fails without it. It changes no record. 04b §2.4.
 
-*Resolved (04b, 2026-10-15, this commit).* `load_fingerprinter` refuses an object that is a class
+*Resolved (04b, 2026-10-15, `5302a6f`).* `load_fingerprinter` refuses an object that is a class
 (`isinstance(found, type)`), before its `Fingerprinter` check, which a class with the four methods
 passes (`runregistrykit/fingerprint.py:188-194`): a `ConfigError` naming the config file and the
 spec, saying the object is the class and not an instance of it, and to name an instance (for

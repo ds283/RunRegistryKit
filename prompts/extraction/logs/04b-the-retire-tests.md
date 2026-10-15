@@ -1,7 +1,7 @@
 # Log — prompt 04b: the retire tests
 
 **Subject:** Port the retire tests and load the fingerprinter before a retirement
-**Commit:** this commit (on `main`, after `5177ffa`)
+**Commit:** `5302a6f` (on `main`, after `5177ffa`)
 **Date:** 2026-10-15
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and the orchestration
 note's §0 (`orchestrator-section-0.md`)
@@ -158,7 +158,7 @@ The note's ten corrections and readings are recorded as found (1–10); the rest
     the flag branch's `try`, before `fingerprint_store`. **IMPLEMENTATION CHOICE.**
 17. **The mutation diffs are taken against the index**: `stores.py` and `fingerprint.py` were staged
     once final, each mutation made by a checked replacement in the working file, `git diff` taken,
-    and the file written back; the index blobs (`526b64d`, `8bbcae4`) are this commit's.
+    and the file written back; the index blobs (`526b64d`, `8bbcae4`) are `5302a6f`'s.
     **IMPLEMENTATION CHOICE.**
 
 No UNINTENDED DRIFT. No ported test failed with only §2.2's changes, and none needed a change
@@ -196,7 +196,7 @@ root, in the foreground, output to a scratch file:
 `TestOpacity` 2, `TestThroughTheFingerprinter` 3, `TestNeutralStore` 3, `TestSidecarGuards` 2.
 
 **§3.2, nothing outside temporary directories.** `git status --short --ignored` the same before and
-after each run but for the changes of this commit (and after each mutation's run, `git status
+after each run but for the changes of `5302a6f` (and after each mutation's run, `git status
 --short` the same as before it); no `var/` at the root or under `runregistrykit/`; `git worktree
 list` this checkout alone; no Ray process before or after the suite or any mutation's run.
 `CommandLineTestCase.command` asserts that no CLI child initialised Ray.
@@ -300,7 +300,7 @@ Nothing pushed or tagged.
 
 ## The deliberate-breakage record
 
-Each diff below is exactly as applied, against this commit's `stores.py` (blob `526b64d`) and
+Each diff below is exactly as applied, against `5302a6f`'s `stores.py` (blob `526b64d`) and
 `fingerprint.py` (`8bbcae4`), made as deviation 17 says. A `bash` script, `agent04b/mut/replay.sh`,
 replayed each from its diff file: `git apply --check`, `git apply`, `git apply -R --check`, the suite
 (§3.1's command), `git apply -R`, and `git status --short` compared with the state before. All ten
@@ -578,7 +578,7 @@ prompt's rule, a ported line rule 9 keeps, or 05's prose.
 - **`_SHARDS_TABLE_UNREADABLE`** (`stores.py:1365-1366`, used at `:1630` and `:1680`) is reached by
   `test_store_retire.TestWithoutFingerprint.test_an_unreadable_shards_table`, which (m1) fails; the
   issue stays open, its remedy a request to DatastoreKit.
-- The board's §3 has four issues, their package lines at this commit recorded there;
+- The board's §3 has four issues, their package lines at `5302a6f` recorded there;
   `docs/OPEN_ISSUES.md` counts 4. The prose 05 rewrites includes the ported modules' SGK citations
   (deviation 9) and the two docstring observations above.
 - Not touched: `runregistrykit/__init__.py`, `__main__.py`, `client.py`, `pyproject.toml`,
