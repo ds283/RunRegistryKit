@@ -344,6 +344,26 @@ Each prompt's changes, from 03 on:
   docstring's paragraph "The known hits" says the list is empty and that a hit in any file fails
   its scan.
 
+**Prompt 06, supported versions, CI, and ready for `v0.1.0`**
+(`prompts/extraction/06-release-v0.1.0.md`, this commit):
+
+- **No file under `runregistrykit/` changed**: no module, no test and not the guard. The suite is
+  276 tests, as 05c left it.
+- **`pyproject.toml`.** The version is `0.1.0` (from `0.1.0.dev0`). The extra `[stores]` is
+  `datastorekit>=0.4.0`, by name and floor (it was `datastorekit`, unbounded), the floor being
+  DatastoreKit's fingerprint release; `requires-python = ">=3.12"` and `dependencies = []` are
+  unchanged. `runregistrykit.tests` and its subpackages are excluded from the distribution, so the
+  wheel holds the five package modules and no test.
+- **The workflow**, `.github/workflows/tests.yml`, new, with three jobs on `ubuntu-24.04`:
+  `suite (low)` (Python 3.12.15, Ray 2.43.0, SQLAlchemy 2.0.39) and `suite (high)` (3.13.16,
+  2.55.1, 2.0.46), each installing `datastorekit` from its tag `v0.4.0` with the package and
+  running the whole suite, the low one `black` besides; and `core` (3.12.15), with the package
+  alone, which checks that `datastorekit`, `ray` and `sqlalchemy` are absent, runs
+  `test_run_registry` and `test_public_names` by name, and runs a smoke of the imports and the
+  command line in a new temporary directory.
+- **`README.md`.** Its Status paragraph says what `v0.1.0` is, and it gains the sections
+  "Supported versions", "Installing", "Using it" and "Developing".
+
 ## Where the prose's citations pointed
 
 The package's docstrings and comments cited SGK's records. The citations are gone from the prose

@@ -1,0 +1,119 @@
+name: tests
+
+# The suite at both ends of the supported range, with datastorekit installed from its tag, and the
+# core alone, without the store layer's dependencies (README "Supported versions").
+# The checks under docs/extraction/ read the client repositories and run locally only.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# bash with -eo pipefail: a failed command, in a pipeline or not, fails its step
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  suite:
+    name: suite (${{ matrix.end }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - end: low
+            python: "3.12.15"
+            ray: "2.43.0"
+            sqlalchemy: "2.0.39"
+          - end: high
+            python: "3.13.16"
+            ray: "2.55.1"
+            sqlalchemy: "2.0.46"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install the package, editable, with datastorekit from its tag and the pins
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "datastorekit @ git+https://github.com/ds283/DatastoreKit@v0.4.0" -e ".[stores]" "ray==${{ matrix.ray }}" "sqlalchemy==${{ matrix.sqlalchemy }}"
+
+      - name: Versions
+        run: |
+          python -c "import sys, importlib.metadata as m; print('python', sys.version); [print(n, m.version(n)) for n in ('runregistrykit', 'datastorekit', 'ray', 'sqlalchemy')]"
+          git --version
+
+      - name: The suite
+        run: python -m unittest discover -s runregistrykit/tests -t .
+
+      - name: black
+        if: matrix.end == 'low'
+        run: |
+          python -m pip install black==25.1.0
+          black --check runregistrykit docs
+
+  core:
+    name: core (no store layer)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12.15"
+
+      - name: Install the package alone, editable
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+
+      - name: The store layer's dependencies are absent
+        run: |
+          python -I - <<'EOF'
+          import importlib.util, sys
+          found = [n for n in ("datastorekit", "ray", "sqlalchemy") if importlib.util.find_spec(n)]
+          if found:
+              sys.exit(f"installed, and the core job must run without them: {found}")
+          print("absent: datastorekit, ray, sqlalchemy")
+          EOF
+
+      - name: The core's tests, by name (the others need the store layer's dependencies)
+        run: python -m unittest runregistrykit.tests.test_run_registry runregistrykit.tests.test_public_names
+
+      - name: The smoke, in a new temporary directory
+        run: |
+          cd "$(mktemp -d)"
+          out="$(mktemp)"
+          python -I - <<'EOF'
+          import sys
+          import runregistrykit, runregistrykit.__main__, runregistrykit.client
+          import runregistrykit.fingerprint, runregistrykit.stores
+          loaded = sorted({"datastorekit", "ray", "sqlalchemy"} & set(sys.modules))
+          if loaded:
+              sys.exit(f"importing the package loaded {loaded}")
+          EOF
+          python -I -m runregistrykit --help > /dev/null
+          if python -I -m runregistrykit list > "$out" 2>&1; then
+            cat "$out"; echo "list succeeded with no runregistrykit.toml"; exit 1
+          fi
+          cat "$out"
+          grep -q "No runregistrykit.toml" "$out"
+          touch runregistrykit.toml
+          id="$(python -I - <<'EOF'
+          import runregistrykit
+          run = runregistrykit.begin(campaign="smoke", prompt="01", slug="ci", purpose="the core job's smoke")
+          run.finish("done", exit_code=0)
+          print(run.id)
+          EOF
+          )"
+          python -I -m runregistrykit list > "$out"
+          cat "$out"
+          grep -F "$id" "$out" | grep -q " done "

@@ -3,12 +3,14 @@
 **Last updated:** 2026-10-15 · **Status: LIVE — 9 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06), 8 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
-276; 05c, `a7d93d5`, suite 276).** G1 holds
+276; 05c, `a7d93d5`, suite 276), 06 landed, its review pending (this commit, suite 276).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
 U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the same day for
 05, U17 for 05b, and U13, U18 and U19 for 06, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
+**`v0.1.0` is ready to be tagged on 06's commit once CI passes there, all three jobs (`suite (low)`,
+`suite (high)`, `core`); no tag has been made, and nothing has been pushed** (README §5 rule 12).
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -66,7 +68,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05a-the-guard-and-the-public-names.md)) | `14af805` | 245 → 275 |
 | 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05b-the-package-prose-and-the-rules.md)) | `1120fb3` | 275 → 276 |
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05c-the-tests-own-names.md)) | `a7d93d5` | 276 → 276 |
-| 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | written 2026-10-15 | — | — |
+| 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | **landed** 2026-10-15, review pending ([log](logs/06-release-v0.1.0.md)) | this commit | 276 → 276 |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
 | 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
 
@@ -761,7 +763,7 @@ has it right. **Nothing else opened**; the index stays at 3.
 | **N1** | 05a | the public names (`slugify`, `__all__`) and the licence header (U11, U12) | ✅ 2026-10-15: `_slug` is `slugify` (no alias; `run_id` and `begin()` signatures unchanged); each of the five modules declares a sorted `__all__` (20, 26, 4, 4, 1 names) and begins with the 14-line Apache header; `test_public_names.py`, 8 tests |
 | **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ✅ 2026-10-15: the docstrings and comments of `__init__.py`, `stores.py` and `fingerprint.py` rewritten in the package's own terms, every reason and fact kept and no client, campaign, prompt, decision, issue tag or incident left (`known_hits.json` has no package-module entry in any scan; `ast` with docstrings removed equals `c735acf`'s but for the one constant); `describe`'s problems line points at `datastorekit.store_inventory.read_inventory`, one test; `load_fingerprinter`'s docstring names the class refusal, and `retire_store`'s and `amend_sidecar`'s say the config's `ConfigError`s are in the config's words (no message changed); the guard's citation pattern gains `Prompt NN`, a decision id and an issue tag (U17), which finds 18 more hits in 11 entries of the tests, listed for 05c; `README.md` gains "The rules" (six, each with its failure) and "The public names" (U11); `PROVENANCE.md` gains 05b's section and "Where the prose's citations pointed"; (m1)–(m8) caught |
 | **T3** | 05c | the tests' SGK names and prose renamed (U16) | ✅ 2026-10-15: sixteen names renamed (the prompt's thirteen and three more: `hand_written_shaped`, `script_written_shaped`, `TestHandWrittenShape`, eight test methods, `INTEGRAL_CLASS`, `SOLUTION_CLASS`, and the neutral store's `producer_serial`, `tagged_serial`, `log10_step`), each mapped in `PROVENANCE.md` with its test ids; the fixtures' client data neutral with the same shapes; `FORBIDDEN` read from the guard's `project_packages()` (22 names for 7); the docstrings and comments of 14 modules and fixtures in the package's terms; `known_hits.json` written by 05a's writer, **empty in every scan** (155 hits in 94 entries before), the guard's docstring paragraph saying so and nothing else of it changed; `ast` with docstrings removed equals `8766714`'s after the map, but for `FORBIDDEN`; the suite 276, per module the same; (m1)–(m6) caught |
-| **V1** | 06 | versions, CI, `v0.1.0` | ⬜ |
+| **V1** | 06 | versions, CI, `v0.1.0` | ✅ 2026-10-15 (the tag waits for CI): `pyproject.toml` at `0.1.0`, `[stores]` `datastorekit>=0.4.0` by name and floor, `runregistrykit.tests` excluded (U19), nothing else changed; the wheel `runregistrykit-0.1.0-py3-none-any.whl`, 54,940 bytes, 10 entries, no test, passes the release check in a 3.13.16 venv (the five modules from `site-packages`, nothing heavy loaded, `import runregistrykit.tests` a `ModuleNotFoundError`); `.github/workflows/tests.yml` with `suite (low)`, `suite (high)` and `core` (U13, U18), every `run:` step under `bash -eo pipefail`, replayed here step by step as GitHub runs it, all three passing, and each check of the core smoke shown able to fail; the suite 276 OK in `venv/` before and after the reinstall and in fresh low and high venvs, 37 OK in the core venv; the README's Status, "Supported versions", "Installing", "Using it" and "Developing", 90 statements checked against the code; the Installing form resolves against a scratch clone and refuses without the client's `datastorekit` line; (a)–(f) each fail as expected. **Not measured:** Linux, until CI runs on the push |
 | **A1** | 07 | the three checklists and their script (SGK's E2) | ⬜ |
 | **Z1** | 08 | the verification document; the close | ⬜ |
 
@@ -782,14 +784,15 @@ has it right. **Nothing else opened**; the index stays at 3.
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
 opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
-04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three; 05c closed one (§4) and opened one, leaving three. Line numbers are SGK's until 01 imports the code; 01 records
+04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three; 05c closed one (§4) and opened one, leaving three; 06 closed one (§4), leaving two. Line numbers are SGK's until 01 imports the code; 01 records
 each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
 replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
 in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
 ported tests, read in `runregistrykit/tests/`. **From 03 the three modules' lines are no longer
 SGK's**: each issue's *Package lines (03, …)* gives them at 03's commit, and *Package lines (04a,
 …)* at 04a's, and *Package lines (04b, …)* at 04b's, and *Package lines (05a, …)* at 05a's, and
-*Package lines (05b, …)* at 05b's, and *Package lines (05c, …)* at 05c's, read in the package.
+*Package lines (05b, …)* at 05b's, and *Package lines (05c, …)* at 05c's, and *Package lines (06,
+…)* at 06's, read in the package.
 
 ### `[00-the-shard-fixtures-reach-into-shardedpool]`
 
@@ -854,6 +857,15 @@ now `"mode"`, `["version", "mode"]` and `{"Solution": "k"}` (`:25-27`, as before
 `write_new_store` (`:46`, `:57`) call the same `_create_engine`, `_read_shard_data` and
 `_write_shard_data`. `store_fixtures.py` gained no use of a
 private attribute (`assertOpens`, `:160-167`, is as 03's). The issue stays open, owner none.
+
+*Package lines (06, 2026-10-15), read in the package.* No file under `runregistrykit/` changed in
+06: `bare_pool` is `shard_store_fixtures.py:30-43`, setting the same ten private attributes
+(`:33-42`), `read_pool` and `write_new_store` are `:46` and `:57`, and `store_fixtures.assertOpens`
+is `:160-167`. The issue's next step, `datastorekit` pinned exactly in CI so that a change there is
+seen when the pin moves, now holds: both `suite` jobs of `.github/workflows/tests.yml` install
+`datastorekit` from its tag `v0.4.0`, at both ends, and the core job installs none. The issue stays
+open, owner none: the fixture still reaches into `ShardedPool`, and a public way to write and
+reopen a small store remains a request to DatastoreKit (README §8).
 
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
@@ -920,9 +932,19 @@ The test that reaches the match,
 `test_store_retire.TestWithoutFingerprint.test_an_unreadable_shards_table`, is now at `:802` (05c's
 prose and renames moved it from `:797`), its code unchanged. The issue stays open, owner none.
 
+*Package lines (06, 2026-10-15), read in the package.* No file under `runregistrykit/` changed in
+06: `_SHARDS_TABLE_UNREADABLE` is at `runregistrykit/stores.py:1409-1410`, used at `:1677` and
+`:1727`, and `test_store_retire.TestWithoutFingerprint.test_an_unreadable_shards_table` is at
+`:802`. That test now runs at both tested ends: both `suite` jobs of `.github/workflows/tests.yml`
+install `datastorekit` from its tag `v0.4.0` and run the whole suite (trialled here in fresh venvs
+at Ray 2.43.0 / SQLAlchemy 2.0.39 and Ray 2.55.1 / SQLAlchemy 2.0.46, 276 OK each). The issue stays
+open, owner none: a typed exception remains a request to DatastoreKit (README §8).
+
+## 4. Resolved issues
+
 ### `[05c-the-import-test-needs-datastorekit]`
 
-**Opened:** 2026-10-15, by 05c. **Owner:** 06.
+**Opened:** 2026-10-15, by 05c. **Owner:** 06. **Closed:** 2026-10-15, by 06 (this commit).
 
 `runregistrykit/tests/test_package_imports.py`, the core's own import test (it checks that importing
 the package loads nothing heavy and that module scope holds only the standard library and the
@@ -948,7 +970,21 @@ with none of `ray`, `sqlalchemy` and `datastorekit` installed and runs `--help`,
 and `finish`; the import test runs in the `[stores]` jobs, the only place its check that nothing
 heavy loads means anything. 06 closes the issue on that ground (prompt 06 §2.6).
 
-## 4. Resolved issues
+*Resolved (06, 2026-10-15, this commit), by U18, with no change to a test or the guard.*
+`test_package_imports.test_import_loads_nothing_heavy` asserts that importing the package and its
+store layer loads none of `ray`, `sqlalchemy` and `datastorekit`; that is a check only where they
+are installed, so it belongs to the `suite` jobs of `.github/workflows/tests.yml`, which run it at
+both ends (276 OK in the low and high venvs here), and its importing the guard costs nothing there;
+the module-scope rule (`test_module_scope_is_the_standard_library_and_the_package`) runs there too,
+statically. What only a job without them can check, that the package imports and runs **without**
+them installed, is the `core` job: a step that fails if `importlib.util.find_spec` finds any of the
+three, `test_run_registry` and `test_public_names` by name (`Ran 37 tests`, OK, in a 3.12.15 venv
+holding only the package), and a smoke that imports the five modules with none of the three loaded,
+runs `--help`, runs `list` with no config (exit 1, `No runregistrykit.toml`) and, after an empty
+`runregistrykit.toml`, a `begin` and `finish("done", exit_code=0)`, then `list`, which names the run
+`done`. Breakage (e) and (f) of 06's log show each kind of job catching what it is there for. The
+module's lines are unchanged: `test_package_imports.py:17` and `:24-31`;
+`test_package_is_generic.py:64`.
 
 ### `[02-the-ported-tests-name-sgk]`
 

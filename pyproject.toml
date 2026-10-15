@@ -4,14 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "runregistrykit"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "A run registry: run directories, manifests, heartbeats and datastore sidecars for long jobs"
 requires-python = ">=3.12"
 dependencies = []
 
 [project.optional-dependencies]
 stores = [
-    "datastorekit",
+    "datastorekit>=0.4.0",
 ]
 
 [tool.setuptools]
@@ -19,3 +19,4 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 include = ["runregistrykit*"]
+exclude = ["runregistrykit.tests", "runregistrykit.tests.*"]
