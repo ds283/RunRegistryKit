@@ -1,8 +1,8 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 6 of 11 prompts written (01–03, 04a, 04b, 05a), 5 landed and
-reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
-`c81ad06`, suite 186; 04b, `5302a6f`, suite 245).** G1 holds
+**Last updated:** 2026-10-15 · **Status: LIVE — 6 of 11 prompts written (01–03, 04a, 04b, 05a), 6 landed, 5 of
+them reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
+`c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, this commit, suite 275, awaiting review).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -59,7 +59,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, and U10, U11, U12, U15 and U16 
 | 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | `035e4b5` | 108 → 135 |
 | 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | `c81ad06` | 135 → 186 |
 | 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | `5302a6f` | 186 → 245 |
-| 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | written 2026-10-15 | — | — |
+| 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed** 2026-10-15, awaiting review ([log](logs/05a-the-guard-and-the-public-names.md)) | this commit | 245 → 275 |
 | 05b | `05b-the-package-prose-and-the-rules.md` | Sonnet | not written | — | — |
 | 05c | `05c-the-tests-own-names.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
@@ -499,8 +499,8 @@ loader's `ConfigError` for a class, where it recorded `take`'s `TypeError`, is t
 | **T2a** | 04a | the neutral store; `test_store_fingerprint`'s 27 and `TestFormats`' 2 ported | ✅ 2026-10-15: `runregistrykit/tests/neutral_store.py` on ten public `datastorekit` names; the 29 ported (SGK's ids less `TestGolden` 3 and `TestDrivers` 1), the port script's output differing from the committed file by the shims, the F-client lines and the two U7 variants only; `test_fingerprinter.py`, 22 tests; the suite 186 |
 | **T2b** | 04b | the retire tests' 51 ported onto the neutral store | ✅ 2026-10-15: `test_store_retire` 41 and `test_store_retire_references` 10, SGK's ids by class; the port script's output differing from the committed files by the `compare_fingerprints` shim only; D-name 18, D-fix 1, N-fix 3, N-class 1, R-root 30, R-cwd 3, D-fmt 13 hunks; no F-client; `test_an_unreadable_shards_table` reaches the DatastoreKit text match, (m1) fails it; (m2), (m3), (m7) caught; the suite 245 |
 | **F3** | 04b | U14: `store retire` loads the fingerprinter before it fingerprints; the loader refuses a class | ✅ 2026-10-15: `retire_store` loads the fingerprinter on a first retirement after steps 1 and 2 and before the plan, its `ConfigError` unwrapped and nothing written, under the flag or not, in a dry run and from the command; the completion path loads none; `load_fingerprinter` refuses a class before its protocol check; 8 tests in `test_fingerprinter.py`; (m4)–(m6), (m8)–(m10) caught |
-| **P2** | 05a | the no-client guard, its vocabulary and its known hits (U10, U16) | ⬜ |
-| **N1** | 05a | the public names (`slugify`, `__all__`) and the licence header (U11, U12) | ⬜ |
+| **P2** | 05a | the no-client guard, its vocabulary and its known hits (U10, U16) | ✅ 2026-10-15: `docs/extraction/measure_client_vocabulary.py` writes `runregistrykit/tests/data/client_vocabulary.json` through `git` at SGK `14bcac0`, ChamPBH `c21cdfb`, SI `5fb4a1d` (38 / 27 / 30 registry keys, 194 / 80 / 101 columns, 14 / 11 / 15 packages, 26 / 10 / 6 campaigns, 17 listed words); `test_package_is_generic.py` scans all 24 files, itself included, by four word scans and an import rule, 22 tests; `known_hits.json` holds 69 hits in the package modules (30 entries, 05b's) and 137 in the tests (83 entries, 05c's), written by the guard's own scans; the guard holds none; (m1)–(m11) caught |
+| **N1** | 05a | the public names (`slugify`, `__all__`) and the licence header (U11, U12) | ✅ 2026-10-15: `_slug` is `slugify` (no alias; `run_id` and `begin()` signatures unchanged); each of the five modules declares a sorted `__all__` (20, 26, 4, 4, 1 names) and begins with the 14-line Apache header; `test_public_names.py`, 8 tests |
 | **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ⬜ |
 | **T3** | 05c | the tests' SGK names and prose renamed (U16) | ⬜ |
 | **V1** | 06 | versions, CI, `v0.1.0` | ⬜ |
@@ -524,13 +524,14 @@ loader's `ConfigError` for a class, where it recorded `take`'s `TypeError`, is t
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
 opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
-04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four. Line numbers are SGK's until 01 imports the code; 01 records
+04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two. Line numbers are SGK's until 01 imports the code; 01 records
 each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
 replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
 in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
 ported tests, read in `runregistrykit/tests/`. **From 03 the three modules' lines are no longer
 SGK's**: each issue's *Package lines (03, …)* gives them at 03's commit, and *Package lines (04a,
-…)* at 04a's, and *Package lines (04b, …)* at 04b's, read in the package.
+…)* at 04a's, and *Package lines (04b, …)* at 04b's, and *Package lines (05a, …)* at 05a's, read in
+the package.
 
 ### `[00-package-prose-names-sgk]`
 
@@ -581,6 +582,22 @@ nothing of SGK. Two docstrings 05 rewrites are 04b's observations: `load_fingerp
 refusals does not name the class refusal, and the loader's `ConfigError` in `retire_store` does not
 end "Nothing was written or deleted" as the docstring says every refusal does.
 
+**Narrowed (2026-10-15, by 05a, this commit):** every hit of the package modules is now listed by
+the guard, by scan, file and word, in `runregistrykit/tests/data/known_hits.json`: 69 hits in 30
+entries, all in `__init__.py`, `stores.py` and `fingerprint.py` (`client.py` and `__main__.py`
+hold none): the words `A3`, `main.py`, `realistic_large_x`, `handover-A3-baseline-lambdacdm`,
+`handover`, and the campaigns `run-registry`, `datastore-portability`, `store-fingerprint` and
+`store-retirement` in strings and comments (26 and 8 hits), and 35 citations (`prompts/`, `prompt
+01`, `prompt 03`, `prompt 04`, `§0`, `§2`, `§5`, `§6`). Each scan must find exactly its entries, so
+a new hit fails and 05b's removal of one must update the file. 05a rewrote no prose.
+
+*Package lines (05a, 2026-10-15), read in the package.* The header (15 lines) and `__all__` moved
+every line: `__init__.py` by +15 up to its imports, +38 from `TERMINAL_STATES` to `slugify`, +40
+after it; `stores.py` by +44; `fingerprint.py` by +22; `client.py` and `__main__.py` by +17. So
+`stores.py`: "(prompt 01's log)" `:1409`, the section comments `:1225` and `:1400`, the docstring
+citation `:124`; `fingerprint.py`: the CLI text naming `main.py --inventory` `:151`. Nothing of
+05a's own names a client.
+
 ### `[00-the-shard-fixtures-reach-into-shardedpool]`
 
 **Opened:** 2026-10-14, at planning. **Owner:** none; 02 carries the fixture (U4) and records the
@@ -625,6 +642,11 @@ their lines as 03's. The ported `runregistrykit/tests/test_store_retire.py` impo
 `write_new_store` (which sets `_shard_db_files` and calls `_create_engine` and `_write_shard_data`)
 at `:956`, in `TestNeverReused.test_a_store_written_at_the_retired_name`; its full stores are the
 neutral store's. The issue stays open, owner none.
+
+*Package lines (05a, 2026-10-15).* `shard_store_fixtures.py` and `store_fixtures.py` are unchanged
+by 05a, their lines as 03's. The carried fixture's names are among the tests' known hits
+(`known_hits.json`: `wavenumber`, `GkSource` and the like in `shard_store_fixtures.py`), for 05c.
+The issue stays open, owner none.
 
 ### `[00-a-refusal-matches-datastorekit-message-text]`
 
@@ -674,6 +696,11 @@ it does not prevent one, and the remedy, a typed exception, is a request to Data
 *Package lines (04b, 2026-10-15), read in the package.* `_SHARDS_TABLE_UNREADABLE`
 `runregistrykit/stores.py:1365-1366` (the comment and the assignment), used at `:1630` and `:1680`,
 in `retire_store`.
+
+*Package lines (05a, 2026-10-15), read in the package.* `_SHARDS_TABLE_UNREADABLE`
+`runregistrykit/stores.py:1409-1410` (the comment and the assignment), used at `:1674` and `:1724`,
+in `retire_store` (05a's header and `__all__` moved the file by 44 lines). The issue stays open,
+owner none.
 
 ### `[02-the-ported-tests-name-sgk]`
 
@@ -745,6 +772,20 @@ the neutral store's `Integral`; `sweep_shaped` `:38`, used at `:404`. In
 `runregistrykit/tests/test_store_retire_references.py`: "a3-v2-readiness prompt 06" and
 `[10-store-retire-reports-every-tombstone-as-a-reference]` `:1-2`, "the live A3 backup" `:8` and
 `:136`. None is changed under README §5 rule 9.
+
+**Narrowed (2026-10-15, by 05a, this commit):** every hit of the tests is now listed by the guard,
+by scan, file and word, in `runregistrykit/tests/data/known_hits.json`: 137 hits in 83 entries,
+in 14 of the test modules and fixtures. Code names 29 (14 entries: `sweep_shaped`, `a3_shaped`,
+`TestLiveA3Shape`, `test_deleting_one_quadsourceintegral_row`, the neutral store's `log10_tol`, and
+`test_tolerance_of_a_torn_line_stops_at_the_end_of_the_file`, whose `_`-split part `tolerance` is
+an SGK registry key), strings 67 (36), comments 1 (1), citations 40 (32), among them
+`test_package_imports.py`'s `FORBIDDEN` strings `ObjectFactories`, `StoreFixtures` and
+`RunRegistry`. The guard and `test_public_names.py` hold none. 05a renamed nothing and changed no
+test.
+
+*Package lines (05a, 2026-10-15).* The tests are unchanged by 05a, their lines as 04b recorded; the
+new `test_package_is_generic.py` and `test_public_names.py` name nothing of SGK (the guard's own
+words are read from the vocabulary file at run time).
 
 ## 4. Resolved issues
 

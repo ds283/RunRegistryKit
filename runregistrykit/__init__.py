@@ -1,3 +1,18 @@
+# (c) University of Sussex 2026
+# Created by David Seery
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """A record on disk that a long-running job exists, what it is for, and how far it has got.
 
 The rules this package exists to support are in `CLAUDE.md`, "Long-running jobs — the run
@@ -56,6 +71,29 @@ from datetime import datetime, timezone
 
 from .client import CONFIG_FILE, ClientRoot, ConfigError, find_client_root
 
+__all__ = [
+    "CONFIG_FILE",
+    "ClientRoot",
+    "ConfigError",
+    "DEFAULT_STALE_AFTER",
+    "Run",
+    "TERMINAL_STATES",
+    "begin",
+    "find_client_root",
+    "git_provenance",
+    "heartbeat_age",
+    "list_runs",
+    "liveness",
+    "now_iso",
+    "package_provenance",
+    "pid_alive",
+    "read_json",
+    "run_id",
+    "script_sha256",
+    "slugify",
+    "write_json_atomic",
+]
+
 TERMINAL_STATES = ("done", "failed", "killed")
 
 # The lister's default staleness window. `liveness()` itself takes the window from its caller;
@@ -75,7 +113,9 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
 
 
-def _slug(text) -> str:
+def slugify(text) -> str:
+    """What `run_id` applies to each of its three parts, so that a client can recover a run id's
+    parts from a manifest."""
     return re.sub(r"[^A-Za-z0-9._]+", "-", str(text)).strip("-")
 
 
@@ -83,7 +123,7 @@ def run_id(campaign, prompt, slug, when=None) -> str:
     """`<campaign>-<prompt>-<slug>-<YYYYMMDDTHHMMSS>`: it sorts, and a stranger reading
     `ls var/runs/` learns who owns each directory without asking anyone."""
     stamp = time.strftime(_ID_STAMP, time.localtime(when))
-    return "-".join((_slug(campaign), _slug(prompt), _slug(slug), stamp))
+    return "-".join((slugify(campaign), slugify(prompt), slugify(slug), stamp))
 
 
 def script_sha256(path) -> str:

@@ -11,7 +11,7 @@ disagree. See `CLAUDE.md` for the maintenance rule.
 
 | Issue | Owner | Hook |
 |---|---|---|
-| `[00-package-prose-names-sgk]` | 05b | Docstrings cite SGK's campaigns, and the CLI points at SGK's `main.py --inventory` |
-| `[02-the-ported-tests-name-sgk]` | 05c | The ported tests and shard fixtures carry SGK's tables, store stems, driver path, `TestLiveA3Shape` and campaign citations |
+| `[00-package-prose-names-sgk]` | 05b | Docstrings cite SGK's campaigns, and the CLI points at SGK's `main.py --inventory`; each hit is listed by the guard (`known_hits.json`) |
+| `[02-the-ported-tests-name-sgk]` | 05c | The ported tests and shard fixtures carry SGK's tables, store stems, driver path, `TestLiveA3Shape` and campaign citations; each hit is listed by the guard (`known_hits.json`) |
 | `[00-the-shard-fixtures-reach-into-shardedpool]` | none | The carried shard fixtures set private `ShardedPool` attributes |
 | `[00-a-refusal-matches-datastorekit-message-text]` | none | An unreadable store is recognised by matching DatastoreKit's message text |

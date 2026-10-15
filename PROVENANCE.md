@@ -257,3 +257,30 @@ Each prompt's changes, from 03 on:
   `DatastoreKitFingerprinter` named in place of an instance of it), which a runtime-checkable
   protocol's check would let through, as a `ConfigError` naming the config file and the spec.
 - `runregistrykit/tests/test_fingerprinter.py` gains eight tests of the two.
+
+**Prompt 05a, the guard and the public names**
+(`prompts/extraction/05a-the-guard-and-the-public-names.md`, this commit):
+
+- **The guard.** `runregistrykit/tests/test_package_is_generic.py` scans every `*.py` under
+  `runregistrykit/`, the tests and itself included, for the three clients' vocabulary (code names,
+  strings and docstrings, comments), for citations of a campaign's prompts (a path under a
+  `prompts` directory, the word `prompt` and two digits, a section sign and a digit), and for
+  imports (`datastorekit` only inside a function of `stores.py` or `fingerprint.py`; in the tests,
+  also `sqlalchemy` and `ray`). The vocabulary is measured by
+  `docs/extraction/measure_client_vocabulary.py`, through `git` only, at SGK `14bcac0`, ChamPBH
+  `c21cdfb` and StochasticInstantons `5fb4a1d`, and held in
+  `runregistrykit/tests/data/client_vocabulary.json`; the guard reads that file and never a client.
+  The package's own words (the five string values `datastorekit.contract` defines for its version
+  and tag tables) are allowed, each with its reason. The hits the package and its tests held when
+  the guard was written are listed, by scan, file and word, in
+  `runregistrykit/tests/data/known_hits.json` (the package modules' for 05b to remove, the tests'
+  for 05c); each scan must find exactly its entries.
+- **`slugify`.** `_slug` is public as `slugify`, with a docstring and no alias; `run_id` calls it.
+  `run_id`'s and `begin()`'s signatures are unchanged. The name is `slugify` and not `slug`, which
+  is `run_id`'s and `begin()`'s parameter (README section 6.2, U11).
+- **`__all__`.** Each of the five package modules declares a sorted `__all__` of its public names
+  (the package's also holds `slugify` and the four names it imports from `client`), pinned by
+  `runregistrykit/tests/test_public_names.py`.
+- **The licence header.** Each of the five package modules begins with the Apache 2.0 header that
+  RayPoolKit and the clients carry (fourteen lines, then a blank line), ahead of its docstring; no
+  test module has it. Every line of the five modules moved down by fifteen or more.

@@ -1,3 +1,18 @@
+# (c) University of Sussex 2026
+# Created by David Seery
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """The store sidecar, and the registry's operations on the stores it manages.
 
 A `ShardedPool` datastore is a primary SQLite file and its shards. Beside the primary there may be
@@ -142,6 +157,35 @@ from . import (
     write_json_atomic,
 )
 from .fingerprint import load_fingerprinter, require_fingerprinter
+
+__all__ = [
+    "AMEND_KEYS",
+    "AMEND_OPERATION",
+    "HISTORY_KEYS",
+    "IDENTITY_OPERATIONS",
+    "INCOMPLETE_MOVE_SUFFIX",
+    "KNOWN_FIELDS",
+    "RELOCATION_OPERATIONS",
+    "REQUIRED_FIELDS",
+    "RETIREMENT_STATES",
+    "RETIRE_OPERATION",
+    "SIDECAR_FORMAT",
+    "SidecarReading",
+    "TAKEN_KEYS",
+    "adopt_sidecar",
+    "amend_sidecar",
+    "check_listing_path",
+    "copy_store",
+    "create_sidecar",
+    "fingerprint_store",
+    "move_store",
+    "new_store_id",
+    "read_sidecar",
+    "retire_store",
+    "runs_naming",
+    "sidecar_path",
+    "write_listing",
+]
 
 SIDECAR_FORMAT = 1
 
