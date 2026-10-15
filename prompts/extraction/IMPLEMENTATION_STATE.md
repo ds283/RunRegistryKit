@@ -1,13 +1,13 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 6 of 11 prompts written (01–03, 04a, 04b, 05a), 6 landed and
+**Last updated:** 2026-10-15 · **Status: LIVE — 7 of 11 prompts written (01–03, 04a, 04b, 05a, 05b), 6 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
-U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, and U10, U11, U12, U15 and U16 the same day for
-05, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
+U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the same day for
+05, and U17 for 05b, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -49,6 +49,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, and U10, U11, U12, U15 and U16 
 | **U14** retire hazard | 04b loads the fingerprinter before a first retirement plans or fingerprints, and the loader refuses a class | **taken** 2026-10-15 |
 | **U15** 05 split | three prompts: 05a the guard, names and header; 05b the package prose and the README's rules; 05c the tests' names | **taken** 2026-10-15 |
 | **U16** tests in scope | the guard scans the tests; their SGK names renamed in 05c, rule 9 lifted for names only | **taken** 2026-10-15 |
+| **U17** citation scan | 05b widens it (capital `Prompt NN`, decision ids, issue tags); the tests' new hits listed for 05c | **taken** 2026-10-15 |
 
 ## 1. Prompts
 
@@ -60,7 +61,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, and U10, U11, U12, U15 and U16 
 | 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | `c81ad06` | 135 → 186 |
 | 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | `5302a6f` | 186 → 245 |
 | 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05a-the-guard-and-the-public-names.md)) | `14af805` | 245 → 275 |
-| 05b | `05b-the-package-prose-and-the-rules.md` | Sonnet | not written | — | — |
+| 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | written 2026-10-15 | — | — |
 | 05c | `05c-the-tests-own-names.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
@@ -791,6 +792,11 @@ owner none.
 **Assigned (2026-10-15):** to 05c by U15 and U16: the guard scans the tests (05a lists their hits
 as known), and 05c renames the SGK names rule 9 kept, each mapped in `PROVENANCE.md`, and rewrites
 the rest.
+
+**Widened (2026-10-15, at 05b's writing, by U17):** 05b widens the citation scan to capital `Prompt
+NN`, decision ids and issue tags, which finds 18 more hits in the tests (11 entries, among them
+this campaign's own `U14`, `U7`, `Q3` and `U9` in `test_fingerprinter.py` and `test_client_root.py`);
+05b lists them as known, and they are 05c's.
 
 The ported tests and fixtures carry SGK's names, besides the `RunRegistry` and `StoreFixtures` that
 D-name and D-fix handle. Measured in the eight files at `8155445` (package lines):
