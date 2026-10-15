@@ -1,8 +1,8 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 6 of 11 prompts written (01–03, 04a, 04b, 05a), 6 landed, 5 of
-them reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
-`c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, this commit, suite 275, awaiting review).** G1 holds
+**Last updated:** 2026-10-15 · **Status: LIVE — 6 of 11 prompts written (01–03, 04a, 04b, 05a), 6 landed and
+reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
+`c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -59,7 +59,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, and U10, U11, U12, U15 and U16 
 | 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | `035e4b5` | 108 → 135 |
 | 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | `c81ad06` | 135 → 186 |
 | 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | `5302a6f` | 186 → 245 |
-| 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed** 2026-10-15, awaiting review ([log](logs/05a-the-guard-and-the-public-names.md)) | this commit | 245 → 275 |
+| 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05a-the-guard-and-the-public-names.md)) | `14af805` | 245 → 275 |
 | 05b | `05b-the-package-prose-and-the-rules.md` | Sonnet | not written | — | — |
 | 05c | `05c-the-tests-own-names.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
@@ -73,7 +73,8 @@ The holds are for **method**, not scope: every charter is fixed in README §2.
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), used for 02;
 [`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`f02abc7`), used for 03;
 [`orchestrator/prompt-04a.md`](orchestrator/prompt-04a.md) (`9dc34a5`), used for 04a;
-[`orchestrator/prompt-04b.md`](orchestrator/prompt-04b.md) (`5177ffa`), used for 04b.
+[`orchestrator/prompt-04b.md`](orchestrator/prompt-04b.md) (`5177ffa`), used for 04b;
+[`orchestrator/prompt-05a.md`](orchestrator/prompt-05a.md) (`d2a3d85`), used for 05a.
 
 **Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
 with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
@@ -485,6 +486,87 @@ as `retire_store`'s docstring says every refusal does, are prose for 05
 loader's `ConfigError` for a class, where it recorded `take`'s `TypeError`, is the intended effect of
 §2.4; the ported SGK prose is rule 9's and 05's. **Nothing opened**; the index stays at 4.
 
+**Orchestrator review of prompt 05a (2026-10-15).** Dispatched from `d2a3d85` to one Sonnet
+subagent, with the note's §0: its facts, twelve corrections and readings of the prompt (the gate's
+diff read from `6ec0066`; the public name `slugify`, the user's ruling at dispatch, since `run_id`'s
+parameter `slug` would shadow a function `slug`; a fixed `when` in `run_id`'s test; the contract's
+five string values; the guard's self-scan forbidding literal client words in its own tests; the
+import rule's scope; the header to add no hit; the trial's counts; (m6) caught; how
+`known_hits.json` is written; the derived `__all__` sets; the suite's time) and its two
+recommendations (`PACKAGE_WORDS` as the contract's five attributes; the guard's test words read
+from the data file). Reviewed against its commit `14af805`, with nothing landed after it. **Every
+check of the note's §3 passed**, and acceptance 1–3 are met. No stop condition fired.
+
+*At dispatch.* The note's gate held at `d2a3d85`, with the prompt's gate read from `6ec0066`
+(correction 1): the tree clean, this checkout the only worktree, no `var/`; the suite 245 OK in
+91.6 s. No Ray process; `RAY_ADDRESS` unset. The orchestrator's own measure of the three clients
+through `git` gave the prompt's counts exactly, and its own scanner, over an export of `6ec0066`,
+454 forbidden words and package-module hits 0 / 26 / 8 / 35, the trial's.
+
+*The checks.*
+1. **Scope.** `14af805` touches 15 files: the four new files under `runregistrykit/tests/`, the
+   script, the five package modules, `PROVENANCE.md` and the records. No existing test module or
+   fixture, `pyproject.toml`, `README.md`, `CLAUDE.md`, `compare_with_source.py`, the campaign README,
+   the prompt or the note changes; `git ls-files runregistrykit` is the 22 and the four.
+2. **The five modules.** Each begins with RayPoolKit's fourteen header lines (compared with
+   RayPoolKit's `HEAD`) and a blank line, and `ast.get_docstring` is `6ec0066`'s; with the header and
+   the `__all__` block removed, the diff from `6ec0066` is empty but `__init__.py`'s `def slugify`, its
+   two-line docstring and `run_id`'s call line. `__all__` sorted, 20 / 26 / 4 / 4 / 1, every name
+   resolving. `run_id`'s and `begin()`'s signatures equal `6ec0066`'s, and `run_id` gives the same id
+   for the same arguments; no `_slug`, no `slug`. No test module carries the header
+   (`test_public_names.py` holds it as a string).
+3. **The vocabulary, independently.** The orchestrator's measurer equals the committed file part by
+   part (keys in order, columns, packages, campaigns, the commits in full). The agent's script, run
+   twice, gives the same 23453 bytes as the committed file; without `--output` it exits 1 and writes
+   nothing; pointed at a commit that does not exist, it exits 2 and writes nothing. It reads the
+   clients through `git rev-parse`, `cat-file -e`, `ls-tree` and `show` only.
+4. **The guard, by reading.** As §2.3 and corrections 4–6: the files from the filesystem with the
+   `git ls-files` pin; the forbidden set; the word, dot and hyphen splits; code names whole and on
+   `_`; the citation pattern's three forms from parts; `import_allowed(module, rel, in_function)`;
+   known hits compared by file, word and count both ways; its tests' words read from the data file.
+   The citation test builds its samples from the pattern's parts (log deviation 5), as the pattern
+   is built; accepted.
+5. **The known hits, independently.** The orchestrator's scanner over an export of `14af805` gives
+   `known_hits.json` exactly, scan by scan and entry by entry: package modules 0 / 26 / 8 / 35 (30
+   entries), tests 29 / 67 / 1 / 40 (83 entries), imports none; the same totals as at `6ec0066`, so
+   the header and `__all__` add no hit; no entry for the guard or `test_public_names.py`. The trial's
+   test counts (28 / 70 / 1 / 41) were its own miscount: two independent scanners agree with the
+   agent's.
+6. **The suite.** `Ran 275 tests in 88.1s`, OK (`test_package_is_generic` 22, `test_public_names`
+   8). `git status --short --ignored` the same before and after; no `var/`; this checkout the only
+   worktree; no Ray process. `black --check runregistrykit docs`: 26 files unchanged.
+7. **The mutations.** (m1)–(m11b) extracted from the log and replayed in `bash` (`--check`, apply,
+   `-R --check`, reverse), each failing exactly the tests the log names, (m3) and (m4) on the full
+   suite with its counts (10 failures; 4 failures and 289 errors); the tree clean after each. The
+   orchestrator's own: (o1) a project package in the guard's docstring fails the string scan and
+   the self-scan test; (o2) `handover` added to `PACKAGE_WORDS` fails two scans, the package-words
+   test and `TestTheRules`' set-up; (o3) the citation pattern without its section form fails the
+   citation scan and four rule subtests; (o6) a second `A3` on a new line of a `stores.py` docstring
+   fails on the count; (o7) `client.py`'s `__all__` unsorted, and a name dropped from `stores.py`'s,
+   each fail `TestAll`; (o8) the header's year changed fails `TestTheHeader`; (o9) every column
+   forbidden fails eight tests. The note's (o4) and (o5) are the agent's (m11b) and (m11a). Not
+   pinned, and accepted: a second occurrence of a known word on a line that already holds it (a hit
+   is a (line, word) pair, as DatastoreKit's; the log's observation).
+8. **The records.** The log has every section of README §5.1, the script's summary, the per-scan
+   totals, the writer's text and command, 245 → 275 with the per-module counts and the times, all
+   twelve diffs, and 20 deviations, each classified (corrections 1–12 among them; no UNINTENDED
+   DRIFT). `PROVENANCE.md`, the index (4, by counting) and `prompts/INDEX.md` as §4.3. The package
+   lines spot-checked at `14af805` (`stores.py:124, 1225, 1400, 1409-1410, 1674, 1724`;
+   `fingerprint.py:151`; `__init__.py:97, 122, 601`).
+9. **The interface.** No record changes form: the diff touches no writer, and `run_id`'s ids are
+   unchanged.
+10. **The handover.** The log's last section gives 05b and 05c their shares (69 hits in 30 entries;
+    137 in 83), the line shifts, and the suite at 275 in about 90 s.
+
+*Residue fixed in the follow-up.* "this commit" → `14af805` on this board, in the log's header and
+in `PROVENANCE.md` and `prompts/INDEX.md`; 05a marked reviewed here, in README §2 and its header,
+and in `prompts/INDEX.md`; this paragraph and the notes line.
+
+*Accepted as recorded, with one reading for 05b and 05c.* The log's handover says 05b and 05c update
+`known_hits.json` "by their own means". §2.3 says the file is never edited by hand: each of them
+deletes the file and re-runs the writer whose text this log gives (it refuses to overwrite), and its
+log says so. The other observations need no issue. **Nothing opened**; the index stays at 4.
+
 ### 1.1 Items
 
 | Item | Prompt | What | State |
@@ -582,7 +664,7 @@ nothing of SGK. Two docstrings 05 rewrites are 04b's observations: `load_fingerp
 refusals does not name the class refusal, and the loader's `ConfigError` in `retire_store` does not
 end "Nothing was written or deleted" as the docstring says every refusal does.
 
-**Narrowed (2026-10-15, by 05a, this commit):** every hit of the package modules is now listed by
+**Narrowed (2026-10-15, by 05a, `14af805`):** every hit of the package modules is now listed by
 the guard, by scan, file and word, in `runregistrykit/tests/data/known_hits.json`: 69 hits in 30
 entries, all in `__init__.py`, `stores.py` and `fingerprint.py` (`client.py` and `__main__.py`
 hold none): the words `A3`, `main.py`, `realistic_large_x`, `handover-A3-baseline-lambdacdm`,
@@ -773,7 +855,7 @@ the neutral store's `Integral`; `sweep_shaped` `:38`, used at `:404`. In
 `[10-store-retire-reports-every-tombstone-as-a-reference]` `:1-2`, "the live A3 backup" `:8` and
 `:136`. None is changed under README §5 rule 9.
 
-**Narrowed (2026-10-15, by 05a, this commit):** every hit of the tests is now listed by the guard,
+**Narrowed (2026-10-15, by 05a, `14af805`):** every hit of the tests is now listed by the guard,
 by scan, file and word, in `runregistrykit/tests/data/known_hits.json`: 137 hits in 83 entries,
 in 14 of the test modules and fixtures. Code names 29 (14 entries: `sweep_shaped`, `a3_shaped`,
 `TestLiveA3Shape`, `test_deleting_one_quadsourceintegral_row`, the neutral store's `log10_tol`, and

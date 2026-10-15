@@ -259,7 +259,7 @@ Each prompt's changes, from 03 on:
 - `runregistrykit/tests/test_fingerprinter.py` gains eight tests of the two.
 
 **Prompt 05a, the guard and the public names**
-(`prompts/extraction/05a-the-guard-and-the-public-names.md`, this commit):
+(`prompts/extraction/05a-the-guard-and-the-public-names.md`, `14af805`):
 
 - **The guard.** `runregistrykit/tests/test_package_is_generic.py` scans every `*.py` under
   `runregistrykit/`, the tests and itself included, for the three clients' vocabulary (code names,

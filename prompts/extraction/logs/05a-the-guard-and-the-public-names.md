@@ -1,7 +1,7 @@
 # Log — prompt 05a: the guard and the public names
 
 **Subject:** Add the no-client guard, its vocabulary and known hits, the public names and the licence header
-**Commit:** this commit (on `main`, after `d2a3d85`)
+**Commit:** `14af805` (on `main`, after `d2a3d85`)
 **Date:** 2026-10-15
 **Agent:** Claude Sonnet 5.5, dispatched by the orchestrator with its brief and the orchestration
 note's section 0 (`note-05a-section0.md`)
