@@ -12,5 +12,5 @@ disagree. See `CLAUDE.md` for the maintenance rule.
 | Issue | Owner | Hook |
 |---|---|---|
 | `[00-the-shard-fixtures-reach-into-shardedpool]` | none | The carried shard fixtures set private `ShardedPool` attributes |
-| `[05c-the-import-test-needs-datastorekit]` | 06 | The core's import test imports the guard, which imports `datastorekit`, so it no longer imports without it |
+| `[05c-the-import-test-needs-datastorekit]` | 06 | The core's import test imports the guard, which imports `datastorekit`, so it no longer imports without it; U18 decides it stays in the `[stores]` jobs, closed by 06 |
 | `[00-a-refusal-matches-datastorekit-message-text]` | none | An unreadable store is recognised by matching DatastoreKit's message text |

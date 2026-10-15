@@ -6,10 +6,10 @@
 measurements made the same day (§0.2). The brief is evidence, not a specification: where it and
 §0.2 disagree, §0.2 says so and is right for this tree. The user's rulings carried in from SGK are
 §6.1; the decisions this campaign needs are §6.2. The user took U2 and U3 on 2026-10-14, as
-recommended, for 01, U4 for 02, U5 and U9 for 03, U6, U7 and U8 for 04, U14 for 04b, U10, U11, U12, U15 and U16 for 05, and U17 for 05b. **Prompts 01
+recommended, for 01, U4 for 02, U5 and U9 for 03, U6, U7 and U8 for 04, U14 for 04b, U10, U11, U12, U15 and U16 for 05, U17 for 05b, and U13, U18 and U19 for 06. **Prompts 01
 (`4e0d715`), 02 (`8155445`), 03 (`035e4b5`), 04a (`c81ad06`), 04b (`5302a6f`), 05a (`14af805`), 05b
 (`1120fb3`) and 05c (`a7d93d5`) have landed and been reviewed; 04 is split into 04a and 04b, and
-05 into 05a, 05b and 05c** (§2.1).
+05 into 05a, 05b and 05c; 06 is written** (§2.1).
 
 ## 0. Why this campaign exists
 
@@ -226,7 +226,7 @@ has a `pyproject.toml` with a `[project]` table (SI's holds only pytest settings
 | 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | The **guard** that the package names no client (U10, U16): the three clients' vocabulary measured through `git` at fixed commits by `docs/extraction/measure_client_vocabulary.py` into a data file; a guard over every `*.py` under `runregistrykit/`, tests included, with four word scans (code names, strings, comments, campaign citations) and an import rule, each required to find exactly its known hits, listed by file and word in a second data file. **Public names** (U11): `_slug` becomes `slugify` (amended at dispatch from the prompt's `slug`, §6.2), and each module declares `__all__`, pinned. **The licence header** (U12) on the five package modules. No prose rewritten, no hit removed. *(At writing: SGK `14bcac0`, ChamPBH `c21cdfb`, SI `5fb4a1d` measured by a trial script (registry keys 38, 27, 30; columns 194, 80, 101; campaigns 26, 10, 6); a trial guard found 454 forbidden words and about 210 hits, 69 in the package modules (26 strings, 8 comments, 35 citations) and 140 in the tests; `version`, `store_tag`, `tag_serial` and `label` are `datastorekit.contract`'s and allowed; the imports conform; `_slug` is SGK's one private use.)* | Sonnet | landed and reviewed 2026-10-15 (`14af805`) |
 | 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | C8 and the SGK output in the five package modules: every docstring, comment and message rewritten in the package's own terms, SGK's history left to `PROVENANCE.md`; `main.py --inventory` replaced; the two docstrings 04b's log names. `README.md` gains **the rules of the registry**, each with the failure it answers (SGK's brief §6), and says that no patch target is promised (U11). The guard's citation scan widened (U17). Empties the package modules' known hits. Closes `[00-package-prose-names-sgk]`. *(At writing: 69 known hits in 30 entries on 44 lines of `__init__.py`, `stores.py` and `fingerprint.py`; a trial of U17's three forms (capital `Prompt NN`, a decision id, an issue tag) finds 11 more hits in the package modules and 18 in 11 entries in the tests, for 05c; the package's prose also cites a client's `README` 19 times and `CLAUDE.md` twice; about seventy lines in all; the one message is `describe`'s problems line, asserted by no test, and DatastoreKit `v0.4.0` has no inventory command; the README's stale "Status" paragraph is left to 06 by the user's ruling.)* | Sonnet | landed and reviewed 2026-10-15 (`1120fb3`) |
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | The tests' SGK names and prose (U16): `TestLiveA3Shape`, `a3_shaped`, `sweep_shaped`, SGK's store stems and run names, the shard fixture's tables, the neutral store's shared columns, `test_package_imports.py`'s `FORBIDDEN`, and the citations; each rename mapped in `PROVENANCE.md`, every assertion kept. Empties the known hits. Closes `[02-the-ported-tests-name-sgk]`. *(At writing: 155 known hits in 94 entries in 14 test modules and fixtures; a fixed rename map of thirteen names (two helpers, a class, six test methods, two constants, three neutral-store columns), each checked against the guard's forbidden words; a trial of the renames, the neutral data and `FORBIDDEN` read from the guard's `project_packages()` (18 names, SGK's three among them) gave 276 tests with only the guard's three known-hit scans failing, leaving 75 hits, all in docstrings and comments; beyond the guard, an SGK campaign inside a run id, `QSI` and `TKN`, SGK's prompt property and test numbers, and a name the package no longer has; `known_hits.json` emptied with the mechanism kept, as DatastoreKit's guard did.)* | Sonnet | landed and reviewed 2026-10-15 (`a7d93d5`) |
-| 06 | `06-release-v0.1.0.md` | Dependency ranges in `pyproject.toml` (`[stores]`: `datastorekit>=0.4.0` by name, SGK's brief §7). The suite at both ends locally, and with no `datastorekit` installed for the core (U13). A GitHub Actions workflow. `README.md` gains usage and installing. **Tag `v0.1.0`** on its commit once CI is green at both ends. | Sonnet | not written |
+| 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Dependency ranges in `pyproject.toml` (`[stores]`: `datastorekit>=0.4.0` by name, SGK's brief §7). The suite at both ends locally, and with no `datastorekit` installed for the core (U13). A GitHub Actions workflow. `README.md` gains usage and installing. **Tag `v0.1.0`** on its commit once CI is green at both ends. *(At writing: U13, U18 and U19 taken. The wheel ships 19 test modules without their data, so `runregistrykit.tests` is excluded (U19), leaving 10 entries; both ends pass in fresh venvs with `datastorekit` from `v0.4.0`, 276 OK in about 102 s each; without the extra only `test_run_registry` and `test_public_names` load, 37 OK, so the core job runs those by name and a smoke of imports, `--help`, `list` and a `begin` and `finish`, and `[05c-the-import-test-needs-datastorekit]` closes with the import test in the `[stores]` jobs (U18); `datastorekit` is not on PyPI, so the README tells a client to pin it beside the extra; the repository has never run a workflow; Linux not measured. Recommended on Opus, as the sibling release prompts were, for the README's usage.)* | Opus | written 2026-10-15 |
 | 07 | `07-the-adoption-checklists.md` | `docs/adoption/`: a README and one checklist per client, measured read-only at a named client commit against `v0.1.0`. SGK's is E2's (SGK's brief §8.2): the config file with SGK's values, the fingerprinter's protocol and SGK's module, the public name for each SGK call site, the commands, and how to build SGK's Q5 guard. CPBH's and SI's (§8.3), each offering the Q5 pattern, and the substitution of `installed_package_provenance`. A script measures every client's call sites through `git` and `ast`. | Opus | not written |
 | 08 | `08-verification-and-close-out.md` | `docs/extraction-verification.md` from the package at `v0.1.0` and the records of 01–07; a smoke run of the store layer end to end in a temporary client root at both ends; the campaign closed, with G2–G4 open. | Sonnet | not written |
 
@@ -357,7 +357,7 @@ From SGK's audit §0 and §8 (2026-10-12), as carried by the brief, and this rep
 
 Each is put with a recommendation, the recommended option first. **U2 and U3 were taken by the user
 on 2026-10-14, for 01, U4 the same day, for 02, U5 and U9, for 03, U6, U7 and U8, for 04, U14 on
-2026-10-15, for 04b, U10, U11, U12, U15 and U16 the same day, for 05, and U17, for 05b, each as recommended**; the recommendation below is the decision. The others are put when the prompt that needs them is written.
+2026-10-15, for 04b, U10, U11, U12, U15 and U16 the same day, for 05, U17, for 05b, and U13, U18 and U19, for 06, each as recommended**; the recommendation below is the decision. The others are put when the prompt that needs them is written.
 
 - **U2: the import** *(for 01)*. (a) **Faithful**: SGK's three modules at `a45aefc`, changed only by
   the package's name (D-name), with C1–C9 left as they are and opened as §3 issues, each owned by a
@@ -449,7 +449,8 @@ on 2026-10-14, for 01, U4 the same day, for 02, U5 and U9, for 03, U6, U7 and U8
   core dependency; `[stores]` = `datastorekit>=0.4.0`. Tested at DatastoreKit's two ends (Python
   3.12.15 / Ray 2.43.0 / SQLAlchemy 2.0.39, and 3.13.16 / 2.55.1 / 2.0.46), each with `datastorekit`
   installed from the tag `v0.4.0`; and a third job, the core's tests in a venv with no `datastorekit`,
-  `ray` or `sqlalchemy`.
+  `ray` or `sqlalchemy`. *Taken 2026-10-15, for 06 (prompt 06 §2.1, §2.5), as recommended; both
+  ends trialled at 06's writing, 276 OK each.*
 - **U14: the retire hazard and the loader's class check** *(for 04b)*. Measured at 04b's writing:
   since 04a `fingerprint_store` loads the client's fingerprinter, and `store retire
   --without-fingerprint` records any exception from it as the store's "without" condition and then
@@ -485,6 +486,23 @@ on 2026-10-14, for 01, U4 the same day, for 02, U5 and U9, for 03, U6, U7 and U8
   log; or (c) 05c widens it once both shares are empty. *Recommended:* (a): the rewrite of 05b and
   05c is then measured by the guard, not only read, and the gap does not outlive the campaign.
   *Taken 2026-10-15, for 05b (§2.2): (a).*
+- **U18: the core job and the import test** *(for 06)*. Measured at 06's writing, without
+  `datastorekit` only `test_run_registry` (29) and `test_public_names` (8) load: `test_package_imports`
+  imports the guard, which imports `datastorekit` (`[05c-the-import-test-needs-datastorekit]`), and
+  `test_client_root` imports it for two of its 27 tests. (a) **The core job runs those two modules by
+  name, and a smoke step** that imports the five modules with none of the three extras loaded and
+  runs `--help`, `list` and a `begin` and `finish` in an empty client root; the import test stays in
+  the `[stores]` jobs, where its check that nothing heavy loads means something; the issue closes on
+  that ground, with no test or guard changed; or (b) 06 also makes `test_client_root`'s store tests
+  and the guard's `datastorekit` import lazy, so the core job runs four modules. *Recommended:* (a):
+  what only a core job can check, that the package runs without the extra installed, is the smoke;
+  the import test is meaningful only where the extra is installed. *Taken 2026-10-15, for 06 (prompt
+  06 §2.5, §2.6): (a).*
+- **U19: the tests out of the wheel** *(for 06)*. Measured at 06's writing, the wheel ships 19 test
+  modules and none of their data files, so the guard cannot run from it. (a) **Exclude
+  `runregistrykit.tests`** from the distribution, as DatastoreKit and RayPoolKit do; or (b) ship the
+  tests with their data. *Recommended:* (a): the tests are this repository's, not a client's to
+  import. *Taken 2026-10-15, for 06 (prompt 06 §2.1): (a).*
 
 ## 7. Gates outside this repository
 

@@ -1,6 +1,6 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 8 of 11 prompts written (01–03, 04a, 04b, 05a–05c), 8 landed and
+**Last updated:** 2026-10-15 · **Status: LIVE — 9 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06), 8 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
 276; 05c, `a7d93d5`, suite 276).** G1 holds
@@ -8,7 +8,7 @@ on the source side at SGK `a45aefc`, and on the package side for 01's and 02's f
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
 U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the same day for
-05, and U17 for 05b, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
+05, U17 for 05b, and U13, U18 and U19 for 06, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -46,11 +46,13 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | **U10** guard | measured client vocabulary, and an import rule | **taken** 2026-10-15 (05a §2.2, §2.3; a citation scan besides) |
 | **U11** public names | for `_slug` and the like, before the release | **taken** 2026-10-15 (`__all__`, 05a §2.4; the name `slugify`, amended at dispatch from the prompt's `slug`) |
 | **U12** licence header | on every package module but the tests | **taken** 2026-10-15 (05a §2.5) |
-| **U13** versions and CI | Python ≥3.12; `[stores]` `datastorekit>=0.4.0`; DatastoreKit's two ends, and a core job without it | open, for 06 |
+| **U13** versions and CI | Python ≥3.12; `[stores]` `datastorekit>=0.4.0`; DatastoreKit's two ends, and a core job without it | **taken** 2026-10-15 (prompt 06 §2.1, §2.5) |
 | **U14** retire hazard | 04b loads the fingerprinter before a first retirement plans or fingerprints, and the loader refuses a class | **taken** 2026-10-15 |
 | **U15** 05 split | three prompts: 05a the guard, names and header; 05b the package prose and the README's rules; 05c the tests' names | **taken** 2026-10-15 |
 | **U16** tests in scope | the guard scans the tests; their SGK names renamed in 05c, rule 9 lifted for names only | **taken** 2026-10-15 |
 | **U17** citation scan | 05b widens it (capital `Prompt NN`, decision ids, issue tags); the tests' new hits listed for 05c | **taken** 2026-10-15 |
+| **U18** core job | the core job runs `test_run_registry` and `test_public_names` by name and a smoke step; the import test stays in the `[stores]` jobs, closing `[05c-the-import-test-needs-datastorekit]` | **taken** 2026-10-15 |
+| **U19** wheel | `runregistrykit.tests` excluded from the distribution | **taken** 2026-10-15 |
 
 ## 1. Prompts
 
@@ -64,7 +66,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05a-the-guard-and-the-public-names.md)) | `14af805` | 245 → 275 |
 | 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05b-the-package-prose-and-the-rules.md)) | `1120fb3` | 275 → 276 |
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05c-the-tests-own-names.md)) | `a7d93d5` | 276 → 276 |
-| 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
+| 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | written 2026-10-15 | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
 | 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
 
@@ -939,6 +941,12 @@ guard that imports `datastorekit` lazily, which would be a change to the guard),
 
 *Package lines (05c, 2026-10-15).* `runregistrykit/tests/test_package_imports.py:17` (the import)
 and `:24-31` (`FORBIDDEN` and its comment); `runregistrykit/tests/test_package_is_generic.py:64`.
+
+**Decided (2026-10-15, at 06's writing, by U18):** no test or guard changes. The core job runs
+`test_run_registry` and `test_public_names` by name, and a smoke step that imports the five modules
+with none of `ray`, `sqlalchemy` and `datastorekit` installed and runs `--help`, `list` and a `begin`
+and `finish`; the import test runs in the `[stores]` jobs, the only place its check that nothing
+heavy loads means anything. 06 closes the issue on that ground (prompt 06 §2.6).
 
 ## 4. Resolved issues
 
