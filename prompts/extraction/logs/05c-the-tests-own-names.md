@@ -1,7 +1,7 @@
 # Log — prompt 05c: the tests' own names
 
 **Subject:** Rename the tests' client names, make their fixture data neutral and rewrite their prose, so that the guard's known hits are empty
-**Commit:** this commit (on `main`, after `bd83b3d`)
+**Commit:** `a7d93d5` (on `main`, after `bd83b3d`)
 **Date:** 2026-10-15
 **Agent:** Claude Sonnet 5.5, dispatched by the orchestrator with its brief and the orchestration
 note's section 0 (`brief-05c-section0.md`)

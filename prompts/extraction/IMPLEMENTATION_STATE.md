@@ -1,9 +1,9 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 8 of 11 prompts written (01–03, 04a, 04b, 05a–05c), 7 landed and
+**Last updated:** 2026-10-15 · **Status: LIVE — 8 of 11 prompts written (01–03, 04a, 04b, 05a–05c), 8 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
-276), 05c landed, its review pending (this commit, suite 276).** G1 holds
+276; 05c, `a7d93d5`, suite 276).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -63,7 +63,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | `5302a6f` | 186 → 245 |
 | 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05a-the-guard-and-the-public-names.md)) | `14af805` | 245 → 275 |
 | 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05b-the-package-prose-and-the-rules.md)) | `1120fb3` | 275 → 276 |
-| 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed** 2026-10-15, review pending ([log](logs/05c-the-tests-own-names.md)) | this commit | 276 → 276 |
+| 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05c-the-tests-own-names.md)) | `a7d93d5` | 276 → 276 |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
 | 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
@@ -77,7 +77,8 @@ for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`1f9b5b0`), us
 [`orchestrator/prompt-04a.md`](orchestrator/prompt-04a.md) (`9dc34a5`), used for 04a;
 [`orchestrator/prompt-04b.md`](orchestrator/prompt-04b.md) (`5177ffa`), used for 04b;
 [`orchestrator/prompt-05a.md`](orchestrator/prompt-05a.md) (`d2a3d85`), used for 05a;
-[`orchestrator/prompt-05b.md`](orchestrator/prompt-05b.md) (`bcc0c0a`), used for 05b.
+[`orchestrator/prompt-05b.md`](orchestrator/prompt-05b.md) (`bcc0c0a`), used for 05b;
+[`orchestrator/prompt-05c.md`](orchestrator/prompt-05c.md) (`bd83b3d`), used for 05c.
 
 **Orchestrator review of prompt 01 (2026-10-14).** Dispatched from `91b7a60` to one Opus subagent,
 with the note's §0: its facts, five corrections and readings of the prompt, its one addition (the
@@ -659,6 +660,87 @@ Lines over 100 columns that `c735acf` already had are left as they were.
 is empty; the writer is to be unchanged, and 05c's rewrite restates it. The other observations need
 no issue. **Nothing opened**; the index stays at 3.
 
+**Orchestrator review of prompt 05c (2026-10-15).** Dispatched from `bd83b3d` to one Sonnet
+subagent, with the note's §0: its facts, twelve corrections and readings of the prompt (three test
+methods the map missed, two named for SGK's A3 store, which the guard does not flag but §3.4's grep
+requires gone, and one named for an SGK prompt; `QSI` and `TKN` also read as attributes;
+`FORBIDDEN` from the guard bringing `datastorekit` into the import test, so an issue for 06; what
+`FORBIDDEN` becomes; the guard's one paragraph; the writer; the assertions-unchanged script; the
+neutral data; the greps; the prose's width; `PROVENANCE.md`'s tables; the suite's per-module
+counts). Reviewed against its commit `a7d93d5`, with nothing landed after it. **Every check of the
+note's §3 passed**, and acceptance 1–3 are met. No stop condition fired.
+
+*At dispatch.* The prompt's gate held at `4ec6406` and the note's at `bd83b3d`: the diff from
+`8766714` empty, the tree clean, this checkout the only worktree, no `var/`; the suite 276 OK in
+92.7 s. No Ray process; `RAY_ADDRESS` unset. The orchestrator's trial of §2.2's map over an export
+of `4ec6406`, followed by §3.4's whole-file grep, left only §2.3's data and §2.5's prose and the two
+`a3` method names; an `ast` scan of every identifier found the third.
+
+*The checks.*
+1. **Scope.** `a7d93d5` touches 22 files: 15 test modules and fixtures, `known_hits.json`,
+   `PROVENANCE.md` and the records. The package modules, `test_public_names.py`, the vocabulary,
+   both scripts, `pyproject.toml`, `README.md`, `CLAUDE.md`, the campaign README, the prompt and the
+   note are unchanged; `git ls-files runregistrykit` is the same 26.
+2. **The assertions, independently.** The orchestrator's script, written from §2.2, correction 1
+   and §2.3: with docstrings removed and the map applied to the old tree's identifiers, every test
+   module and fixture is structurally equal to `8766714`'s; the string constants that differ are
+   exactly the three column names and §2.3's data (the shard fixture's names, the sidecar
+   fixtures' values with their shapes, the stems, `pilot-run`, `campaign="example"` in the helper
+   and in the crasher's code string, the run id). `test_package_imports.py` differs by the import
+   of `project_packages` and `FORBIDDEN`'s assignment only. The guard's `ast` without docstrings
+   equals `8766714`'s. By the loader, 276 test ids before and after, differing by exactly eight
+   renamed methods (the note's "nine" counted the renamed class's one method twice; the agent's
+   log is right).
+3. **The prose, by reading.** The diff of every test file read hunk by hunk: each test's check and
+   reason kept; the numbers of SGK's tests and properties dropped with their descriptions kept; the
+   incident of `test_store_retire.py` stated as its mechanism (a store whose `shards` rows are
+   absolute paths to another store's files); `fingerprint_of` described as DatastoreKit's, and
+   "real multi-shard fixture stores" as the neutral store's. The orchestrator's own greps of §3.4
+   over an export of `a7d93d5`: the prose grep finds nothing, the whole-file grep nothing. No
+   changed docstring or comment line is over 100 columns (three lines over it are as `8766714` had
+   them), and no paragraph is broken mid-sentence.
+4. **The guard, by reading.** Its diff is the paragraph "The known hits": the mechanism kept, the
+   list said to be empty, the owners' sentence gone, nothing cited.
+5. **The known hits, independently.** The guard's `scan_all()` run from an export of `a7d93d5`
+   returns nothing in any of its five scans; `known_hits.json`'s five lists are empty and its
+   `owners` string names no prompt.
+6. **The suite.** `Ran 276 tests in 87.3s`, OK; the per-module counts those of `4ec6406`.
+   `git status --short --ignored` the same before and after; no `var/`; this checkout the only
+   worktree; no Ray process. `black --check runregistrykit docs`: 26 files unchanged.
+7. **`PROVENANCE.md`.** 05c's section under "Since the import"; "The tests' renames", sixteen rows,
+   every test id old and new real (checked against the loader's ids above); "Where the tests'
+   citations pointed", one row per changed module or fixture, each as cited at `8766714`.
+8. **The mutations.** (m1)–(m6) extracted from the log and replayed in `bash` (`--check`, apply,
+   `-R --check`, reverse), each failing exactly the tests the log names; the tree clean after
+   each. The orchestrator's own: (o1) `a3_shaped` restored as an alias fails the code-name scan;
+   (o2) the shard fixture's old key type fails the string scan; (o3) "(store-fingerprint prompt
+   04)" restored fails the citation and string scans; (o4) `FORBIDDEN` restored to its seven
+   literals fails the string scan; (o5) a citation in the guard's paragraph fails the citation scan
+   and `test_this_module_holds_no_known_hit`; (o6) an `a3` method name and `QSI` restored fail
+   **nothing**, as the note expected. Not pinned, and accepted: a client name that is not one of
+   the guard's forbidden words (`a3`, `QSI`, `TKN`) is caught by §3.4's grep, not by a test; and
+   the prose's faithfulness is read, not tested.
+9. **The records.** The log has every section of README §5.1 and the prompt's §4.3 additions, 15
+   deviations classified (corrections 1–12 among them; no UNINTENDED DRIFT), the neutral data old
+   and new, the writer and the file's diff, the script and its output, the greps' accounting, and
+   all six diffs. The board as §4.3: `[02-the-ported-tests-name-sgk]` closed into §4,
+   `[05c-the-import-test-needs-datastorekit]` opened with owner 06, the other two with *Package
+   lines (05c, …)*. The index counts 3 by counting, as its header says.
+10. **The interface and the handover.** No package module changed, so no record changes form. The
+    handover gives 06 the empty known hits, the suite at 276 and the new issue.
+
+*Residue fixed in the follow-up.* "this commit" → `a7d93d5` on this board, in the log's header, in
+`PROVENANCE.md` and in `prompts/INDEX.md`; 05c marked reviewed here, in README §2 and its header,
+and in `prompts/INDEX.md`; this paragraph and the notes line.
+
+*Accepted as recorded.* The judgment calls the log classifies as IMPLEMENTATION CHOICE (deviations
+8–13): the neutral values, `TestSelfMatch`'s incident counts stated in general terms (the README's
+rules keep the numbers), the two client programs dropped from `write_hand_built_primary`'s
+docstring, "which works since prompt 01" dropped, the residual labels dropped, and a numbered list
+made bullets. `PROVENANCE.md`'s stale preamble is left to 08, as the log says. The note's
+`test_package_is_generic.py:65` for the guard's `datastorekit` import is `:64`; the board's issue
+has it right. **Nothing else opened**; the index stays at 3.
+
 ### 1.1 Items
 
 | Item | Prompt | What | State |
@@ -862,7 +944,7 @@ and `:24-31` (`FORBIDDEN` and its comment); `runregistrykit/tests/test_package_i
 
 ### `[02-the-ported-tests-name-sgk]`
 
-**Opened:** 2026-10-14, by 02. **Owner:** 05c. **Closed:** 2026-10-15, by 05c (this commit).
+**Opened:** 2026-10-14, by 02. **Owner:** 05c. **Closed:** 2026-10-15, by 05c (`a7d93d5`).
 
 **Assigned (2026-10-15):** to 05c by U15 and U16: the guard scans the tests (05a lists their hits
 as known), and 05c renames the SGK names rule 9 kept, each mapped in `PROVENANCE.md`, and rewrites
@@ -969,7 +1051,7 @@ nothing of SGK and adds no entry.
 (`:166`), moving the lines below it in that file by 15, and `test_package_is_generic.py`, whose
 citation pattern, docstring paragraph and citation test changed; neither names SGK.
 
-*Resolved (05c, 2026-10-15, this commit).* The tests name no client: `known_hits.json` is empty in
+*Resolved (05c, 2026-10-15, `a7d93d5`).* The tests name no client: `known_hits.json` is empty in
 every scan (155 hits in 94 entries before), the guard's five scans find nothing in any of the 24
 Python files, and the guard is otherwise unchanged. Sixteen names were renamed under U16 (the
 helpers `a3_shaped` and `sweep_shaped`, the class `TestLiveA3Shape`, eight test methods, `QSI` and

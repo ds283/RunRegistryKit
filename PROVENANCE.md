@@ -315,7 +315,7 @@ Each prompt's changes, from 03 on:
   entries of the widened scan, for prompt 05c.
 
 **Prompt 05c, the tests' own names**
-(`prompts/extraction/05c-the-tests-own-names.md`, this commit):
+(`prompts/extraction/05c-the-tests-own-names.md`, `a7d93d5`):
 
 - **Names renamed** (U16, README §5 rule 9 lifted for names only): sixteen, in the table "The tests'
   renames" below, with the test ids that changed: eight test methods, a class, two helpers, two
