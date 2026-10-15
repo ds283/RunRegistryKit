@@ -1,6 +1,6 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 9 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06), 9 landed and
+**Last updated:** 2026-10-15 · **Status: LIVE — 10 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06, 07), 9 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
 276; 05c, `a7d93d5`, suite 276; 06, `9f8ebe4`, suite 276).** G1 holds
@@ -8,7 +8,7 @@ on the source side at SGK `a45aefc`, and on the package side for 01's and 02's f
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
 U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the same day for
-05, U17 for 05b, and U13, U18 and U19 for 06, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
+05, U17 for 05b, U13, U18 and U19 for 06, and U20, U21 and U22 for 07, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
 **`v0.1.0` is tagged** (annotated, tag object `fd5ce48`) on 06's commit `9f8ebe4`, after CI run
 `38754093289` passed there in all three jobs (`suite (low)`, `suite (high)`, `core`); the tag and
 `main` (to `4ee947b`) are pushed (README §5 rule 12).
@@ -56,6 +56,9 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | **U17** citation scan | 05b widens it (capital `Prompt NN`, decision ids, issue tags); the tests' new hits listed for 05c | **taken** 2026-10-15 |
 | **U18** core job | the core job runs `test_run_registry` and `test_public_names` by name and a smoke step; the import test stays in the `[stores]` jobs, closing `[05c-the-import-test-needs-datastorekit]` | **taken** 2026-10-15 |
 | **U19** wheel | `runregistrykit.tests` excluded from the distribution | **taken** 2026-10-15 |
+| **U20** README worktree | 07 corrects the worktree sentences of "Using it", closing `[06-the-readme-places-the-fingerprinter-import-in-the-main-checkout]` | **taken** 2026-10-15 |
+| **U21** SGK's test helpers | no test support shipped; SGK's checklist lists each helper and deleted name its staying tests use, and advises SGK keep its own copies | **taken** 2026-10-15 |
+| **U22** Q5 recipe | described with a sketch proved here; each client writes its own guard | **taken** 2026-10-15 |
 
 ## 1. Prompts
 
@@ -70,7 +73,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05b-the-package-prose-and-the-rules.md)) | `1120fb3` | 275 → 276 |
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05c-the-tests-own-names.md)) | `a7d93d5` | 276 → 276 |
 | 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/06-release-v0.1.0.md)) | `9f8ebe4` | 276 → 276 |
-| 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
+| 07 | [`07-the-adoption-checklists.md`](07-the-adoption-checklists.md) | Opus | written 2026-10-15 | — | — |
 | 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
 
 **Written one at a time** (README §2.1), each after the one before it has landed and been reviewed.
@@ -1061,7 +1064,7 @@ open, owner none: a typed exception remains a request to DatastoreKit (README §
 
 ### `[06-the-readme-places-the-fingerprinter-import-in-the-main-checkout]`
 
-**Opened:** 2026-10-15, by the orchestrator's review of 06. **Owner:** none; to be put to the user.
+**Opened:** 2026-10-15, by the orchestrator's review of 06. **Owner:** 07 (U20).
 
 `README.md` (at `9f8ebe4`), "Using it", says at `:81-82` that a relative `runs_root` or
 `stores_root` is relative to "the root (for a run in a linked worktree, the main checkout, below)",
@@ -1083,6 +1086,10 @@ difference matters.
 fingerprinter's module is imported from, are those of the tree that is running (in a linked
 worktree, the worktree), while records go under the main checkout. Which prompt makes it, and
 whether before or after the tag, is put to the user; the tag's code is unaffected either way.
+
+**Assigned (2026-10-15):** to 07, by U20 (README §6.2): 07 corrects the worktree sentences of
+"Using it" and nothing else in the README (prompt 07 §2.4), since its checklists cite that section
+and SGK's adoption checks a worktree run.
 
 ## 4. Resolved issues
 
