@@ -1,13 +1,13 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 5 of 9 prompts written (01–03, 04a, 04b), 5 landed and
+**Last updated:** 2026-10-15 · **Status: LIVE — 6 of 11 prompts written (01–03, 04a, 04b, 05a), 5 landed and
 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245).** G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
-U6, U7 and U8 for 04, and U14 on 2026-10-15 for 04b, as recommended (README §6.2); 04 split into
-04a and 04b.
+U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, and U10, U11, U12, U15 and U16 the same day for
+05, as recommended (README §6.2); 04 split into 04a and 04b, and 05 into 05a, 05b and 05c.
 
 **Campaign:** [`README.md`](README.md) ·
 **Source:** SecondaryGWKit's `RunRegistry/` at `a45aefc`, 25 files (G1) ·
@@ -42,11 +42,13 @@ U6, U7 and U8 for 04, and U14 on 2026-10-15 for 04b, as recommended (README §6.
 | **U7** what is read | versions, digest, `taken`, comparison `kind` and `text`; `encoding_format` not required to read | **taken** 2026-10-14 (two variants of one ported test removed) |
 | **U8** neutral store | own factories and writer, public `datastorekit` names only | **taken** 2026-10-14 |
 | **U9** self-record | `runregistrykit` always in `packages` | **taken** 2026-10-14 |
-| **U10** guard | measured client vocabulary, and an import rule | open, for 05 |
-| **U11** public names | for `_slug` and the like, before the release | open, for 05 |
-| **U12** licence header | on every package module but the tests | open, for 05 |
+| **U10** guard | measured client vocabulary, and an import rule | **taken** 2026-10-15 (05a §2.2, §2.3; a citation scan besides) |
+| **U11** public names | for `_slug` and the like, before the release | **taken** 2026-10-15 (`slug`, `__all__`, 05a §2.4) |
+| **U12** licence header | on every package module but the tests | **taken** 2026-10-15 (05a §2.5) |
 | **U13** versions and CI | Python ≥3.12; `[stores]` `datastorekit>=0.4.0`; DatastoreKit's two ends, and a core job without it | open, for 06 |
 | **U14** retire hazard | 04b loads the fingerprinter before a first retirement plans or fingerprints, and the loader refuses a class | **taken** 2026-10-15 |
+| **U15** 05 split | three prompts: 05a the guard, names and header; 05b the package prose and the README's rules; 05c the tests' names | **taken** 2026-10-15 |
+| **U16** tests in scope | the guard scans the tests; their SGK names renamed in 05c, rule 9 lifted for names only | **taken** 2026-10-15 |
 
 ## 1. Prompts
 
@@ -57,7 +59,9 @@ U6, U7 and U8 for 04, and U14 on 2026-10-15 for 04b, as recommended (README §6.
 | 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | Opus | **landed and reviewed** 2026-10-14 ([log](logs/03-the-root-and-the-client-config.md)) | `035e4b5` | 108 → 135 |
 | 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04a-the-client-fingerprinter.md)) | `c81ad06` | 135 → 186 |
 | 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/04b-the-retire-tests.md)) | `5302a6f` | 186 → 245 |
-| 05 | `05-the-package-prose-and-the-guard.md` | Sonnet | not written | — | — |
+| 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | Sonnet | written 2026-10-15 | — | — |
+| 05b | `05b-the-package-prose-and-the-rules.md` | Sonnet | not written | — | — |
+| 05c | `05c-the-tests-own-names.md` | Sonnet | not written | — | — |
 | 06 | `06-release-v0.1.0.md` | Sonnet | not written | — | — |
 | 07 | `07-the-adoption-checklists.md` | Opus | not written | — | — |
 | 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
@@ -495,8 +499,10 @@ loader's `ConfigError` for a class, where it recorded `take`'s `TypeError`, is t
 | **T2a** | 04a | the neutral store; `test_store_fingerprint`'s 27 and `TestFormats`' 2 ported | ✅ 2026-10-15: `runregistrykit/tests/neutral_store.py` on ten public `datastorekit` names; the 29 ported (SGK's ids less `TestGolden` 3 and `TestDrivers` 1), the port script's output differing from the committed file by the shims, the F-client lines and the two U7 variants only; `test_fingerprinter.py`, 22 tests; the suite 186 |
 | **T2b** | 04b | the retire tests' 51 ported onto the neutral store | ✅ 2026-10-15: `test_store_retire` 41 and `test_store_retire_references` 10, SGK's ids by class; the port script's output differing from the committed files by the `compare_fingerprints` shim only; D-name 18, D-fix 1, N-fix 3, N-class 1, R-root 30, R-cwd 3, D-fmt 13 hunks; no F-client; `test_an_unreadable_shards_table` reaches the DatastoreKit text match, (m1) fails it; (m2), (m3), (m7) caught; the suite 245 |
 | **F3** | 04b | U14: `store retire` loads the fingerprinter before it fingerprints; the loader refuses a class | ✅ 2026-10-15: `retire_store` loads the fingerprinter on a first retirement after steps 1 and 2 and before the plan, its `ConfigError` unwrapped and nothing written, under the flag or not, in a dry run and from the command; the completion path loads none; `load_fingerprinter` refuses a class before its protocol check; 8 tests in `test_fingerprinter.py`; (m4)–(m6), (m8)–(m10) caught |
-| **P1** | 05 | the prose, the output and the README's rules (C8) | ⬜ |
-| **P2** | 05 | the no-client guard | ⬜ |
+| **P2** | 05a | the no-client guard, its vocabulary and its known hits (U10, U16) | ⬜ |
+| **N1** | 05a | the public names (`slug`, `__all__`) and the licence header (U11, U12) | ⬜ |
+| **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ⬜ |
+| **T3** | 05c | the tests' SGK names and prose renamed (U16) | ⬜ |
 | **V1** | 06 | versions, CI, `v0.1.0` | ⬜ |
 | **A1** | 07 | the three checklists and their script (SGK's E2) | ⬜ |
 | **Z1** | 08 | the verification document; the close | ⬜ |
@@ -528,7 +534,10 @@ SGK's**: each issue's *Package lines (03, …)* gives them at 03's commit, and *
 
 ### `[00-package-prose-names-sgk]`
 
-**Opened:** 2026-10-14, at planning (C8). **Owner:** 05.
+**Opened:** 2026-10-14, at planning (C8). **Owner:** 05b.
+
+**Assigned (2026-10-15):** to 05b by U15, when 05 was split: 05a's guard lists each of its hits in
+the package modules as known, and 05b rewrites the prose and empties them.
 
 49 docstring and comment lines cite SGK's campaigns (21 in `__init__.py`, 28 in `stores.py`), and
 others name SGK's A3 store, `realistic_large_x`, `main.py` and SGK's classes (README §0.2). The CLI
@@ -668,7 +677,11 @@ in `retire_store`.
 
 ### `[02-the-ported-tests-name-sgk]`
 
-**Opened:** 2026-10-14, by 02. **Owner:** 05.
+**Opened:** 2026-10-14, by 02. **Owner:** 05c.
+
+**Assigned (2026-10-15):** to 05c by U15 and U16: the guard scans the tests (05a lists their hits
+as known), and 05c renames the SGK names rule 9 kept, each mapped in `PROVENANCE.md`, and rewrites
+the rest.
 
 The ported tests and fixtures carry SGK's names, besides the `RunRegistry` and `StoreFixtures` that
 D-name and D-fix handle. Measured in the eight files at `8155445` (package lines):

@@ -6,9 +6,9 @@
 measurements made the same day (§0.2). The brief is evidence, not a specification: where it and
 §0.2 disagree, §0.2 says so and is right for this tree. The user's rulings carried in from SGK are
 §6.1; the decisions this campaign needs are §6.2. The user took U2 and U3 on 2026-10-14, as
-recommended, for 01, U4 for 02, U5 and U9 for 03, U6, U7 and U8 for 04, and U14 for 04b. **Prompts 01
+recommended, for 01, U4 for 02, U5 and U9 for 03, U6, U7 and U8 for 04, U14 for 04b, and U10, U11, U12, U15 and U16 for 05. **Prompts 01
 (`4e0d715`), 02 (`8155445`), 03 (`035e4b5`), 04a (`c81ad06`) and 04b (`5302a6f`) have landed and been
-reviewed; 04 is split into 04a and 04b** (§2.1).
+reviewed; 04 is split into 04a and 04b, 05 into 05a, 05b and 05c, and 05a is written** (§2.1).
 
 ## 0. Why this campaign exists
 
@@ -193,7 +193,7 @@ has a `pyproject.toml` with a `[project]` table (SI's holds only pytest settings
 - the client fingerprinter, layer C deleted, and the fields the package reads of a fingerprint
   (04: C6, C7; SGK's D3, D4);
 - the package's prose and output made its own, the rules of the registry stated in its README, and
-  a guard that the package names no client (05: C8);
+  a guard that the package names no client (05a–05c: C8);
 - the supported versions, CI, and the release `v0.1.0` (06);
 - the three clients' adoption checklists, measured against `v0.1.0` (07);
 - a verification document, and the campaign closed (08).
@@ -222,12 +222,14 @@ has a `pyproject.toml` with a `[project]` table (SI's holds only pytest settings
 | 03 | [`03-the-root-and-the-client-config.md`](03-the-root-and-the-client-config.md) | C1–C5 and C9. The **client config file** at the client's root, read with `tomllib`, which also marks the root (SGK's Q2; its form, U5). The **root rule** (SGK's Q3): a run is recorded under the main checkout, the parent of `git rev-parse --git-common-dir`, while its git SHA, dirty flag and script hash are its own tree's. The runs root, the stores root and the recorded distributions from the config, `runregistrykit` always recorded besides (U9). No config found is a refusal, never a fallback. C4's relative paths are kept, so every existing record reads as before. The child-process tests stop depending on the package's location; `test_run_registry.py:393` becomes a config test. Tests with temporary git repositories and worktrees. Closes `[00-the-root-is-the-packages-parent]` and `[00-the-recorded-distributions-are-sgks]`. *(At writing: no client has a `runregistrykit.toml`, and each has one worktree; every SGK `begin()` caller is two directories below SGK's root and passes `script=__file__`, one passing `root=` a temporary runs root, and no client imports `REPO_ROOT`, `DEFAULT_ROOT` or `DEFAULT_STORES_ROOT`; so the override is spelled `client_root=` / `--client-root`, `root=` keeping its meaning, the runs root. Provenance is the start directory's (the script's, else the working directory). The ported tests' fixtures build a client root in a `tempfile` directory, as a git repository, and run inside it, so no test body changes but 12 `_repo_path` calls, 4 child processes' `cwd`, and the two C5 tests, one renamed; `git` reports a worktree's paths realpath'd, so §2.4 compares realpaths. CPBH and SI do not ignore `var/`, for 07.)* | Opus | landed and reviewed 2026-10-14 (`035e4b5`) |
 | 04a | [`04a-the-client-fingerprinter.md`](04a-the-client-fingerprinter.md) | C6 and C7, under SGK's D3 and D4. The **fingerprinter protocol** and a shipped `DatastoreKitFingerprinter`, named by `[stores] fingerprinter` (U6); the store layer refused without one (D4); layer C (`stores.py:1180-1427` at `f9e0e60`) and `FINGERPRINT_FORMAT` deleted; `fingerprint_store`'s discipline kept exactly. **What the package reads of a fingerprint** (U7), the reader's `classes` check dropped. The **neutral store** (U8). SGK's `test_store_fingerprint`, less `TestGolden` and `TestDrivers`: 27 tests and `TestFormats`' 2, each keeping its name and what it asserts, two variants of one test removed under U7. Closes `[00-the-fingerprint-reads-a-clients-registry]`, `[00-the-store-layer-reads-inside-a-fingerprint]` and `[02-the-sidecar-readers-guards-are-unpinned]`. *(At writing: DatastoreKit's comparison loops, texts, `classes` and `problems` are layer C's, by diff and by running both; its `fingerprint_of` requires the format, and its comparison gates on `encoding_format`, so every SGK fingerprint compared with a fresh one gives one `encoding` entry. A 120-line neutral store on public names was read by `read_inventory` and `ShardedPool`'s four static methods, at about 18 ms. The clients' registries are each a plain mapping, SGK's of classes, CPBH's and SI's of instances, and each client has a top-level `config` package. `store show` must not import the fingerprinter, which loads `ray` and `sqlalchemy`. SGK's test bodies name SGK's classes and tables, so the port renames them in constants and literals only, through a neutral store whose content keeps every asserted count and text.)* | Opus | landed and reviewed 2026-10-15 (`c81ad06`) |
 | 04b | [`04b-the-retire-tests.md`](04b-the-retire-tests.md) | SGK's `test_store_retire` (41) and `test_store_retire_references` (10) on 04a's neutral store, each keeping its name and what it asserts, by the change classes of 02, 03 and 04a; among them the test that reaches `[00-a-refusal-matches-datastorekit-message-text]`'s match (`test_an_unreadable_shards_table`). And U14's two fixes: `store retire` loads the client's fingerprinter before it plans or fingerprints a first retirement, so a fingerprinter that cannot be loaded is a refusal and never a `--without-fingerprint` condition; and the loader refuses a class. Closes `[04b-retire-without-fingerprint-deletes-on-a-broken-fingerprinter]` and `[04a-the-loader-accepts-a-fingerprinter-class]`. *(At writing: a trial port, D-name 18, D-fix 1, N-fix 2 with a `compare_fingerprints` shim, N-class 1 (`QSI`), R-root 30, R-cwd 3 and `black`, into an export of `8880cfa`, gave `Ran 51 tests in 29.8s`, OK, with no F-client; rewording `_SHARDS_TABLE_UNREADABLE` fails `test_an_unreadable_shards_table`. Probed: with the config's fingerprinter naming a module that does not exist, or the class `DatastoreKitFingerprinter`, `retire_store(…, without_fingerprint=True)` retired a store that could be fingerprinted, recording the load error as the reason; hence U14.)* | Opus | landed and reviewed 2026-10-15 (`5302a6f`) |
-| 05 | `05-the-package-prose-and-the-guard.md` | C8 and the SGK output: every docstring, comment and message rewritten in the package's own terms, SGK's history left to `PROVENANCE.md`; `main.py --inventory` replaced. `README.md` gains **the rules of the registry**, each with the failure it answers (SGK's brief §6). A **guard test** that the package names no client, in code, strings or comments, and imports only what it may (U10). Public names settled for what clients reach into (`_slug`, U11). The licence header (U12). Closes `[00-package-prose-names-sgk]`. | Sonnet | not written |
+| 05a | [`05a-the-guard-and-the-public-names.md`](05a-the-guard-and-the-public-names.md) | The **guard** that the package names no client (U10, U16): the three clients' vocabulary measured through `git` at fixed commits by `docs/extraction/measure_client_vocabulary.py` into a data file; a guard over every `*.py` under `runregistrykit/`, tests included, with four word scans (code names, strings, comments, campaign citations) and an import rule, each required to find exactly its known hits, listed by file and word in a second data file. **Public names** (U11): `_slug` becomes `slug`, and each module declares `__all__`, pinned. **The licence header** (U12) on the five package modules. No prose rewritten, no hit removed. *(At writing: SGK `14bcac0`, ChamPBH `c21cdfb`, SI `5fb4a1d` measured by a trial script (registry keys 38, 27, 30; columns 194, 80, 101; campaigns 26, 10, 6); a trial guard found 454 forbidden words and about 210 hits, 69 in the package modules (26 strings, 8 comments, 35 citations) and 140 in the tests; `version`, `store_tag`, `tag_serial` and `label` are `datastorekit.contract`'s and allowed; the imports conform; `_slug` is SGK's one private use.)* | Sonnet | written 2026-10-15 |
+| 05b | `05b-the-package-prose-and-the-rules.md` | C8 and the SGK output in the five package modules: every docstring, comment and message rewritten in the package's own terms, SGK's history left to `PROVENANCE.md`; `main.py --inventory` replaced; the two docstrings 04b's log names. `README.md` gains **the rules of the registry**, each with the failure it answers (SGK's brief §6), and says that no patch target is promised (U11). Empties the package modules' known hits. Closes `[00-package-prose-names-sgk]`. | Sonnet | not written |
+| 05c | `05c-the-tests-own-names.md` | The tests' SGK names and prose (U16): `TestLiveA3Shape`, `a3_shaped`, `sweep_shaped`, SGK's store stems and run names, the shard fixture's tables, the neutral store's shared columns, `test_package_imports.py`'s `FORBIDDEN`, and the citations; each rename mapped in `PROVENANCE.md`, every assertion kept. Empties the known hits. Closes `[02-the-ported-tests-name-sgk]`. | Sonnet | not written |
 | 06 | `06-release-v0.1.0.md` | Dependency ranges in `pyproject.toml` (`[stores]`: `datastorekit>=0.4.0` by name, SGK's brief §7). The suite at both ends locally, and with no `datastorekit` installed for the core (U13). A GitHub Actions workflow. `README.md` gains usage and installing. **Tag `v0.1.0`** on its commit once CI is green at both ends. | Sonnet | not written |
 | 07 | `07-the-adoption-checklists.md` | `docs/adoption/`: a README and one checklist per client, measured read-only at a named client commit against `v0.1.0`. SGK's is E2's (SGK's brief §8.2): the config file with SGK's values, the fingerprinter's protocol and SGK's module, the public name for each SGK call site, the commands, and how to build SGK's Q5 guard. CPBH's and SI's (§8.3), each offering the Q5 pattern, and the substitution of `installed_package_provenance`. A script measures every client's call sites through `git` and `ast`. | Opus | not written |
 | 08 | `08-verification-and-close-out.md` | `docs/extraction-verification.md` from the package at `v0.1.0` and the records of 01–07; a smoke run of the store layer end to end in a temporary client root at both ends; the campaign closed, with G2–G4 open. | Sonnet | not written |
 
-**Order.** 01 → 02 → 03 → 04a → 04b → 05 → 06 → 07 → 08. 02 follows 01 so that the behaviour every later
+**Order.** 01 → 02 → 03 → 04a → 04b → 05a → 05b → 05c → 06 → 07 → 08. 02 follows 01 so that the behaviour every later
 prompt changes is pinned by tests first, as imported. 03 precedes 04 because the fingerprinter is
 named in the config file that 03 creates. 05 follows 04 because the guard can pass only once C6
 is gone. 07 is measured against `v0.1.0`, the release the clients adopt.
@@ -273,7 +275,9 @@ client reads its files through `git` (07's checklists). The suite builds every s
   client calls to find its root. 04 adds the fingerprinter's key to the same file.
 - **After 04:** the fingerprinter protocol, in a module 07's checklists cite; the neutral store
   under `runregistrykit/tests/`.
-- **After 05:** the guard; the README's rules; the public names the checklists use.
+- **After 05a:** the guard and its data; the public names the checklists use (`slug`, `__all__`).
+- **After 05b:** the package's prose its own; the README's rules.
+- **After 05c:** the tests' names their own; the guard's known hits empty.
 - **After 06:** `pyproject.toml` at `0.1.0`; `.github/workflows/tests.yml`; the tag `v0.1.0`.
 - **After 07:** `docs/adoption/` and its script, which 08 cites. **E2 for SGK** is the tag with
   SGK's checklist.
@@ -307,7 +311,9 @@ The project-wide ones in `CLAUDE.md`, plus:
    a stop.
 9. **Ported tests keep their module, class and method names and what they assert.** The changes
    allowed are listed by the prompt, as classes, and each instance is accounted for in its log. A
-   test that cannot keep its assertion is a stop, not a rewrite.
+   test that cannot keep its assertion is a stop, not a rewrite. *From 05c (U16):* a ported test's
+   module, class, method or helper name that names a client may be renamed, each rename mapped in
+   `PROVENANCE.md`; what it asserts is still kept.
 10. **Deliberate breakage.** Each prompt that adds code or a test names mutations its tests must
     catch. The log records each as a diff, exactly as applied, so the orchestrator can replay it
     with `git apply`. Mutations are never committed.
@@ -349,8 +355,8 @@ From SGK's audit §0 and §8 (2026-10-12), as carried by the brief, and this rep
 ### 6.2 Decisions this campaign needs
 
 Each is put with a recommendation, the recommended option first. **U2 and U3 were taken by the user
-on 2026-10-14, for 01, U4 the same day, for 02, U5 and U9, for 03, U6, U7 and U8, for 04, and U14 on
-2026-10-15, for 04b, each as recommended**; the recommendation below is the decision. The others are put when the prompt that needs them is written.
+on 2026-10-14, for 01, U4 the same day, for 02, U5 and U9, for 03, U6, U7 and U8, for 04, U14 on
+2026-10-15, for 04b, and U10, U11, U12, U15 and U16 the same day, for 05, each as recommended**; the recommendation below is the decision. The others are put when the prompt that needs them is written.
 
 - **U2: the import** *(for 01)*. (a) **Faithful**: SGK's three modules at `a45aefc`, changed only by
   the package's name (D-name), with C1–C9 left as they are and opened as §3 issues, each owned by a
@@ -421,14 +427,19 @@ on 2026-10-14, for 01, U4 the same day, for 02, U5 and U9, for 03, U6, U7 and U8
   and modules, SGK's run-registry words (`RunRegistry`, `StoreFixtures`, SGK's campaign and store
   names found in §0.2's C8), measured by a script into a data file as DatastoreKit's is, plus an
   import rule: the standard library and the package, and `datastorekit` only inside `stores.py`'s
-  functions.
+  functions. *Taken 2026-10-15, for 05a (prompt 05a §2.2, §2.3), as recommended, measured at that
+  prompt's writing: registry keys, identifier columns, packages and campaigns of the three clients,
+  the words that cannot be measured listed with their source, `datastorekit.contract`'s words
+  allowed; a citation scan; the import rule.*
 - **U11: public names for what clients reach into** *(for 05)*. SGK's `stage_counts.py` uses the
   private `_slug`; SGK's `sigterm_handler_probe.py` monkeypatches `stores.fingerprint_store` through
   the lazy import at `__init__.py:410`. *Recommended:* export what a client needs under a public
   name before the release, and state in 07's checklists what a client should use for each; no
-  promise about patch targets.
+  promise about patch targets. *Taken 2026-10-15: `_slug` becomes `slug` and each module declares
+  `__all__` (05a §2.4); the fingerprint names stay in `runregistrykit.fingerprint`; the README says
+  no patch target is promised (05b).*
 - **U12: the licence header** *(for 05)*. *Recommended:* the Apache 2.0 header CPBH and SI carry, on
-  every package module but the tests, as RayPoolKit's U11.
+  every package module but the tests, as RayPoolKit's U11. *Taken 2026-10-15, for 05a (§2.5).*
 - **U13: supported versions and CI** *(for 06)*. *Recommended:* `requires-python = ">=3.12"`; no
   core dependency; `[stores]` = `datastorekit>=0.4.0`. Tested at DatastoreKit's two ends (Python
   3.12.15 / Ray 2.43.0 / SQLAlchemy 2.0.39, and 3.13.16 / 2.55.1 / 2.0.46), each with `datastorekit`
@@ -446,6 +457,21 @@ on 2026-10-14, for 01, U4 the same day, for 02, U5 and U9, for 03, U6, U7 and U8
   after 04b; or (c) 04b fixes the retire path only, the class check left for 05. *Recommended:* (a):
   both fixes are a few lines, the retire tests 04b ports are the ones that exercise the path, and
   no client runs the code yet. *Taken 2026-10-15, for 04b (prompt 04b §2.3, §2.4): (a).*
+- **U15: 05 split** *(for 05)*. Measured at 05's writing, the charter is five parts (the guard and
+  its vocabulary, the package's prose, the README's rules, the public names, the header), and with
+  U16 the tests' names besides, about 210 guard hits in all. (a) **Three prompts**: 05a the guard,
+  with today's hits listed as known, the public names and the header; 05b the package modules' prose
+  and the README's rules, emptying their known hits; 05c the tests' names and prose, emptying the
+  rest; or (b) two, the prose of both in one; or (c) one, on Opus. *Recommended:* (a): the guard
+  first makes each later rewrite measurable, as DatastoreKit's 04b and 09 did, and each prompt is
+  one kind of work. *Taken 2026-10-15: (a).*
+- **U16: the tests in the guard's scope** *(for 05)*. The tests ship in the package, and carry SGK's
+  names (`[02-the-ported-tests-name-sgk]`), some of which rule 9 keeps. (a) **The guard scans the
+  tests, and their SGK names are renamed**: rule 9 is lifted for names only, from 05c, each rename
+  mapped in `PROVENANCE.md`, every assertion kept; or (b) the guard scans the tests with a standing
+  list of the names rule 9 keeps; or (c) it scans the package modules only, as DatastoreKit's.
+  *Recommended:* (a): `CLAUDE.md` says the package names no client, and the port, now complete and
+  reviewed, no longer needs SGK's names to be traced. *Taken 2026-10-15: (a).*
 
 ## 7. Gates outside this repository
 
