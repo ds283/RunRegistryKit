@@ -364,6 +364,25 @@ Each prompt's changes, from 03 on:
 - **`README.md`.** Its Status paragraph says what `v0.1.0` is, and it gains the sections
   "Supported versions", "Installing", "Using it" and "Developing".
 
+**Prompt 07, the adoption checklists** (`prompts/extraction/07-the-adoption-checklists.md`, this
+commit):
+
+- **No file under `runregistrykit/` changed**: no module, no test, and not the guard. The suite is
+  276 tests, as 06 left it, and the package's code is `v0.1.0`'s.
+- **`docs/adoption/`, new**: a README of what the three clients share (the release and the pin,
+  the module map, what a client adds, what changes and what does not, the Q5 recipe with a sketch,
+  how a checklist is used); one adoption checklist each for SecondaryGWKit, ChamPBH and
+  StochasticInstantons, measured through `git` at `14bcac0`, `c21cdfb` and `5fb4a1d` against
+  `v0.1.0`; and `measure_client_registry.py`, which measures a client's use of `RunRegistry/`
+  through `git` and `ast`, and checks each name's fate and each call against the package as
+  installed. The script names the clients, as `docs/extraction/` does; nothing under
+  `runregistrykit/` does.
+- **`README.md`, "Using it" only** (U20): the worktree sentences now distinguish the record root
+  (`ClientRoot.root`, the main checkout for a run in a linked worktree), under which records go and
+  to which a relative `runs_root` or `stores_root` is joined, from the directory whose
+  `runregistrykit.toml` governs (`ClientRoot.found`, the tree that is running), from which the
+  fingerprinter's module is imported.
+
 ## Where the prose's citations pointed
 
 The package's docstrings and comments cited SGK's records. The citations are gone from the prose

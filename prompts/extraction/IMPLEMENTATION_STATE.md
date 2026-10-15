@@ -1,9 +1,11 @@
 # extraction campaign — implementation state
 
-**Last updated:** 2026-10-15 · **Status: LIVE — 10 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06, 07), 9 landed and
-reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
+**Last updated:** 2026-10-15 · **Status: LIVE — 10 of 11 prompts written (01–03, 04a, 04b, 05a–05c, 06, 07), 10 landed,
+9 reviewed (01, `4e0d715`, suite 3; 02, `8155445`, suite 108; 03, `035e4b5`, suite 135; 04a,
 `c81ad06`, suite 186; 04b, `5302a6f`, suite 245; 05a, `14af805`, suite 275; 05b, `1120fb3`, suite
-276; 05c, `a7d93d5`, suite 276; 06, `9f8ebe4`, suite 276).** G1 holds
+276; 05c, `a7d93d5`, suite 276; 06, `9f8ebe4`, suite 276); 07 landed in this commit, suite 276,
+not yet reviewed.** **E2** (SGK's gate on this campaign) is `v0.1.0` with
+[`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md), from this commit. G1 holds
 on the source side at SGK `a45aefc`, and on the package side for 01's and 02's files, the
 equivalence check retired at 03 and describing `8155445`; E1 holds (DatastoreKit `v0.4.0`). U1
 taken at set-up on 2026-10-14; U2 and U3 taken the same day, for 01, U4 for 02, U5 and U9 for 03,
@@ -73,7 +75,7 @@ U6, U7 and U8 for 04, U14 on 2026-10-15 for 04b, U10, U11, U12, U15 and U16 the 
 | 05b | [`05b-the-package-prose-and-the-rules.md`](05b-the-package-prose-and-the-rules.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05b-the-package-prose-and-the-rules.md)) | `1120fb3` | 275 → 276 |
 | 05c | [`05c-the-tests-own-names.md`](05c-the-tests-own-names.md) | Sonnet | **landed and reviewed** 2026-10-15 ([log](logs/05c-the-tests-own-names.md)) | `a7d93d5` | 276 → 276 |
 | 06 | [`06-release-v0.1.0.md`](06-release-v0.1.0.md) | Opus | **landed and reviewed** 2026-10-15 ([log](logs/06-release-v0.1.0.md)) | `9f8ebe4` | 276 → 276 |
-| 07 | [`07-the-adoption-checklists.md`](07-the-adoption-checklists.md) | Opus | written 2026-10-15 | — | — |
+| 07 | [`07-the-adoption-checklists.md`](07-the-adoption-checklists.md) | Opus | **landed** 2026-10-15 ([log](logs/07-the-adoption-checklists.md)); one stop (non-binding `fingerprint_of` calls at SGK), ruled by the user | this commit | 276 → 276 |
 | 08 | `08-verification-and-close-out.md` | Sonnet | not written | — | — |
 
 **Written one at a time** (README §2.1), each after the one before it has landed and been reviewed.
@@ -886,7 +888,7 @@ listing its one run finished. Then the annotated tag `v0.1.0` (tag object `fd5ce
 | **P1** | 05b | the package modules' prose, the output and the README's rules (C8) | ✅ 2026-10-15: the docstrings and comments of `__init__.py`, `stores.py` and `fingerprint.py` rewritten in the package's own terms, every reason and fact kept and no client, campaign, prompt, decision, issue tag or incident left (`known_hits.json` has no package-module entry in any scan; `ast` with docstrings removed equals `c735acf`'s but for the one constant); `describe`'s problems line points at `datastorekit.store_inventory.read_inventory`, one test; `load_fingerprinter`'s docstring names the class refusal, and `retire_store`'s and `amend_sidecar`'s say the config's `ConfigError`s are in the config's words (no message changed); the guard's citation pattern gains `Prompt NN`, a decision id and an issue tag (U17), which finds 18 more hits in 11 entries of the tests, listed for 05c; `README.md` gains "The rules" (six, each with its failure) and "The public names" (U11); `PROVENANCE.md` gains 05b's section and "Where the prose's citations pointed"; (m1)–(m8) caught |
 | **T3** | 05c | the tests' SGK names and prose renamed (U16) | ✅ 2026-10-15: sixteen names renamed (the prompt's thirteen and three more: `hand_written_shaped`, `script_written_shaped`, `TestHandWrittenShape`, eight test methods, `INTEGRAL_CLASS`, `SOLUTION_CLASS`, and the neutral store's `producer_serial`, `tagged_serial`, `log10_step`), each mapped in `PROVENANCE.md` with its test ids; the fixtures' client data neutral with the same shapes; `FORBIDDEN` read from the guard's `project_packages()` (22 names for 7); the docstrings and comments of 14 modules and fixtures in the package's terms; `known_hits.json` written by 05a's writer, **empty in every scan** (155 hits in 94 entries before), the guard's docstring paragraph saying so and nothing else of it changed; `ast` with docstrings removed equals `8766714`'s after the map, but for `FORBIDDEN`; the suite 276, per module the same; (m1)–(m6) caught |
 | **V1** | 06 | versions, CI, `v0.1.0` | ✅ 2026-10-15, tagged `v0.1.0` on `9f8ebe4` after CI passed there: `pyproject.toml` at `0.1.0`, `[stores]` `datastorekit>=0.4.0` by name and floor, `runregistrykit.tests` excluded (U19), nothing else changed; the wheel `runregistrykit-0.1.0-py3-none-any.whl`, 54,940 bytes, 10 entries, no test, passes the release check in a 3.13.16 venv (the five modules from `site-packages`, nothing heavy loaded, `import runregistrykit.tests` a `ModuleNotFoundError`); `.github/workflows/tests.yml` with `suite (low)`, `suite (high)` and `core` (U13, U18), every `run:` step under `bash -eo pipefail`, replayed here step by step as GitHub runs it, all three passing, and each check of the core smoke shown able to fail; the suite 276 OK in `venv/` before and after the reinstall and in fresh low and high venvs, 37 OK in the core venv; the README's Status, "Supported versions", "Installing", "Using it" and "Developing", 90 statements checked against the code; the Installing form resolves against a scratch clone and refuses without the client's `datastorekit` line; (a)–(f) each fail as expected. Linux measured by CI run `38754093289` on `9f8ebe4`: low 276 OK in 68 s with `black` clean, high 276 OK in 38 s, core 37 OK and its smoke passing |
-| **A1** | 07 | the three checklists and their script (SGK's E2) | ⬜ |
+| **A1** | 07 | the three checklists and their script (SGK's E2) | ✅ 2026-10-15 (this commit): `docs/adoption/` holds a README (the release and pin, the module map, what a client adds, what changes and what does not, the Q5 recipe with a sketch proved on public names, re-measuring), the checklists for SGK (`14bcac0`), CPBH (`c21cdfb`) and SI (`5fb4a1d`), ten items each with the script's output as appendix, and `measure_client_registry.py` (read through `git` only; callees resolved through the registry's names; each fate checked against the package at run time; bind verdicts by `inspect.signature`; deterministic; exits 0/1/2/3). SGK: 13 imports in 10 files (4 at module level), 15 names, 4 `begin` calls binding, 4 `fingerprint_of` calls missing the new format (the stop, ruled the move's documented effect), 18 string literals; its staying tests 12 imports in 5 modules. CPBH and SI: 0 imports; each helper the package's `package_provenance` but `origin = None`. `README.md`'s worktree sentences corrected (U20). The Q5 sketch's four breakages fail; (a)–(e) caught; the suite 276 |
 | **Z1** | 08 | the verification document; the close | ⬜ |
 
 **Legend.** ⬜ not yet · ✅ done.
@@ -897,16 +899,16 @@ listing its one run finished. Then the annotated tag `v0.1.0` (tag object `fd5ce
 |---|---|
 | **G1** | **source side holds** 2026-10-14: `git ls-tree -r a45aefc -- RunRegistry/` equals SGK's frozen table (its board §2.1), 25 rows; unchanged to SGK `14bcac0`. **Package side holds for 01's files** 2026-10-14 (`4e0d715`): `docs/extraction/compare_with_source.py` exits 0: the 25 rows and the shard fixture's blob equal; `__init__.py`, `stores.py`, `__main__.py` and `tests/__init__.py` equal their sources but for 23 D-name lines (6, 13, 4, 0), none unclassified, none left unrenamed; 11 files pending (8 for 02, 3 for 04); 11 not imported and absent; 1 declared new file. **Package side for 02's eight files holds** 2026-10-14 (`8155445`): the check, extended, exits 0: 12 files checked (4 by 01, 8 by 02); each equals `black` of its renamed source; D-name 106, D-fix 5, D-fmt 12 lines in 3 hunks (all in `test_store_copy_move.py`); 3 files pending (04); 11 not imported and absent; 1 declared new file |
 | **E1** | **holds** 2026-10-14: DatastoreKit `v0.4.0` (`c8570e8`, tag object `8e7c1d7`) |
-| **G2** | not yet (SGK adopts `v0.1.0` in its `runregistry-extraction` 05–08) |
-| **G3** | not yet (CPBH adopts) |
-| **G4** | not yet (SI adopts, after its `dk-and-rpk-migration`) |
-| **E2** (SGK's) | not yet: `v0.1.0` is tagged (`9f8ebe4`, 2026-10-15); SGK's checklist (07) is not written |
+| **G2** | not yet (SGK adopts `v0.1.0` in its `runregistry-extraction` 05–08); its checklist is [`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md) (07, this commit) |
+| **G3** | not yet (CPBH adopts); its checklist is [`docs/adoption/champbh.md`](../../docs/adoption/champbh.md) (07, this commit) |
+| **G4** | not yet (SI adopts, after its `dk-and-rpk-migration`); its checklist is [`docs/adoption/stochasticinstantons.md`](../../docs/adoption/stochasticinstantons.md) (07, this commit) |
+| **E2** (SGK's) | **holds** 2026-10-15: `v0.1.0` (tag object `fd5ce48` on `9f8ebe4`) with SGK's checklist, [`docs/adoption/secondarygwkit.md`](../../docs/adoption/secondarygwkit.md), from this commit; to be reported to the user (SGK's brief §8) |
 
 ## 3. Active and unresolved issues
 
 Seven were opened at planning from README §0.2's measurements of SGK's code at `a45aefc`; 02
 opened an eighth, and the orchestrator's review of 02 a ninth; 03 closed two (§4), leaving seven;
-04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three; 05c closed one (§4) and opened one, leaving three; 06 closed one (§4), leaving two; the orchestrator's review of 06 opened one, leaving three. Line numbers are SGK's until 01 imports the code; 01 records
+04a closed three (§4), leaving four; the orchestrator's review of 04a opened one, leaving five; 04b's writing opened one, leaving six; 04b closed two (§4), leaving four; 05a opened and closed none, and narrowed two; 05b closed one (§4) and narrowed one, leaving three; 05c closed one (§4) and opened one, leaving three; 06 closed one (§4), leaving two; the orchestrator's review of 06 opened one, leaving three; 07 closed one (§4), leaving two. Line numbers are SGK's until 01 imports the code; 01 records
 each issue's package lines. **From 01 they are the same numbers** for the three modules: D-name
 replaced one line by one line and `black` changed nothing, so every line of them sits where it sat
 in SGK at `a45aefc` (01's log; each line below read in the package). 02's package lines are for the
@@ -1062,9 +1064,12 @@ install `datastorekit` from its tag `v0.4.0` and run the whole suite (trialled h
 at Ray 2.43.0 / SQLAlchemy 2.0.39 and Ray 2.55.1 / SQLAlchemy 2.0.46, 276 OK each). The issue stays
 open, owner none: a typed exception remains a request to DatastoreKit (README §8).
 
+## 4. Resolved issues
+
 ### `[06-the-readme-places-the-fingerprinter-import-in-the-main-checkout]`
 
-**Opened:** 2026-10-15, by the orchestrator's review of 06. **Owner:** 07 (U20).
+**Opened:** 2026-10-15, by the orchestrator's review of 06. **Owner:** 07 (U20). **Closed:**
+2026-10-15, by 07 (this commit).
 
 `README.md` (at `9f8ebe4`), "Using it", says at `:81-82` that a relative `runs_root` or
 `stores_root` is relative to "the root (for a run in a linked worktree, the main checkout, below)",
@@ -1091,7 +1096,23 @@ whether before or after the tag, is put to the user; the tag's code is unaffecte
 "Using it" and nothing else in the README (prompt 07 §2.4), since its checklists cite that section
 and SGK's adoption checks a worktree run.
 
-## 4. Resolved issues
+*Resolved (07, 2026-10-15, this commit), by U20.* "Using it" now names the two directories.
+- **The record root** (`ClientRoot.root`), the main checkout for a run in a linked worktree: records
+  and the paths in them are under it, and a relative `runs_root` or `stores_root` is joined to it.
+  This keeps the meaning of the old `:81-82`, which was true of the code (`client.py:34`,
+  `:269-270`).
+- **The directory whose `runregistrykit.toml` governs** (`ClientRoot.found`), the tree that is
+  running: the worktree's own config, whatever the main checkout holds (`client.py:52-59`).
+- **The fingerprinter's module** is imported with `found` first on `sys.path`
+  (`fingerprint.py:52-54`, `:191-193`), where `:149-150` had said "the client's root".
+
+`git diff` of `README.md` has three hunks, all in "Using it", and nothing else in the README
+changed. Each changed sentence was checked against the code and by running, in a scratch repository
+with a linked worktree whose config and fingerprinter module differ from the main checkout's: the
+worktree's config governed; the record root was the main checkout; the worktree's `runs_root` was
+joined to the record root; the module was imported from the worktree; and with no config in the
+main checkout the same held (07's log, Verification 6). The adoption checklists cite the corrected
+section.
 
 ### `[05c-the-import-test-needs-datastorekit]`
 

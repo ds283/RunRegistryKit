@@ -78,9 +78,9 @@ optional, and an empty file takes every default:
   `runregistrykit`, which it always records;
 - `[stores]`, default empty, whose one key is `fingerprinter` (below).
 
-A relative `runs_root` or `stores_root` is relative to the root (for a run in a linked worktree,
-the main checkout, below); an absolute one is kept as it is. Any other key, or a value of the wrong
-type or shape, is a `ConfigError` that names the file.
+A relative `runs_root` or `stores_root` is relative to the record root (the root, or for a run in a
+linked worktree the main checkout, below); an absolute one is kept as it is. Any other key, or a
+value of the wrong type or shape, is a `ConfigError` that names the file.
 
 The root is found by walking up from a start directory to the first directory holding a
 `runregistrykit.toml`: for `begin()`, the directory of the `script` it is given, or the working
@@ -92,7 +92,12 @@ command.
 
 A run launched from a linked git worktree is recorded under the main checkout, in the same place
 relative to it, while its git commit, dirty flag and script hash are those of the worktree it ran
-in. A worktree of a bare repository is refused. The client's `.gitignore` ignores its runs root.
+in. So two directories are named here, and for a worktree they differ. Records, and the paths in
+them, are under the **record root** (`ClientRoot.root`): the main checkout. The
+`runregistrykit.toml` that governs is the one the walk found, or the one in the directory
+`client_root=` names (`ClientRoot.found`): in the tree that is running, the worktree's own,
+whatever the main checkout holds, and the main checkout need not hold one. A worktree of a bare
+repository is refused. The client's `.gitignore` ignores its runs root.
 
 ### A run
 
@@ -146,12 +151,14 @@ A client names its fingerprinter in `runregistrykit.toml`:
 fingerprinter = "module:attribute"
 ```
 
-The attribute is an object in a module of the client's own, imported with the client's root first
-on `sys.path`. Usually it is a `DatastoreKitFingerprinter(factories, fingerprint_format)`
-(`runregistrykit.fingerprint`), made from the client's registry (a mapping of names to factory
-classes or instances) and its fingerprint format number (an `int`, at least 1); a client with other
-needs writes its own `Fingerprinter`, an object with the methods `take`, `compare`, `describe` and
-`listing`, which `runregistrykit.fingerprint` documents. The config names an instance, not a class.
+The attribute is an object in a module of the client's own, imported with the directory whose
+config governs first on `sys.path`: the tree that is running, which for a run in a linked worktree
+is the worktree, not the main checkout. Usually it is a
+`DatastoreKitFingerprinter(factories, fingerprint_format)` (`runregistrykit.fingerprint`), made
+from the client's registry (a mapping of names to factory classes or instances) and its fingerprint
+format number (an `int`, at least 1); a client with other needs writes its own `Fingerprinter`, an
+object with the methods `take`, `compare`, `describe` and `listing`, which
+`runregistrykit.fingerprint` documents. The config names an instance, not a class.
 [`runregistrykit/tests/neutral_store.py`](runregistrykit/tests/neutral_store.py) in this repository
 is a worked example over a small registry (its `FACTORIES` and `FINGERPRINTER`); it is not
 installed with the package.
