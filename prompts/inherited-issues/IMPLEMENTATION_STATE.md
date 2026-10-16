@@ -1,6 +1,7 @@
 # inherited-issues — board
 
-**Last updated:** 2026-10-16 · **Status: OPEN — no prompts; holds 5 issues handed over by SGK on
+**Last updated:** 2026-10-16 · **Status: OPEN — no prompts; holds 8 issues: 5 handed over by SGK's
+inherited-issues brief, 1 by its stale-run brief, and 2 found here reading the second, all on
 2026-10-16, each until a campaign takes it over.**
 
 **Plan:** [`README.md`](README.md) ·
@@ -17,7 +18,12 @@ Each entry names the SGK board entry it came from. SGK's measurements before 202
 on SGK's copy of the registry, before `runregistrykit` replaced it, and are restated here with the
 package's names.
 
-SGK's brief also named two issues about registry behaviour that it keeps as its own:
+The three entries added later on 2026-10-16, from SGK's stale-run brief, cite the package at
+`79015a7`. No file under `runregistrykit/` and not `pyproject.toml` differs between `v0.1.0` and
+`79015a7` either (`git diff --stat v0.1.0 79015a7 -- runregistrykit pyproject.toml` is empty), so
+their lines too are the tag's.
+
+SGK's first brief also named two issues about registry behaviour that it keeps as its own:
 `[00-a-sigterm-pipeline-run-is-recorded-as-failed]` and
 `[04-a-sigterm-during-ray-init-meets-rays-handler-not-the-drivers]`. Both are in SGK's driver and
 Ray. The package holds no signal handling (`git grep -n 'SIGTERM\|signal\.' caad864 --
@@ -28,13 +34,31 @@ runregistrykit` is empty), and `Run.finish` records the state its caller reports
 
 ## 3. Active and unresolved issues
 
-Five, handed over by SGK on 2026-10-16. Four were recorded against SGK's `RunRegistry/`; the fifth
-SGK found while adopting `v0.1.0`. Three of the brief's next steps are corrected below, each marked
-**Corrected on hand-over**: the next step of `[00-a-copy-carries-its-sources-present-tense-fields]`,
-that of `[01-cross-filesystem-move-advice-says-delete-by-hand]`, and that of
+Eight. Five were handed over by SGK on 2026-10-16 by its first brief. Four were recorded against
+SGK's `RunRegistry/`; the fifth SGK found while adopting `v0.1.0`. Three of the brief's next steps
+are corrected below, each marked **Corrected on hand-over**: the next step of
+`[00-a-copy-carries-its-sources-present-tense-fields]`, that of
+`[01-cross-filesystem-move-advice-says-delete-by-hand]`, and that of
 `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, whose impact is also
 widened. `[04-runs-do-not-say-which-machine-produced-them]` gains three questions its decision has
 to answer.
+
+Three more were added later on 2026-10-16, from SGK's second brief
+(`prompts/handover/runregistrykit-stale-run-brief.md`, committed in SGK `79434bf`), which SGK
+wrote ahead of its ~36-hour A3 v2 build: `[a3-v2-a-hard-killed-run-blocks-its-store]`, SGK's,
+accepted with one point split out as `[00-begin-does-not-refuse-a-second-writer]`; and
+`[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, found here reading the brief
+against `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`. Reading it also
+gave `[04-runs-do-not-say-which-machine-produced-them]` a fourth question and widened the signal
+entry's impact again.
+
+*The ones that bear on a long job.* Five of the eight bear on a long job that may be interrupted
+and resumed: the hard-killed run, the second writer, the unreadable status, the machine and the
+signal inside a heartbeat write. They share their design: the first two judge another run's
+liveness by its pid, which means something only on that pid's machine and only while the pid has
+not been reused, and the third and fifth are one cause and one consequence. They are best taken by
+one campaign, the machine decision first. The other three (`copy`'s fields, the move advice, the
+closed pipe) do not affect a run.
 
 ### `[00-a-copy-carries-its-sources-present-tense-fields]`
 
@@ -190,6 +214,22 @@ judging its liveness, is still recording, inside the registry's "it records; it 
 boundary. SGK has nothing live to migrate: none of its 43 run directories was `running` on
 2026-10-16 (SGK's reading).
 
+*Added 2026-10-16, reading SGK's stale-run brief: a fourth question, and why this decision comes
+first.*
+
+- **A pid reused on this machine.** A reboot, one of the ways a run ends without `finish`, ends
+  every run on the machine, and afterwards the pids in their `status.json` can belong to new
+  processes. `pid_alive` (`runregistrykit/__init__.py:258`) then answers `True`, as it does for
+  another user's process (`PermissionError`, `:276`). `liveness` still calls such a run stale when
+  its heartbeat is old (`:310`), so `list` is right, but a guard that refuses unless the pid fails
+  `kill -0` refuses wrongly. Something recorded beside the pid that changes when the machine
+  reboots (a boot identifier) or that names the process (its start time) would let a check tell a
+  reused pid from the run's own. Like the machine, it belongs beside the pid, in `status.json`.
+- **The other long-job entries depend on it.** The routes proposed for
+  `[a3-v2-a-hard-killed-run-blocks-its-store]` and `[00-begin-does-not-refuse-a-second-writer]`
+  judge another run's liveness by its pid. Their guards mean what they say only once this decision
+  is made, so it is taken first, or with them.
+
 ### `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
 
 **Opened:** 2026-10-03 by SGK's `a3-v2-readiness` prompt 04, from the orchestrator's reading;
@@ -258,6 +298,15 @@ leftover checks. The reproduction is a test that writes `status.json` twice thro
 `json.dump` which makes the second write from inside the first, run once with the inner write
 raising and once returning. Say in the release notes whether `write_json_atomic` changed.
 
+*Widened (2026-10-16), reading SGK's stale-run brief.* Both outcomes of the race now have measured
+consequences beyond `list`. A `status.json` that does not parse hides a run that is still alive
+from the store operations' in-use check, which then lets fingerprint, copy, move, retire and amend
+proceed: `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, where a retirement
+deleted a live run's store. A terminal state lost silently leaves the run `running` for ever, and
+it then blocks its store as a hard-killed run does: `[a3-v2-a-hard-killed-run-blocks-its-store]`.
+The window is still one `json.dump` per heartbeat, but a ~36-hour run with a heartbeat every 30 s
+has over four thousand of them.
+
 ### `[06-runregistrykit-list-into-a-closed-pipe-ends-in-a-traceback]`
 
 **Opened:** 2026-10-15 in SGK's `runregistry-extraction` 06 review, by its orchestrator, at the
@@ -282,6 +331,169 @@ shell with `pipefail`, or a script that treats output on stderr as failure, woul
 *Next step.* Catch `BrokenPipeError` around `main`'s work, for every command, point `stdout`'s file
 descriptor at `os.devnull` so the flush at exit does not raise again, and exit non-zero. A test: a
 reader that closes first, with the exit code and stderr asserted.
+
+### `[a3-v2-a-hard-killed-run-blocks-its-store]`
+
+**Opened:** 2026-10-16 in SGK's `handover` campaign, by a measurement ahead of its A3 v2 launch and
+not by a prompt; handed over the same day (SGK `prompts/handover/runregistrykit-stale-run-brief.md`,
+committed in SGK `79434bf`). **From:** SGK `prompts/handover/IMPLEMENTATION_STATE.md` §3.
+**Owner:** none. Found by SGK in the package, not inherited from SGK's code; its name is SGK's, kept
+so that SGK can find it here.
+
+*The defect.* A run killed by `SIGKILL`, power loss, a reboot or the OOM killer never reaches
+`Run.finish`, so its `status.json` says `running` for ever. `list` reports it as stale, which is
+right. Every store operation that checks for a running run counts it "alive **or stale**", so
+fingerprint, copy, move, retire and amend refuse its store, and so does a resumed run's
+`finish(fingerprint=True)`. The refusals name the remedy, "a stale run is ended by a person, with
+Run.finish". No command applies it, and `Run.finish` checks nothing about the run it ends. The
+rule the refusals keep, that the registry does not decide that a run is dead
+(`runregistrykit/stores.py:1031-1032`), is not in question; SGK does not ask to weaken it.
+
+*The package's lines (`79015a7`).*
+
+- *The in-use check.* `_running_runs_naming` (`runregistrykit/stores.py:998`) keeps every entry
+  whose state is `running` other than the excluded caller (`:1017`), whatever its liveness. Its
+  callers are copy and move (`_refuse_if_in_use`, `:1029`, called at `:1102`), `fingerprint_store`
+  (`:1338`), `retire_store` (`:1664`) and `amend_sidecar` (`:2017`). The module docstring says so
+  (`:102-107`).
+- *The remedy the refusals name.* At `:1038-1039` (copy, move), `:1344` (fingerprint), `:1667`
+  (retire) and `:2020` (amend). `test_store_retire.TestRefusals.test_a_stale_running_run_and_its_remedy`
+  (`runregistrykit/tests/test_store_retire.py:436`) asserts it, on `a_stale_run`
+  (`runregistrykit/tests/store_fixtures.py:148`): a run given a reaped pid, not a killed process.
+- *No command applies it.* `main` (`runregistrykit/__main__.py:408`) has `list` (`:418`) and `store
+  show|create|adopt|copy|move|fingerprint|retire|amend` (`:433-522`). None writes a `status.json`.
+- *The remedy checks nothing.* `Run.finish` (`runregistrykit/__init__.py:424`) checks only that the
+  state is in `TERMINAL_STATES` (`:99`, `:441`). It does not consult `pid_alive` (`:258`), the
+  heartbeat or `liveness` (`:294`). A person who ends the wrong directory ends a live run's record.
+- *The resumed run.* `_fingerprint_results` passes `taken_by=self` (`:476`), the only exclusion
+  (`stores.py:1338-1339`), so a later run on the same store is refused by its stale predecessor. It
+  records `fingerprint_error` and writes no fingerprint.
+
+*Measured.* By SGK, 2026-10-16 at SGK `f1a7de3` with `runregistrykit` 0.1.0, no Ray, on a throwaway
+two-shard store (brief §1, steps 1-6). A child process that had called `begin` and `heartbeat` was
+sent `SIGKILL` (returncode −9); its `status.json` was the same before and after, `running`, and
+`liveness` gave `stale`. `list` flagged it `!!`. A second `begin` on the store returned normally,
+and its `finish("done", exit_code=0, fingerprint=True)` wrote `done` with no fingerprint and a
+`fingerprint_error` naming the killed run. `store fingerprint --write`, `store retire --dry-run`
+(with and without `--without-fingerprint`) and `store copy` each exited 1, the sidecar's SHA-256
+unchanged. Once `kill -0` showed the pid gone, `Run(…).finish("killed", exit_code=137)` by hand
+cleared the `!!`, `store fingerprint` matched the recorded digest, and `store retire` completed.
+
+**Re-measured here** at `79015a7`, 2026-10-16, by a scratch probe (not committed) on the suite's
+own fixtures (`RetireTestCase`, a full four-shard store) in a `tempfile` directory: a child process
+that called `begin` and `heartbeat(stage=…)` on the store was sent `SIGKILL` (returncode −9).
+`status.json` was unchanged by the kill; `list_runs` gave state `running`, liveness `stale`.
+`fingerprint_store`, `retire_store(dry_run=True)` and `copy_store` each refused, naming the run. A
+resumed run's `finish("done", exit_code=0, fingerprint=True)` wrote `done`, no `fingerprint`, and a
+`fingerprint_error` naming the stale run.
+
+*Impact.* For SGK's A3 v2, a ~36-hour Ray build that may be interrupted and resumed: after a hard
+kill nothing is lost, and the documented route works, but it is the API by hand and unguarded, on
+the build that matters most. For any client: a stale entry stays `!!` in `list` until someone ends
+it through the API, and every store operation on its store is refused meanwhile. A `SIGTERM`'d run
+whose terminal state was lost to `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
+meets the same block. SGK does not ask for a release before A3 v2 (brief §2).
+
+*Next step.* Choose a route; SGK offers three and prefers the first (brief §1):
+
+1. **A person-run command that records a stale run as terminal**, for example `python -m
+   runregistrykit end RUN_ID --reason TEXT`. It refuses unless the run's state is `running` and its
+   pid fails `kill -0`, and writes a terminal state, a `null` exit code (nothing observed one) and
+   who ended it, when, why and at what `git_head`. It never writes the manifest and deletes nothing.
+   The open point is the state: `killed` is a terminal state already, but `finish`'s docstring calls
+   it "something a caller reports, not something observed" (`__init__.py:425-426`); a new `lost`
+   says the registry never saw how the run ended, at the cost of a fourth terminal state that
+   `liveness` and `list` learn. Either is a change to what the registry writes. The same check could
+   guard `Run.finish` when called on a run that is not the caller's own.
+2. **An explicit exclusion on the store operations**, for example `--stale-run RUN_ID`, accepted
+   only for a named run whose pid fails `kill -0` and recorded in the sidecar's `history` or the
+   tombstone. It unblocks the store and leaves the run `running`, with its `!!`.
+3. **`begin` and `finish` learning about predecessors** (`supersedes: [RUN_ID]`). It decides at
+   `begin` that a stale run is dead, the line the package has chosen not to cross; listed by SGK
+   for completeness.
+
+*Added on hand-over.* Any route that tests `kill -0` tests evidence that holds only on the machine
+that owns the pid, and only while the pid has not been reused, which a reboot, one of this entry's
+causes, makes likely. So the route depends on `[04-runs-do-not-say-which-machine-produced-them]`
+(its fourth question), and that decision is taken first, or with this one. The test SGK proposes
+stands: begin a run in a child process, `SIGKILL` it, and assert what the new route does; the
+probe above is its shape. `a_stale_run` fakes the pid and never exercises a kill.
+
+*Split on hand-over.* The brief's point that `begin` does not look for a run already on its store
+is held as its own entry, `[00-begin-does-not-refuse-a-second-writer]`: it holds whether or not the
+first run is dead, and its fix is none of the three routes.
+
+### `[00-begin-does-not-refuse-a-second-writer]`
+
+**Opened:** 2026-10-16, split on hand-over from SGK's `[a3-v2-a-hard-killed-run-blocks-its-store]`
+(its brief §1, "*`begin` does not look*"), and measured here for a live first run. **Owner:**
+none.
+
+*The defect.* `begin` (`runregistrykit/__init__.py:604`) reads the results store's sidecar only to
+refuse a tombstone (`:686-698`, the refusal at `:692`). It does not ask whether a `running` run,
+alive or stale, already names that store, so a second run on a store that a live run is writing is
+begun without a word. The store operations make that check (`_running_runs_naming`,
+`runregistrykit/stores.py:998`), and the module docstring calls it "a check and not a lock: a run
+begun after it is not seen" (`:106-107`); `begin` does not make it at all.
+
+*Measured* here at `79015a7`, 2026-10-16, by the scratch probe of
+`[a3-v2-a-hard-killed-run-blocks-its-store]`: with a run begun in the probe's own process on a
+registered store (liveness `alive`), a second `begin` with the same `results` returned a run, and
+the two manifests carry the same `results_store_id`. SGK measured the stale case (brief §1, step
+4).
+
+*Impact.* The registry does not schedule or lock, so nothing here can stop two writers; but a
+resume after an interruption is when a person begins a second run on a store, and the case that
+does harm is the one where the first run is not dead: a detached child still working, a `SIGTERM`
+not yet acted on, or a run on another machine whose pid this machine cannot test
+(`[04-runs-do-not-say-which-machine-produced-them]`). Then two jobs write one SQLite store, and
+nothing records that they did.
+
+*Next step.* `begin` names the `running` runs whose manifest names its `results`, by path or by
+`results_store_id` as `runs_naming` matches them (`stores.py:957`), and refuses, before the run
+directory is created, if any is alive. What a stale one gets is the decision of
+`[a3-v2-a-hard-killed-run-blocks-its-store]`: refusing it too is the reading consistent with "the
+registry does not decide that a run is dead", and leaves a person to end it first by that entry's
+route. A refusal writes nothing new, so it is not a change to what the registry writes. The test:
+begin a run, begin a second on its store, and assert that the refusal names the first and that no
+second run directory exists.
+
+### `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
+
+**Opened:** 2026-10-16 here, reading SGK's stale-run brief against
+`[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`; measured. **Owner:**
+none.
+
+*The defect.* The store operations' in-use check fails open on a run whose `status.json` cannot be
+read. `list_runs` reads it as `read_json(…) or {}` (`runregistrykit/__init__.py:771`), so a
+missing, torn or non-JSON `status.json` gives state `None`, and `liveness` answers `unknown` for an
+empty payload (`:301`). `_running_runs_naming` keeps only entries whose state is `running`
+(`runregistrykit/stores.py:1017`), so the run is not counted, however alive its process, and
+fingerprint, copy, move, retire and amend proceed on its store. `list` prints it as `unknown`
+without `!!` (`runregistrykit/__main__.py:550-556`; only `stale` is flagged).
+
+*Measured* here at `79015a7`, 2026-10-16, by the scratch probe of
+`[a3-v2-a-hard-killed-run-blocks-its-store]`, on a full four-shard registered store in a `tempfile`
+directory. A run begun in the probe's own process named the store (liveness `alive`), and
+`fingerprint_store`, `retire_store(dry_run=True)` and `copy_store` each refused, naming it. Its
+`status.json` was then cut to its first half, as a torn write leaves it. The process still answered
+`kill -0`; `list_runs` gave state `None`, liveness `unknown`; and all three operations proceeded. A
+real `retire_store` then deleted the primary and all four shards, leaving the tombstone, while the
+run's process was alive. Move and amend make the same check (`:1102`, `:2017`), read and not run.
+
+*Impact.* The check is the store layer's one protection of a store being written (module docstring,
+`stores.py:102-107`), and here it fails in the direction that loses data: it lets a person
+retire, move or fingerprint a store under a live writer, with nothing in `list` to warn them. The
+known cause is the race of
+`[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`: rare in any one
+heartbeat, but a ~36-hour run has thousands. A `status.json` lost any other way does the same.
+
+*Next step.* Count a run whose manifest names the store and whose `status.json` cannot be read as
+possibly running: refuse, saying that the status is unreadable and that the registry cannot tell
+whether the run is alive. Such a run is then where a stale one is, and is resolved by
+`[a3-v2-a-hard-killed-run-blocks-its-store]`'s route. Fixing the race removes the known cause, not
+this failure of the check. The test is the probe's case, asserting the refusal for each operation.
+Whether `list` flags an `unknown` run that has a manifest is a smaller, separate choice.
 
 ---
 
