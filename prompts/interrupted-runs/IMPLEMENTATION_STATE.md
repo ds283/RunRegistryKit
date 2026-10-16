@@ -1,7 +1,7 @@
 # interrupted-runs campaign — implementation state
 
-**Last updated:** 2026-10-16 · **Status: PLANNED — README written, no prompt file written; L1–L4
-(the machine decision) to be taken by the user before 01 is written (README §2.1, §6.2).** Holds
+**Last updated:** 2026-10-16 · **Status: OPEN — 01 written, not yet run; L1–L4 (the machine decision)
+taken by the user on 2026-10-16, as recommended (README §6.2).** Holds
 the five issues that bear on a long job that may be interrupted, assigned here from the
 `inherited-issues` board on 2026-10-16.
 
@@ -23,10 +23,10 @@ tag's.
 
 | | Needed by | State |
 |---|---|---|
-| **L1** what identifies a machine | 01 | put, recommended (a); with it, where the long jobs run |
-| **L2** where the host is recorded | 01 | put, recommended (a) |
-| **L3** what identifies a boot | 01 | put, recommended (a) |
-| **L4** what `liveness` and `list` say | 01 | put, recommended (a) |
+| **L1** what identifies a machine | 01 | **taken** 2026-10-16: (a); the user picks a machine per job, often a Mac Studio, so the package records an identity wherever the platform offers one |
+| **L2** where the host is recorded | 01 | **taken** 2026-10-16: (a) |
+| **L3** what identifies a boot | 01 | **taken** 2026-10-16: (a) |
+| **L4** what `liveness` and `list` say | 01 | **taken** 2026-10-16: (a) |
 | **L5** how `status.json` is written | 02 | put, recommended (a) |
 | **L6** an unreadable status in the in-use check | 03 | put, recommended (a) |
 | **L7** what `end` writes | 04 | put, recommended (a) |
@@ -38,7 +38,7 @@ tag's.
 
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
-| 01 | `01-the-host.md` | Opus | not written (L1–L4 first) | — | 276 → |
+| 01 | [`01-the-host.md`](01-the-host.md) | Opus | **written** 2026-10-16, not run | — | 276 → |
 | 02 | `02-status-writes.md` | Opus | not written | — | |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |

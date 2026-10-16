@@ -29,7 +29,7 @@ two found here reading it, read at `79015a7`. The five that bear on a long job w
 | `[01-cross-filesystem-move-advice-says-delete-by-hand]` | none | `store move` relays DatastoreKit's "delete the source by hand" for a registered store, which is retired instead |
 | `[06-runregistrykit-list-into-a-closed-pipe-ends-in-a-traceback]` | none | `list \| head` can end in a `BrokenPipeError` traceback; cosmetic, nothing lost |
 
-### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): planned 2026-10-16
+### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01 written
 
 Assigned from the `inherited-issues` board on 2026-10-16: the five that bear on a long job that
 may be interrupted, taken in this order, one prompt each (the campaign's README §2).

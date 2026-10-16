@@ -4,9 +4,9 @@
 [`inherited-issues`](../inherited-issues/IMPLEMENTATION_STATE.md) board that bear on a long job that
 may be interrupted, and from measurements made the same day (§0.2). SGK's stale-run brief
 (`prompts/handover/runregistrykit-stale-run-brief.md`, committed in SGK `79434bf`) is evidence, not
-a specification. The board holds each issue in full; this plan does not repeat them. **No prompt
-file is written yet.** The machine decision comes first (§6.2, L1–L4), and 01 is written once the
-user has taken it (§2.1).
+a specification. The board holds each issue in full; this plan does not repeat them. The user took
+the machine decision, L1–L4, on 2026-10-16, as recommended (§6.2). **Prompt 01 is written**
+([`01-the-host.md`](01-the-host.md)), and the others are written one at a time after it (§2.1).
 
 ## 0. Why this campaign exists
 
@@ -133,7 +133,7 @@ run is the user's to say (L1).
 
 | # | Prompt | Covers | Model | Status |
 |---|---|---|---|---|
-| 01 | `01-the-host.md` | `[04-runs-do-not-say-which-machine-produced-them]`, under L1–L4: a host identity and a boot identity read from the standard library, recorded in the manifest and `status.json` by `begin`, kept by every later write. `liveness` answers for a run on another machine without testing its pid, and calls a run on this machine `stale` when its boot is not this one; `list` shows both, and counts records with no host. The store operations' refusal names a run on another machine as such. Tests: a record from another host, from an earlier boot, and with no host; the identity functions on this platform, and their absence handled. **Acceptance:** every existing test passes unchanged in what it asserts; a record from another host is never judged by `kill -0`; a record with no `host` is judged as today and counted. | Opus | not written (L1–L4 first) |
+| 01 | [`01-the-host.md`](01-the-host.md) | `[04-runs-do-not-say-which-machine-produced-them]`, under L1–L4: a host identity and a boot identity read from the standard library, recorded in the manifest and `status.json` by `begin`, kept by every later write. `liveness` answers for a run on another machine without testing its pid, and calls a run on this machine `stale` when its boot is not this one; `list` shows both, and counts records with no host. The store operations' refusal names a run on another machine as such. Tests: a record from another host, from an earlier boot, and with no host; the identity functions on this platform, and their absence handled. **Acceptance:** every existing test passes unchanged in what it asserts; a record from another host is never judged by `kill -0`; a record with no `host` is judged as today and counted. | Opus | written 2026-10-16 |
 | 02 | `02-status-writes.md` | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, under L5: `status.json` written through a temporary name of its own, with the mode the fixed name gave, and a write superseded by a later write from the same `Run` discarded, so a terminal state is never replaced by the payload a heartbeat read before it. Sidecar writes keep `<path>.tmp` and their leftover checks. **Acceptance:** the reproduction the board names, a heartbeat whose `json.dump` makes a `finish` from inside it, run once raising and once returning, leaves a parseable `status.json` with the terminal state both times. | Opus | not written |
 | 03 | `03-an-unreadable-status-is-in-use.md` | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, under L6: a run with a manifest that names the store and a `status.json` that cannot be read is counted as in use by copy, move, fingerprint, retire and amend, and refused in words that say the registry cannot tell whether it is alive; `list` flags such a run. **Acceptance:** the planner's probe as a test: each operation refuses, and the store is untouched. | Sonnet | not written |
 | 04 | `04-end-a-run.md` | `[a3-v2-a-hard-killed-run-blocks-its-store]`, under L7 and L8: `python -m runregistrykit end RUN_ID --reason TEXT`, which records a `running` run as ended when the evidence on this machine says it is over, and refuses otherwise; what it writes; the store operations' refusals name it. `Run.finish` unchanged. **Acceptance:** a child process begun and sent `SIGKILL`, then `end`, then every store operation and a resumed run's fingerprint succeeding; `end` refused for a live pid, for a run on another host, and for a run already terminal. | Opus | not written |
@@ -224,8 +224,9 @@ The project-wide ones in `CLAUDE.md`, plus:
 
 ### 6.2 Decisions this campaign needs
 
-Each is put with a recommendation, the recommended option first. **L1–L4 are needed before 01 is
-written**, and the others are needed by the prompts named.
+Each is put with a recommendation, the recommended option first. L1–L4 were needed before 01 was
+written, and **the user took them on 2026-10-16, each as recommended**; the recommendation below is
+the decision. The others are put when the prompt that needs them is written.
 
 - **L1: what identifies a machine** *(for 01)*.
   (a) **The OS's own machine identity, as a digest**: macOS `gethostuuid(3)`, Linux
@@ -239,7 +240,11 @@ written**, and the others are needed by the prompts named.
   wherever nobody set it. **To be answered by the user with it:** where the long jobs run: this
   Mac, another Mac, a Linux machine, a cluster, a container. Linux and containers are not measured,
   and a container's `/etc/machine-id` may not be its own; a platform with no identity records
-  `null`, which L4 gives a meaning.
+  `null`, which L4 gives a meaning. *Taken 2026-10-16: (a). Where the jobs run, the user decides per
+  job, by what each machine is doing: often a Mac Studio, not always. So the package does not choose
+  a platform. It reads an identity wherever the platform offers one (macOS, measured here; Linux,
+  from its documented files, run in CI on `ubuntu-24.04`) and records `null` elsewhere. Runs on more
+  than one Mac make `foreign` records real from the start.*
 - **L2: where the host is recorded** *(for 01)*.
   (a) **Both**: `status.json` gains `host: {id, boot}`, beside the pid it qualifies, written by
   `begin` and carried by every later write. The manifest gains `host: {id, name, machine, system,
@@ -247,7 +252,8 @@ written**, and the others are needed by the prompts named.
   hardware can differ in their last bits. (b) `status.json` only. *Recommended:* (a). The pid
   `liveness` tests lives in `status.json`, so the identity used for judging must too. The
   manifest is the record of what ran, and is written once. Whether the identity functions are
-  public names is decided with 01's file.
+  public names is decided with 01's file. *Taken 2026-10-16: (a).
+  01's file makes one public name, `this_host()`.*
 - **L3: what identifies a boot, and what the package concludes from it** *(for 01)*.
   (a) **The boot session identifier** (macOS `kern.bootsessionuuid`, Linux `boot_id`), recorded
   in `status.json`'s `host`. On this host, a `running` run whose boot is not the current one is
@@ -257,6 +263,7 @@ written**, and the others are needed by the prompts named.
   common cause both of a run ending unrecorded and of pid reuse. Reuse within one boot needs the
   pid space to wrap during the run. A start time costs a subprocess per pid on macOS, and differs
   in form between platforms. If (b) is wanted later, it is an addition to the same record.
+  *Taken 2026-10-16: (a).*
 - **L4: what `liveness` and `list` say** *(for 01)*.
   (a) **A new liveness value, `foreign`**, for a `running` run whose `host.id` is not this one's.
   It is not judged: its pid is not tested and its heartbeat age is shown, not weighed. `list`
@@ -267,7 +274,7 @@ written**, and the others are needed by the prompts named.
   record has no `host`, and (b) would turn every `running` one into `foreign`. That includes SGK's
   A3 v2 if it is hard-killed while still on `v0.1.0`, which then needs `end` (04) on the machine
   that ran it. Adding a value to `liveness` changes the public function's output, and the release
-  notes say so.
+  notes say so. *Taken 2026-10-16: (a).*
 - **L5: how `status.json` is written** *(for 02)*.
   (a) **A unique temporary name in the same directory for `status.json` only**, with the mode the
   fixed name gave (`0666` less the umask, not `mkstemp`'s `0600`). And **a superseded write
