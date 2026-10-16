@@ -11,7 +11,7 @@ RunRegistryKit is the run registry shared by three client projects, all under
 
 | Client | Repository | Its registry today |
 |---|---|---|
-| SecondaryGWKit (SGK) | `SecondaryGWKit/` | `RunRegistry/`, frozen since SGK `a45aefc`, the source of the import |
+| SecondaryGWKit (SGK) | `SecondaryGWKit/` | `runregistrykit[stores]` at `v0.1.0`, adopted in its `runregistry-extraction` 05–08 (closed 2026-10-16; the `extraction` board's G2). Its `RunRegistry/`, frozen at SGK `a45aefc` and the source of the import, was deleted by its 06 |
 | ChamPBH (CPBH) | `ChamPBH/` | none; adopts after its `dk-and-rpk-migration` campaign |
 | StochasticInstantons (SI) | `StochasticInstantons/` | none; adopts after its `dk-and-rpk-migration` campaign |
 
