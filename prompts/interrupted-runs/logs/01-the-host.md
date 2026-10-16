@@ -1,7 +1,7 @@
 # Log — prompt 01: the host
 
 **Subject:** Record the host and boot a run is on, and judge a run by them
-**Commit:** this commit (on `main`, after `8023e14`)
+**Commit:** `387c58f` (on `main`, after `8023e14`)
 **Date:** 2026-10-16
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (corrections and readings 1-8)
@@ -494,12 +494,12 @@ index dccdd70..b91dad4 100644
 
 - **The interface after 01:**
   - the manifest's `host` (`id`, `name`, `machine`, `system`, `release`, `python`) and the status's
-    (`id`, `boot`), written by `begin` (`runregistrykit/__init__.py:904`, `:929`, `:944`) and kept
-    by `Run._update` (`:593`);
+    (`id`, `boot`), written by `begin` (`runregistrykit/__init__.py:906`, `:931`, `:946`) and kept
+    by `Run._update` (`:595`);
   - `this_host()` (`:431`), public;
   - `liveness(..., *, here=None)` (`:465`), whose values are now `alive`, `stale`, `foreign`,
     `finished`, `unknown`;
-  - `list_runs` (`:960`), whose entries have `host`, `host_id` and `host_recorded`.
+  - `list_runs` (`:962`), whose entries have `host`, `host_id` and `host_recorded`.
 - **For 02:** `Run._update` is as it was. The `host` key is carried by its read-merge-write, so a
   supersession rule that discards a write keeps `host` as it keeps everything else.
 - **For 03:** an unreadable status has `host_recorded` false and liveness `unknown`, as before.

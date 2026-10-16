@@ -1,7 +1,7 @@
 # interrupted-runs campaign — implementation state
 
-**Last updated:** 2026-10-16 · **Status: OPEN — 01 landed (this commit), not yet reviewed; 02 not
-written. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended (README
+**Last updated:** 2026-10-16 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI pending a push;
+02 not written. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended (README
 §6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
 the `inherited-issues` board on 2026-10-16: four open (§3), one resolved by 01 (§4).
 
@@ -38,7 +38,7 @@ tag's.
 
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
-| 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed** 2026-10-16, not yet reviewed ([log](logs/01-the-host.md)) | this commit | 276 → 307 |
+| 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI pending a push | `387c58f` | 276 → 307 |
 | 02 | `02-status-writes.md` | Opus | not written | — | |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
@@ -46,14 +46,108 @@ tag's.
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
-The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` has changed
-since).
+The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
+from then until 01), and 307 after 01.
+
+**Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
+for 01.
+
+**Orchestrator review of prompt 01 (2026-10-16).** Dispatched from `8023e14` to one Opus subagent,
+with the note's §0 as a copy in the session scratchpad: its facts, its eight corrections and
+readings of the prompt, and its conventions. Reviewed against its commit `387c58f`, with nothing
+landed after it. **Every check of the note's §3 passed**, and acceptance 1–3 are met; the CI half
+of check 9 waits for a push. No stop condition fired, and no issue is opened.
+
+*At dispatch.* The note's gate held at `8023e14`: `main`, clean, nothing staged, this checkout the
+only worktree; `git diff --stat 79015a7 HEAD -- runregistrykit pyproject.toml .github` empty;
+`Ran 276 tests in 155.000s`, OK, with `TMPDIR` in the scratchpad; no Ray process, `RAY_ADDRESS`
+unset; the index at 10.
+
+*The checks.*
+1. **Scope (H1).** `387c58f` touches §0's ten files and no others. The diff from `8023e14` of
+   `pyproject.toml`, `README.md`, `PROVENANCE.md`, `CLAUDE.md`, `docs/adoption`, the campaign
+   README, the prompt and `orchestrator/` is empty. The workflow's diff is the core job's one line,
+   now naming `test_host`. `runregistrykit/tests/` gains exactly `test_host.py` and
+   `test_host_stores.py`; `stores.py` changes in `_describe_running` only, `__main__.py` in `list`
+   and its helper `_host` only.
+2. **The suite, re-run.** `Ran 307 tests in 132.606s`, `OK (skipped=1)`, in `venv/` at
+   `387c58f`. By the loader, per module, the log's table exactly: `test_host` 28,
+   `test_host_stores` 3, every other module as at `8023e14`. The skip is
+   `test_the_readers_on_linux`. `black --check runregistrykit docs`: 30 files. `git status --short
+   --ignored` the same before and after; no `var/`; no Ray process before or after. The core run of
+   correction 2, in the orchestrator's own scratch venv (`uv`, offline, editable, no `[stores]`):
+   `datastorekit`, `ray` and `sqlalchemy` not findable, `Ran 65 tests in 7.962s`, `OK
+   (skipped=1)`; the venv removed.
+3. **The old tests stand.** `git diff 8023e14 387c58f -- runregistrykit/tests` adds two files and
+   changes none; check 2 runs every older test, passing.
+4. **What is written (H2, H5).** In a scratch client root with `RUNREGISTRYKIT_HOST_NAME=scratch-host`:
+   `begin`, `heartbeat`, `heartbeat(pid=<a live child>)`, `finish("done")`. The manifest's `host`
+   is `{id, machine, name, python, release, system}` and the status's `{boot, id}`, exactly; the
+   status's `host` is the same after every step, and the pid moves to the child's. `id` is
+   `8d2b247824882486`, equal to the orchestrator's own digest of `gethostuuid` read by correction
+   5's calls; `boot` equals `kern.bootsessionuuid` read the same way (a 36-character UUID, not
+   shown). Neither the raw identity (dashed or not, either case) nor `platform.node()` is in any
+   file of the run directory; the digest is in both. With the readers patched to fail, `begin` and
+   a `heartbeat` write `host` with `null` values, `machine`, `system`, `release` and `python` kept.
+5. **The judgement (H3), by hand records.** Five payloads with no `host` (this shell's pid with a
+   fresh heartbeat; a reaped pid; a two-hour-old heartbeat; `done`; `paused`), run through
+   `liveness` at `387c58f` and through `79015a7`'s, extracted with `git archive` into the
+   scratchpad: `alive`, `stale`, `stale`, `finished`, `unknown`, the same from both. At `387c58f`:
+   `host.id` null, or `host` a string, → judged here (`alive`); another host's id with a live pid
+   and a fresh heartbeat, a dead pid, or an old heartbeat → `foreign`, `done` → `finished`; with
+   `pid_alive` patched to raise, a foreign record and one from another boot still answer, so the
+   pid is not tested; this host from another boot with a live pid → `stale`; this host and boot →
+   `alive`, `stale` for a dead pid or an old heartbeat; this host with a null boot → `alive`; with
+   the machine reader patched to `None`, a record carrying any id, this machine's own included, →
+   `foreign`, and one with no `host` → `alive`. `list_runs` over the same records in a scratch runs
+   root agrees with `liveness` on every entry, and gives `host`, `host_id` and `host_recorded` as
+   §2.4 says (false for no `host` and for a `host` that is not a dict).
+6. **The reporting (H4).** `python -m runregistrykit list --root <that root>`: `??` on the three
+   foreign rows, each `on far-host · `; `!!` on every stale row; "2 finished, 3 foreign, 10 stale,
+   1 unknown; 6 with no host recorded."; the stale line with "or this machine has rebooted since";
+   the foreign line naming `far-host`; every column kept. A registered store named by a foreign
+   `running` run, built with `test_host_stores`' own fixture: `store fingerprint`, `store copy` and
+   `store retire --dry-run` each exit 1 with "is running on another host, far-host (pid N, not
+   tested here)", and the sidecar's SHA-256 is unchanged by each.
+7. **The log (H5, H7).** Every section of README §5.1 and the prompt's §4.3 additions; sixteen
+   deviations, each classified, corrections 1–8 among them (none UNINTENDED DRIFT); the suite
+   before and after; the core run; the hand run with `scratch-host`, the id digest and
+   `<36-char uuid>`. The commit, its message and the log hold neither the raw identity nor the boot
+   UUID (dashed or not) nor `platform.node()` nor its first label, by the orchestrator's own search.
+   **Residue fixed here:** the log and the board cited `runregistrykit/__init__.py` at `387c58f`
+   two lines short from `Run.status` on (`_update` `:593` for `:595`, `begin` `:799` for `:801`,
+   `list_runs` `:960` for `:962`, and so on); the citations before `:490`, and every one in
+   `stores.py` and `__main__.py`, were right.
+8. **The mutations (H6).** (m1)–(m8) extracted from the log by a script and replayed in `bash` in a
+   `git clone` of `387c58f`, with `PYTHONPATH` on the clone so that child processes run it:
+   `--check`, apply, `test_host` and `test_host_stores` (and, for (m5), `test_run_registry` and the
+   four store modules the log names), `-R --check`, reverse, the clone clean. Each failed exactly
+   as the log says, counts included ((m1) 12; (m2) 2; (m3) 2; (m4) 7 and 6 errors; (m5) 17 and 9
+   errors; (m6) 20; (m7) 13; (m8) 2). The orchestrator's own, in a second clone:
+   - (o1) the digest's prefix dropped: 20 failures, `test_the_id_is_a_digest_of_the_raw_identity`
+     among them, so the prefix is pinned;
+   - (o2) `list_runs` reading `this_host()` per entry: caught, by
+     `test_list_runs_reads_this_host_once`. Timed on 200 entries: 68 ms with the host read once,
+     119 ms per entry. It would not matter to a person reading `list`;
+   - (o3) step 3 firing when either boot is null: caught, by
+     `test_this_host_and_this_boot_are_judged_by_pid_and_heartbeat`.
+
+   No mutation, suite or core output holds the raw identity or `platform.node()`.
+9. **The records (H7) and CI.** The board's header, 01's row (276 → 307), H1 ✅, the entry in §4
+   with its four answers and the tests that pin each, and the other four entries' "Package lines"
+   notes are in. `docs/OPEN_ISSUES.md` counts 9 by its rows, the row gone, the date 2026-10-16.
+   `prompts/INDEX.md`'s line is updated. **CI is not read yet:** nothing is pushed, and the Linux
+   readers, `test_the_readers_on_linux` above all, run first on CI's `ubuntu-24.04` runners.
+
+**Verdict:** 01 is accepted, **pending CI**: all three jobs green, and `test_the_readers_on_linux`
+run and passed, not skipped, in the `core` and `suite` jobs, read from the run's log after the
+user pushes `main`.
 
 ### 1.1 Items
 
 | Item | Prompt | What | Closes | State |
 |---|---|---|---|---|
-| **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ this commit |
+| **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ `387c58f` |
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ⬜ |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
@@ -80,7 +174,7 @@ was planned, each with its text unchanged except for an **Assigned** line. One m
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
 does not keep a terminal state when the handler returns (README §0.2), so its entry gains a
 **Corrected at planning** paragraph. `[04-runs-do-not-say-which-machine-produced-them]` was closed
-by 01 (this commit) and is in §4. In the README's order:
+by 01 (`387c58f`) and is in §4. In the README's order:
 
 ### `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
 
@@ -173,11 +267,11 @@ again. Read, not measured. The fix is the unique name **and** a rule that a writ
 later write from the same `Run` is discarded, not replaced (that README's L5). The reproduction's
 returning case is the one that tells the two apart.
 
-*Package lines (01, this commit).* 01 moved these lines of `runregistrykit/__init__.py` and
+*Package lines (01, `387c58f`).* 01 moved these lines of `runregistrykit/__init__.py` and
 `runregistrykit/stores.py`; nothing above is otherwise changed by it. `write_json_atomic` `:242-251`
 → `:244-253` (`tmp` `:245` → `:247`, `os.replace` `:251` → `:253`); `Run._update` `:398-403` →
-`:593-598` (its write `:402` → `:597`); `heartbeat` `:405` → `:600`; `finish` `:424` → `:619`;
-`begin`'s first status `:728-734` → `:938-945`, which now writes `host` besides; `write_json_atomic`
+`:595-600` (its write `:402` → `:599`); `heartbeat` `:405` → `:602`; `finish` `:424` → `:621`;
+`begin`'s first status `:728-734` → `:940-947`, which now writes `host` besides; `write_json_atomic`
 in `__all__` `:96` → `:98`. In the store layer `_tmp_path` `:255`, `_write_new_sidecar` `:789`,
 `_update_sidecar` `:809` and `create_sidecar` `:863` are unmoved; copy and move's preparation
 `:1105-1108` → `:1117-1120`; retire's failure message `:1532` → `:1544`; its refusal to complete
@@ -225,8 +319,8 @@ whether the run is alive. Such a run is then where a stale one is, and is resolv
 this failure of the check. The test is the probe's case, asserting the refusal for each operation.
 Whether `list` flags an `unknown` run that has a manifest is a smaller, separate choice.
 
-*Package lines (01, this commit).* `list_runs`' status read `runregistrykit/__init__.py:771` →
-`:990`; `liveness`'s answer for an empty payload `:301` → `:489`. `_running_runs_naming`'s filter
+*Package lines (01, `387c58f`).* `list_runs`' status read `runregistrykit/__init__.py:771` →
+`:992`; `liveness`'s answer for an empty payload `:301` → `:489`. `_running_runs_naming`'s filter
 `stores.py:1017` is unmoved; move's check `:1102` → `:1114`, amend's `:2017` → `:2029`; the module
 docstring `:102-107` is unmoved. `list`'s rows, `__main__.py:550-556`, are now `:555-566`; 01 adds
 `??` for a `foreign` run there, and `unknown` is still printed without a marker.
@@ -327,17 +421,17 @@ probe above is its shape. `a_stale_run` fakes the pid and never exercises a kill
 is held as its own entry, `[00-begin-does-not-refuse-a-second-writer]`: it holds whether or not the
 first run is dead, and its fix is none of the three routes.
 
-*Package lines (01, this commit).* In `runregistrykit/stores.py`: `_running_runs_naming` `:998` and
+*Package lines (01, `387c58f`).* In `runregistrykit/stores.py`: `_running_runs_naming` `:998` and
 its filter `:1017` are unmoved; `_refuse_if_in_use` `:1029` → `:1041`, called at `:1102` → `:1114`;
 `fingerprint_store`'s check `:1338-1339` → `:1350-1351`; `retire_store`'s `:1664` → `:1676`;
 `amend_sidecar`'s `:2017` → `:2029`; the module docstring `:102-107` is unmoved. The remedy text
 `:1038-1039` → `:1050-1051` (copy, move), `:1344` → `:1356` (fingerprint), `:1667` → `:1679`
 (retire), `:2020` → `:2032` (amend), unchanged in its words; `stores.py:1031-1032` → `:1043-1044`.
 In `runregistrykit/__main__.py`: `main` `:408` → `:413`, `list` `:418` → `:423`, the store
-subcommands `:433-522` → `:438-527`. In `runregistrykit/__init__.py`: `Run.finish` `:424` → `:619`
-(its docstring `:425-426` → `:620-621`), `TERMINAL_STATES` `:99` → `:101`, its check `:441` →
-`:636`; `pid_alive` `:258` → `:260` (`PermissionError` `:276` → `:278`); `liveness` `:294` →
-`:465`; `_fingerprint_results`' `taken_by=self` `:476` → `:671`.
+subcommands `:433-522` → `:438-527`. In `runregistrykit/__init__.py`: `Run.finish` `:424` → `:621`
+(its docstring `:425-426` → `:622-623`), `TERMINAL_STATES` `:99` → `:101`, its check `:441` →
+`:638`; `pid_alive` `:258` → `:260` (`PermissionError` `:276` → `:278`); `liveness` `:294` →
+`:465`; `_fingerprint_results`' `taken_by=self` `:476` → `:673`.
 
 ### `[00-begin-does-not-refuse-a-second-writer]`
 
@@ -379,8 +473,8 @@ route. A refusal writes nothing new, so it is not a change to what the registry 
 begin a run, begin a second on its store, and assert that the refusal names the first and that no
 second run directory exists.
 
-*Package lines (01, this commit).* `begin` `runregistrykit/__init__.py:604` → `:799`; its tombstone
-check `:686-698` → `:890-902`, the refusal `:692` → `:896`; it now reads `this_host()` at `:904`,
+*Package lines (01, `387c58f`).* `begin` `runregistrykit/__init__.py:604` → `:801`; its tombstone
+check `:686-698` → `:892-904`, the refusal `:692` → `:898`; it now reads `this_host()` at `:906`,
 after that check and before the run directory is made. `_running_runs_naming` `stores.py:998`, the
 module docstring `:106-107` and `runs_naming` `:957` are unmoved.
 
@@ -462,12 +556,12 @@ first.*
   judge another run's liveness by its pid. Their guards mean what they say only once this decision
   is made, so it is taken first, or with them.
 
-**Resolved (2026-10-16, by 01, this commit).** The package records the machine and the boot a run is
+**Resolved (2026-10-16, by 01, `387c58f`).** The package records the machine and the boot a run is
 on, for every client, under L1–L4 (README §6.2) as the user took them. `this_host()` is a new public
 name (`runregistrykit/__init__.py:431`). Its three private readers (`:338`, `:376`, `:410`) use the
-standard library only, with no subprocess. `begin` writes the manifest's `host` (`:929`) and the
-first status's (`:944`), and every later write keeps the status's. `liveness` (`:465`) is ordered as
-01's §2.4 says. `list_runs` (`:960`) reads this host once per call and gives `host`, `host_id` and
+standard library only, with no subprocess. `begin` writes the manifest's `host` (`:931`) and the
+first status's (`:946`), and every later write keeps the status's. `liveness` (`:465`) is ordered as
+01's §2.4 says. `list_runs` (`:962`) reads this host once per call and gives `host`, `host_id` and
 `host_recorded`. `list` marks a `foreign` run `??` and counts records with no host; the store
 operations' refusal names a `foreign` run by its host. The log is
 [`logs/01-the-host.md`](logs/01-the-host.md). What resolved each of the four questions:
