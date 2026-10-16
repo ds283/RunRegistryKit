@@ -1,7 +1,7 @@
 # interrupted-runs campaign — implementation state
 
-**Last updated:** 2026-10-16 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI pending a push;
-02 not written. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended (README
+**Last updated:** 2026-10-16 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
+(run `38911075984`); 02 not written. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended (README
 §6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
 the `inherited-issues` board on 2026-10-16: four open (§3), one resolved by 01 (§4).
 
@@ -38,7 +38,7 @@ tag's.
 
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
-| 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI pending a push | `387c58f` | 276 → 307 |
+| 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | `02-status-writes.md` | Opus | not written | — | |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
@@ -142,6 +142,19 @@ unset; the index at 10.
 **Verdict:** 01 is accepted, **pending CI**: all three jobs green, and `test_the_readers_on_linux`
 run and passed, not skipped, in the `core` and `suite` jobs, read from the run's log after the
 user pushes `main`.
+
+*CI (2026-10-16).* The user said yes, and `main` was pushed, `79015a7..5d71a6b`. Run
+`38911075984` (`tests`, on the push of `5d71a6b`) passed all three jobs, each on `ubuntu-24.04`:
+`core (no store layer)` ran `test_run_registry`, `test_public_names` and `test_host` by name, `Ran
+65 tests in 1.757s`, `OK (skipped=1)`; `suite (low)` `Ran 307 tests in 47.987s` and `suite (high)`
+`Ran 307 tests in 36.036s`, each `OK (skipped=1)`. The workflow runs `unittest` without `-v`, so
+the log names no test, and the note's grep for `test_the_readers_on_linux` finds nothing. The
+result follows from the counts. `test_the_readers_on_macos` is skipped unless the platform is
+Darwin, so on Linux it is the one skip. So `test_the_readers_on_linux` ran and passed in all three
+jobs: a 16-hex `id`, a non-empty `boot`, the same on two calls, and a raw identity of 32 lowercase
+hex characters whose digest is the `id`. `test_no_raw_identity_reaches_a_file`, which skips when
+the platform offers no identity, did not skip, so it ran against the Linux identity too. **01's
+review is complete; check 9 holds.**
 
 ### 1.1 Items
 
