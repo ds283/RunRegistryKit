@@ -3,8 +3,8 @@
 One line per open issue, pointing at the board that holds it. The board is right if the two
 disagree. See `CLAUDE.md` for the maintenance rule.
 
-**Last updated:** 2026-10-16 · **10 open**: 2 on the `extraction` board (§1.1) and 8 on the
-`inherited-issues` board (§1.2).
+**Last updated:** 2026-10-16 · **10 open**: 2 on the `extraction` board (§1.1), 3 on the
+`inherited-issues` board (§1.2) and 5 on the `interrupted-runs` board (§1.3).
 
 ## 1. By campaign
 
@@ -20,16 +20,24 @@ disagree. See `CLAUDE.md` for the maintenance rule.
 Five opened in SGK while the registry was SGK's code, or found by SGK adopting `v0.1.0`, and handed
 to this repository by SGK's `runregistry-extraction` prompt 09 (its brief, SGK `e96c1ea`), read
 against the package at `caad864`. Three more from SGK's stale-run brief (SGK `79434bf`): one SGK's,
-two found here reading it, read at `79015a7`. The board holds each in full. None is assigned to a
-campaign. Five bear on a long job that may be interrupted (the board's §3 says which).
+two found here reading it, read at `79015a7`. The five that bear on a long job were assigned to
+`interrupted-runs` on 2026-10-16 (§1.3); the three left are assigned to no campaign.
 
 | Issue | Owner | Hook |
 |---|---|---|
 | `[00-a-copy-carries-its-sources-present-tense-fields]` | none | `copy` carries unknown sidecar fields verbatim, so a copy can name the source's backup and a restart into the source store; a decision about `copy`'s design |
 | `[01-cross-filesystem-move-advice-says-delete-by-hand]` | none | `store move` relays DatastoreKit's "delete the source by hand" for a registered store, which is retired instead |
-| `[04-runs-do-not-say-which-machine-produced-them]` | none | No run records its machine, so `list` judges a copied record's pid against the wrong process table; a decision for every client |
-| `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | none | Heartbeat and `finish` share `status.json.tmp`, so a signal mid-heartbeat can corrupt `status.json` (hiding the run from the store checks) or lose the terminal state |
 | `[06-runregistrykit-list-into-a-closed-pipe-ends-in-a-traceback]` | none | `list \| head` can end in a `BrokenPipeError` traceback; cosmetic, nothing lost |
-| `[a3-v2-a-hard-killed-run-blocks-its-store]` | none | A `SIGKILL`'d run stays `running`, and the store operations count a stale run as in use, so fingerprint, copy, move, retire, amend and a resumed run's fingerprint are refused; the named remedy, `Run.finish`, has no command and checks no pid |
-| `[00-begin-does-not-refuse-a-second-writer]` | none | `begin` does not look for a `running` run on its results store, so a second writer on a live run's store is begun silently |
-| `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | none | A torn or missing `status.json` drops a live run from the in-use check; measured, `retire` deleted a live run's store |
+
+### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): planned 2026-10-16
+
+Assigned from the `inherited-issues` board on 2026-10-16: the five that bear on a long job that
+may be interrupted, taken in this order, one prompt each (the campaign's README §2).
+
+| Issue | Owner | Hook |
+|---|---|---|
+| `[04-runs-do-not-say-which-machine-produced-them]` | 01 | No run records its machine, so `list` judges a copied record's pid against the wrong process table; a decision for every client |
+| `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | 02 | Heartbeat and `finish` share `status.json.tmp`, so a signal mid-heartbeat can corrupt `status.json` (hiding the run from the store checks) or lose the terminal state |
+| `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | 03 | A torn or missing `status.json` drops a live run from the in-use check; measured, `retire` deleted a live run's store |
+| `[a3-v2-a-hard-killed-run-blocks-its-store]` | 04 | A `SIGKILL`'d run stays `running`, and the store operations count a stale run as in use, so fingerprint, copy, move, retire, amend and a resumed run's fingerprint are refused; the named remedy, `Run.finish`, has no command and checks no pid |
+| `[00-begin-does-not-refuse-a-second-writer]` | 05 | `begin` does not look for a `running` run on its results store, so a second writer on a live run's store is begun silently |
