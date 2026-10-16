@@ -69,6 +69,11 @@ def _progress(entry) -> str:
     return f"{'?' if done is None else done}/{'?' if total is None else total}"
 
 
+def _host(entry) -> str:
+    """The host a run records, for reading: its name, or its id when it has no name."""
+    return str(entry.get("host") or entry.get("host_id"))
+
+
 def _purpose(entry) -> str:
     if entry["purpose"]:
         text = entry["purpose"]
@@ -548,24 +553,44 @@ def main(argv=None) -> int:
         f"{'':2} {'RUN':{width}}  {'STATE':9} {'PROGRESS':>9} {'AGE':>8}  PURPOSE · STAGE"
     )
     for entry in entries:
-        stale = entry["liveness"] == "stale"
+        # `!!` a run that says it is running and is not; `??` one on another host, whose pid is
+        # not tested here, and whose row names that host
+        marker = {"stale": "!!", "foreign": "??"}.get(entry["liveness"], "")
+        purpose = _purpose(entry)
+        if entry["liveness"] == "foreign":
+            purpose = f"on {_host(entry)} · {purpose}"
         print(
-            f"{'!!' if stale else '':2} {entry['id']:{width}}  "
+            f"{marker:2} {entry['id']:{width}}  "
             f"{(entry['state'] or 'unknown'):9} {_progress(entry):>9} "
-            f"{_age(now - entry['created_epoch']):>8}  {_purpose(entry)}"
+            f"{_age(now - entry['created_epoch']):>8}  {purpose}"
         )
 
     counts = {}
     for entry in entries:
         counts[entry["liveness"]] = counts.get(entry["liveness"], 0) + 1
     summary = ", ".join(f"{n} {name}" for name, n in sorted(counts.items()))
-    print(f"\n{len(entries)} run(s) under {root}: {summary}.")
+    unrecorded = sum(1 for entry in entries if not entry["host_recorded"])
+    print(
+        f"\n{len(entries)} run(s) under {root}: {summary}; {unrecorded} with no host "
+        f"recorded."
+    )
     sys.stdout.flush()
     if counts.get("stale"):
         print(
             f"!! {counts['stale']} run(s) say they are running and are not: the pid does not "
-            f"answer kill -0, or the heartbeat is older than {args.stale_after:.0f} s. Nothing "
-            f"here has killed or cleaned anything — go and look.",
+            f"answer kill -0, the heartbeat is older than {args.stale_after:.0f} s, or this "
+            f"machine has rebooted since. Nothing here has killed or cleaned anything — go and "
+            f"look.",
+            file=sys.stderr,
+        )
+    if counts.get("foreign"):
+        hosts = []
+        for entry in entries:
+            if entry["liveness"] == "foreign" and _host(entry) not in hosts:
+                hosts.append(_host(entry))
+        print(
+            f"?? {counts['foreign']} run(s) say they are running on another host "
+            f"({', '.join(hosts)}): their pids are not tested here. Look on that host.",
             file=sys.stderr,
         )
     return 0

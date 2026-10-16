@@ -1019,11 +1019,23 @@ def _running_runs_naming(
 
 
 def _describe_running(running) -> str:
-    return "; ".join(
-        f"run {entry['id']} is running ({entry['liveness']}, pid {entry['pid']}) and names "
-        f"this store by its {' and '.join(entry['matched_by'])}"
-        for entry in running
-    )
+    """Each running run, by its liveness, and by its host when it is on another one: a pid there
+    is not tested here, and the run is in use whatever it is."""
+
+    def described(entry):
+        matched = " and ".join(entry["matched_by"])
+        if entry["liveness"] == "foreign":
+            where = entry.get("host") or entry.get("host_id")
+            return (
+                f"run {entry['id']} is running on another host, {where} (pid {entry['pid']}, "
+                f"not tested here), and names this store by its {matched}"
+            )
+        return (
+            f"run {entry['id']} is running ({entry['liveness']}, pid {entry['pid']}) and names "
+            f"this store by its {matched}"
+        )
+
+    return "; ".join(described(entry) for entry in running)
 
 
 def _refuse_if_in_use(operation, src, dst, store_id, runs_root, client) -> None:

@@ -1,9 +1,9 @@
 # interrupted-runs campaign — implementation state
 
-**Last updated:** 2026-10-16 · **Status: OPEN — 01 written, not yet run; L1–L4 (the machine decision)
-taken by the user on 2026-10-16, as recommended (README §6.2).** Holds
-the five issues that bear on a long job that may be interrupted, assigned here from the
-`inherited-issues` board on 2026-10-16.
+**Last updated:** 2026-10-16 · **Status: OPEN — 01 landed (this commit), not yet reviewed; 02 not
+written. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended (README
+§6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
+the `inherited-issues` board on 2026-10-16: four open (§3), one resolved by 01 (§4).
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -38,7 +38,7 @@ tag's.
 
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
-| 01 | [`01-the-host.md`](01-the-host.md) | Opus | **written** 2026-10-16, not run | — | 276 → |
+| 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed** 2026-10-16, not yet reviewed ([log](logs/01-the-host.md)) | this commit | 276 → 307 |
 | 02 | `02-status-writes.md` | Opus | not written | — | |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
@@ -53,7 +53,7 @@ since).
 
 | Item | Prompt | What | Closes | State |
 |---|---|---|---|---|
-| **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ⬜ |
+| **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ this commit |
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ⬜ |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
@@ -75,85 +75,12 @@ since).
 
 ## 3. Active and unresolved issues
 
-Five, assigned here from the `inherited-issues` board on 2026-10-16, when this campaign was planned.
-Each moved with its text unchanged except for an **Assigned** line. One moved with a correction:
-`[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step does not keep
-a terminal state when the handler returns (README §0.2), so its entry gains a **Corrected at
-planning** paragraph. In the README's order:
-
-### `[04-runs-do-not-say-which-machine-produced-them]`
-
-**Opened:** 2026-09-24 in SGK, from a cross-machine question, not by a prompt; handed over
-2026-10-16. **From:** SGK `prompts/run-registry/IMPLEMENTATION_STATE.md` §3. **Owner:** none. **A
-decision, not a defect.** SGK decided the change for its own runs (user decision of 2026-09-24) and
-never built it; whether the package makes it for every client is this repository's decision.
-
-**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 01: the host, its identity and
-its boot, recorded and used by `liveness` and `list`, under L1–L4 (its README §2). Moved here from
-the `inherited-issues` board the same day, unchanged above and below but for this line. It is one of
-the five that bear on a long job that may be interrupted, and the campaign takes them together.
-
-*What is asked.* SGK's decision: a `machine` field in the manifest; `list` refusing to judge the
-liveness of a record whose machine is not this one; and a rule that only terminal-state run
-directories are transferred between machines. ChamPBH and StochasticInstantons may or may not run
-one registry across machines.
-
-*The package's lines.* The manifest is built in `begin` (`runregistrykit/__init__.py:604`): `run_id`,
-`created`, `purpose`, `campaign`, `prompt`, `argv`, `cwd`, `script`, `script_sha256`, `unit`,
-`expected_units`, `checkpoint`, `results`, `results_store_id`, `scope`, `heartbeat_means`
-(`:707-723`), then `git_provenance`'s `git_head` and `git_dirty` (`:724`, defined `:140`) and
-`packages` (`:725`). No machine, platform or hostname is recorded. Liveness is `pid_alive` (`:258`,
-`os.kill(pid, 0)` against this machine's process table) and `liveness(status, stale_after, now)`
-(`:294`), called by `list_runs` (`:749`, `:784`); neither takes a machine.
-
-*Measured.* `git grep -n -i 'machine\|platform\|node()' caad864 -- runregistrykit` finds only an
-unrelated comment about path separators (`stores.py:240`) and a comment in a test
-(`tests/test_run_registry.py:169`). Read 2026-10-16.
-
-*Impact.* Two. *Provenance:* SGK is to run its A3 rebuild on a second machine, and rows computed on
-different hardware can differ in their last bits; `git_head` says what code ran, not what ran it.
-*Liveness:* once run directories are copied between machines, `list` tests a pid from another
-machine against this one's process table. A terminal-state record is harmless; one still marked
-`running` gets a confident wrong answer, a false "dead" or, if the pid is reused here, a false
-"alive".
-
-*Added on hand-over: three questions the decision has to answer.*
-
-- **A manifest with no `machine`.** Every client holds manifests written before the field would
-  exist, and no reader of an older form is added (`CLAUDE.md`, "Releases"). So the rule has to give
-  the field's absence a meaning in the current form, for example "not recorded: liveness is judged
-  here, as today", and `list` has to say which it did.
-- **What names a machine.** `platform.node()`, as the brief proposes, is the hostname, and on macOS
-  it can change with the network. A machine's own runs would then read as foreign. A name a person
-  sets (an environment variable or a per-machine config file, not the client's committed
-  `runregistrykit.toml`, which every machine shares), with `platform.machine()` beside it for the
-  architecture, would be steadier.
-- **Where it is recorded.** The pid that liveness tests is in `status.json`, written by `heartbeat`
-  (`:405`), which a launcher calls with a detached child's pid. The machine that matters for
-  liveness is the one that pid belongs to, so the field belongs beside the pid, in `status.json`,
-  whether or not the manifest records it too for provenance.
-
-*Next step.* Decide whether the registry records the machine for every client, and if so answer the
-three questions above. `list` reporting a record from another machine as *foreign*, rather than
-judging its liveness, is still recording, inside the registry's "it records; it does not supervise"
-boundary. SGK has nothing live to migrate: none of its 43 run directories was `running` on
-2026-10-16 (SGK's reading).
-
-*Added 2026-10-16, reading SGK's stale-run brief: a fourth question, and why this decision comes
-first.*
-
-- **A pid reused on this machine.** A reboot, one of the ways a run ends without `finish`, ends
-  every run on the machine, and afterwards the pids in their `status.json` can belong to new
-  processes. `pid_alive` (`runregistrykit/__init__.py:258`) then answers `True`, as it does for
-  another user's process (`PermissionError`, `:276`). `liveness` still calls such a run stale when
-  its heartbeat is old (`:310`), so `list` is right, but a guard that refuses unless the pid fails
-  `kill -0` refuses wrongly. Something recorded beside the pid that changes when the machine
-  reboots (a boot identifier) or that names the process (its start time) would let a check tell a
-  reused pid from the run's own. Like the machine, it belongs beside the pid, in `status.json`.
-- **The other long-job entries depend on it.** The routes proposed for
-  `[a3-v2-a-hard-killed-run-blocks-its-store]` and `[00-begin-does-not-refuse-a-second-writer]`
-  judge another run's liveness by its pid. Their guards mean what they say only once this decision
-  is made, so it is taken first, or with them.
+Four. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
+was planned, each with its text unchanged except for an **Assigned** line. One moved with a
+correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
+does not keep a terminal state when the handler returns (README §0.2), so its entry gains a
+**Corrected at planning** paragraph. `[04-runs-do-not-say-which-machine-produced-them]` was closed
+by 01 (this commit) and is in §4. In the README's order:
 
 ### `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
 
@@ -246,6 +173,16 @@ again. Read, not measured. The fix is the unique name **and** a rule that a writ
 later write from the same `Run` is discarded, not replaced (that README's L5). The reproduction's
 returning case is the one that tells the two apart.
 
+*Package lines (01, this commit).* 01 moved these lines of `runregistrykit/__init__.py` and
+`runregistrykit/stores.py`; nothing above is otherwise changed by it. `write_json_atomic` `:242-251`
+→ `:244-253` (`tmp` `:245` → `:247`, `os.replace` `:251` → `:253`); `Run._update` `:398-403` →
+`:593-598` (its write `:402` → `:597`); `heartbeat` `:405` → `:600`; `finish` `:424` → `:619`;
+`begin`'s first status `:728-734` → `:938-945`, which now writes `host` besides; `write_json_atomic`
+in `__all__` `:96` → `:98`. In the store layer `_tmp_path` `:255`, `_write_new_sidecar` `:789`,
+`_update_sidecar` `:809` and `create_sidecar` `:863` are unmoved; copy and move's preparation
+`:1105-1108` → `:1117-1120`; retire's failure message `:1532` → `:1544`; its refusal to complete
+`:1650` → `:1662`. The tests cited are unchanged.
+
 ### `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
 
 **Opened:** 2026-10-16 here, reading SGK's stale-run brief against
@@ -287,6 +224,12 @@ whether the run is alive. Such a run is then where a stale one is, and is resolv
 `[a3-v2-a-hard-killed-run-blocks-its-store]`'s route. Fixing the race removes the known cause, not
 this failure of the check. The test is the probe's case, asserting the refusal for each operation.
 Whether `list` flags an `unknown` run that has a manifest is a smaller, separate choice.
+
+*Package lines (01, this commit).* `list_runs`' status read `runregistrykit/__init__.py:771` →
+`:990`; `liveness`'s answer for an empty payload `:301` → `:489`. `_running_runs_naming`'s filter
+`stores.py:1017` is unmoved; move's check `:1102` → `:1114`, amend's `:2017` → `:2029`; the module
+docstring `:102-107` is unmoved. `list`'s rows, `__main__.py:550-556`, are now `:555-566`; 01 adds
+`??` for a `foreign` run there, and `unknown` is still printed without a marker.
 
 ### `[a3-v2-a-hard-killed-run-blocks-its-store]`
 
@@ -384,6 +327,18 @@ probe above is its shape. `a_stale_run` fakes the pid and never exercises a kill
 is held as its own entry, `[00-begin-does-not-refuse-a-second-writer]`: it holds whether or not the
 first run is dead, and its fix is none of the three routes.
 
+*Package lines (01, this commit).* In `runregistrykit/stores.py`: `_running_runs_naming` `:998` and
+its filter `:1017` are unmoved; `_refuse_if_in_use` `:1029` → `:1041`, called at `:1102` → `:1114`;
+`fingerprint_store`'s check `:1338-1339` → `:1350-1351`; `retire_store`'s `:1664` → `:1676`;
+`amend_sidecar`'s `:2017` → `:2029`; the module docstring `:102-107` is unmoved. The remedy text
+`:1038-1039` → `:1050-1051` (copy, move), `:1344` → `:1356` (fingerprint), `:1667` → `:1679`
+(retire), `:2020` → `:2032` (amend), unchanged in its words; `stores.py:1031-1032` → `:1043-1044`.
+In `runregistrykit/__main__.py`: `main` `:408` → `:413`, `list` `:418` → `:423`, the store
+subcommands `:433-522` → `:438-527`. In `runregistrykit/__init__.py`: `Run.finish` `:424` → `:619`
+(its docstring `:425-426` → `:620-621`), `TERMINAL_STATES` `:99` → `:101`, its check `:441` →
+`:636`; `pid_alive` `:258` → `:260` (`PermissionError` `:276` → `:278`); `liveness` `:294` →
+`:465`; `_fingerprint_results`' `taken_by=self` `:476` → `:671`.
+
 ### `[00-begin-does-not-refuse-a-second-writer]`
 
 **Opened:** 2026-10-16, split on hand-over from SGK's `[a3-v2-a-hard-killed-run-blocks-its-store]`
@@ -424,8 +379,130 @@ route. A refusal writes nothing new, so it is not a change to what the registry 
 begin a run, begin a second on its store, and assert that the refusal names the first and that no
 second run directory exists.
 
+*Package lines (01, this commit).* `begin` `runregistrykit/__init__.py:604` → `:799`; its tombstone
+check `:686-698` → `:890-902`, the refusal `:692` → `:896`; it now reads `this_host()` at `:904`,
+after that check and before the run directory is made. `_running_runs_naming` `stores.py:998`, the
+module docstring `:106-107` and `runs_naming` `:957` are unmoved.
+
 ---
 
 ## 4. Resolved issues
 
-None.
+### `[04-runs-do-not-say-which-machine-produced-them]`
+
+**Opened:** 2026-09-24 in SGK, from a cross-machine question, not by a prompt; handed over
+2026-10-16. **From:** SGK `prompts/run-registry/IMPLEMENTATION_STATE.md` §3. **Owner:** none. **A
+decision, not a defect.** SGK decided the change for its own runs (user decision of 2026-09-24) and
+never built it; whether the package makes it for every client is this repository's decision.
+
+**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 01: the host, its identity and
+its boot, recorded and used by `liveness` and `list`, under L1–L4 (its README §2). Moved here from
+the `inherited-issues` board the same day, unchanged above and below but for this line. It is one of
+the five that bear on a long job that may be interrupted, and the campaign takes them together.
+
+*What is asked.* SGK's decision: a `machine` field in the manifest; `list` refusing to judge the
+liveness of a record whose machine is not this one; and a rule that only terminal-state run
+directories are transferred between machines. ChamPBH and StochasticInstantons may or may not run
+one registry across machines.
+
+*The package's lines.* The manifest is built in `begin` (`runregistrykit/__init__.py:604`): `run_id`,
+`created`, `purpose`, `campaign`, `prompt`, `argv`, `cwd`, `script`, `script_sha256`, `unit`,
+`expected_units`, `checkpoint`, `results`, `results_store_id`, `scope`, `heartbeat_means`
+(`:707-723`), then `git_provenance`'s `git_head` and `git_dirty` (`:724`, defined `:140`) and
+`packages` (`:725`). No machine, platform or hostname is recorded. Liveness is `pid_alive` (`:258`,
+`os.kill(pid, 0)` against this machine's process table) and `liveness(status, stale_after, now)`
+(`:294`), called by `list_runs` (`:749`, `:784`); neither takes a machine.
+
+*Measured.* `git grep -n -i 'machine\|platform\|node()' caad864 -- runregistrykit` finds only an
+unrelated comment about path separators (`stores.py:240`) and a comment in a test
+(`tests/test_run_registry.py:169`). Read 2026-10-16.
+
+*Impact.* Two. *Provenance:* SGK is to run its A3 rebuild on a second machine, and rows computed on
+different hardware can differ in their last bits; `git_head` says what code ran, not what ran it.
+*Liveness:* once run directories are copied between machines, `list` tests a pid from another
+machine against this one's process table. A terminal-state record is harmless; one still marked
+`running` gets a confident wrong answer, a false "dead" or, if the pid is reused here, a false
+"alive".
+
+*Added on hand-over: three questions the decision has to answer.*
+
+- **A manifest with no `machine`.** Every client holds manifests written before the field would
+  exist, and no reader of an older form is added (`CLAUDE.md`, "Releases"). So the rule has to give
+  the field's absence a meaning in the current form, for example "not recorded: liveness is judged
+  here, as today", and `list` has to say which it did.
+- **What names a machine.** `platform.node()`, as the brief proposes, is the hostname, and on macOS
+  it can change with the network. A machine's own runs would then read as foreign. A name a person
+  sets (an environment variable or a per-machine config file, not the client's committed
+  `runregistrykit.toml`, which every machine shares), with `platform.machine()` beside it for the
+  architecture, would be steadier.
+- **Where it is recorded.** The pid that liveness tests is in `status.json`, written by `heartbeat`
+  (`:405`), which a launcher calls with a detached child's pid. The machine that matters for
+  liveness is the one that pid belongs to, so the field belongs beside the pid, in `status.json`,
+  whether or not the manifest records it too for provenance.
+
+*Next step.* Decide whether the registry records the machine for every client, and if so answer the
+three questions above. `list` reporting a record from another machine as *foreign*, rather than
+judging its liveness, is still recording, inside the registry's "it records; it does not supervise"
+boundary. SGK has nothing live to migrate: none of its 43 run directories was `running` on
+2026-10-16 (SGK's reading).
+
+*Added 2026-10-16, reading SGK's stale-run brief: a fourth question, and why this decision comes
+first.*
+
+- **A pid reused on this machine.** A reboot, one of the ways a run ends without `finish`, ends
+  every run on the machine, and afterwards the pids in their `status.json` can belong to new
+  processes. `pid_alive` (`runregistrykit/__init__.py:258`) then answers `True`, as it does for
+  another user's process (`PermissionError`, `:276`). `liveness` still calls such a run stale when
+  its heartbeat is old (`:310`), so `list` is right, but a guard that refuses unless the pid fails
+  `kill -0` refuses wrongly. Something recorded beside the pid that changes when the machine
+  reboots (a boot identifier) or that names the process (its start time) would let a check tell a
+  reused pid from the run's own. Like the machine, it belongs beside the pid, in `status.json`.
+- **The other long-job entries depend on it.** The routes proposed for
+  `[a3-v2-a-hard-killed-run-blocks-its-store]` and `[00-begin-does-not-refuse-a-second-writer]`
+  judge another run's liveness by its pid. Their guards mean what they say only once this decision
+  is made, so it is taken first, or with them.
+
+**Resolved (2026-10-16, by 01, this commit).** The package records the machine and the boot a run is
+on, for every client, under L1–L4 (README §6.2) as the user took them. `this_host()` is a new public
+name (`runregistrykit/__init__.py:431`). Its three private readers (`:338`, `:376`, `:410`) use the
+standard library only, with no subprocess. `begin` writes the manifest's `host` (`:929`) and the
+first status's (`:944`), and every later write keeps the status's. `liveness` (`:465`) is ordered as
+01's §2.4 says. `list_runs` (`:960`) reads this host once per call and gives `host`, `host_id` and
+`host_recorded`. `list` marks a `foreign` run `??` and counts records with no host; the store
+operations' refusal names a `foreign` run by its host. The log is
+[`logs/01-the-host.md`](logs/01-the-host.md). What resolved each of the four questions:
+
+- **A manifest with no `machine`.** A record with no `host` was written before the field existed.
+  So were a `host` that is not an object and a `host.id` of null, which is what a platform with no
+  identity records. Each is judged here, by `kill -0` and the heartbeat, exactly as `v0.1.0` judged
+  it, and `list` counts it as "N with no host recorded". Pinned by
+  `test_host.TestAnOldRecord.test_a_status_with_no_host_is_judged_by_pid_and_heartbeat` and
+  `test_list_runs_judges_it_here_and_says_no_host_is_recorded`;
+  `test_host.TestTheJudgement.test_a_host_that_names_no_id_is_judged_here`; and
+  `test_host.TestTheCommandLine.test_foreign_and_stale_rows_and_the_count_of_records_with_no_host`.
+- **What names a machine.** The OS's own identity, as a digest: macOS `gethostuuid(3)`, Linux
+  `/etc/machine-id` (then `/var/lib/dbus/machine-id`). The id is the first 16 hex characters of the
+  SHA-256 of `b"runregistrykit host\0"` and the identity, and the identity itself is never written.
+  A display name sits beside it, `RUNREGISTRYKIT_HOST_NAME` or `platform.node()`, and is for
+  reading only. Pinned by `test_host.TestTheReaders` (the readers on macOS, run locally, and on
+  Linux, run only in CI; the digest; the name; each reader failing; the Linux files and the macOS
+  calls failing, on any platform) and by
+  `test_host.TestWhatIsWritten.test_no_raw_identity_reaches_a_file`.
+- **Where it is recorded.** Both. `status.json` gets `host: {id, boot}` beside the pid it
+  qualifies, and every later write keeps it, `heartbeat(pid=…)` included. The manifest gets `host:
+  {id, name, machine, system, release, python}` for provenance. Both are written with null values
+  when a reader fails. Pinned by `test_host.TestWhatIsWritten` (the manifest and the first status;
+  every later write; a failing reader writing null).
+- **A reused pid.** A `running` record on this host from another boot is `stale` whatever `kill -0`
+  says. A `running` record on another host is `foreign`: its pid is not tested here and its
+  heartbeat is not weighed, it is never called dead, and the store operations count it as in use.
+  Pinned by `test_host.TestTheJudgement` (another host, live pid or dead; an id read where this host
+  has none; another boot; this host and boot; a terminal record from another host; `here` read
+  afresh) and `test_host_stores.TestARunOnAnotherHostIsInUse` (copy, move, fingerprint, retire's
+  dry run and amend each refuse and name the host). A pid reused within one boot is not told apart
+  (L3 (b), README §8).
+
+SGK's third point, that only terminal-state run directories are moved between machines, is a rule
+for a client's people and not something the package enforces. A `running` record moved anyway is
+reported `foreign`, which is what keeps the package from judging it.
+

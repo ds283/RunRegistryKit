@@ -65,6 +65,7 @@ import hashlib
 import importlib.metadata
 import json
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -93,6 +94,7 @@ __all__ = [
     "run_id",
     "script_sha256",
     "slugify",
+    "this_host",
     "write_json_atomic",
 ]
 
@@ -291,12 +293,198 @@ def heartbeat_age(status, now=None):
     return ((now or datetime.now(timezone.utc)) - beat).total_seconds()
 
 
-def liveness(status, stale_after, now=None) -> str:
-    """`alive`, `stale`, `finished` or `unknown` for one `status.json` payload.
+# A pid means something only on the machine that issued it, and only during the boot that issued
+# it. So a run records which machine and which boot its pid belongs to, read from the operating
+# system through the standard library. Each reader returns a string or None and never raises: a
+# platform that offers no identity records null, which is judged here, as a record with no host
+# is. The machine's own identity is a hardware identifier and is never written; what is written
+# is a digest of it.
 
-    A run is **alive** iff its pid answers `kill -0` *and* its heartbeat is inside the window the
-    caller supplies. A run whose state is still `running` but which fails either test is **stale**:
-    a crashed job pretending to be alive, which is the thing worth shouting about.
+# the variable that names this machine for reading, in place of `platform.node()`, which on a
+# laptop is often a name the network assigned. It is never used to judge
+_HOST_NAME_VARIABLE = "RUNREGISTRYKIT_HOST_NAME"
+
+# what the machine identity is hashed with, so that the recorded id is this package's own
+_HOST_DIGEST_PREFIX = b"runregistrykit host\0"
+
+# where Linux keeps the machine identity, the first non-empty one used (machine-id(5)), and the
+# identity of the current boot
+_MACHINE_ID_FILES = ("/etc/machine-id", "/var/lib/dbus/machine-id")
+_BOOT_ID_FILE = "/proc/sys/kernel/random/boot_id"
+
+
+def _first_line(path):
+    """The file's text, stripped, or None if it cannot be read or is empty."""
+    try:
+        with open(path, "r", encoding="ascii") as handle:
+            text = handle.read().strip()
+    except (OSError, ValueError):
+        return None
+    return text or None
+
+
+def _c_library():
+    """The C library through `ctypes`, or None. Imported here, so that importing the package
+    loads no `ctypes`, and only on macOS, the one platform whose readers call it."""
+    import ctypes
+    import ctypes.util
+
+    path = ctypes.util.find_library("c")
+    if not path:
+        return None
+    return ctypes.CDLL(path, use_errno=True)
+
+
+def _read_machine_identity():
+    """This machine's own identity, raw, or None: on macOS `gethostuuid(3)` as a UUID in
+    lowercase text, on Linux the first non-empty machine-id file, lowercased. Never written; see
+    `this_host`."""
+    try:
+        system = platform.system()
+        if system == "Darwin":
+            import ctypes
+
+            class Timespec(ctypes.Structure):
+                _fields_ = [("tv_sec", ctypes.c_long), ("tv_nsec", ctypes.c_long)]
+
+            library = _c_library()
+            if library is None:
+                return None
+            call = library.gethostuuid
+            call.argtypes = [ctypes.c_void_p, ctypes.POINTER(Timespec)]
+            call.restype = ctypes.c_int
+            buffer = (ctypes.c_ubyte * 16)()
+            wait = Timespec(1, 0)
+            if call(buffer, ctypes.byref(wait)) != 0:
+                return None
+            raw = bytes(buffer)
+            if not any(raw):
+                return None
+            text = raw.hex()
+            return "-".join((text[:8], text[8:12], text[12:16], text[16:20], text[20:]))
+        if system == "Linux":
+            for path in _MACHINE_ID_FILES:
+                text = (_first_line(path) or "").lower()
+                if re.fullmatch(r"[0-9a-f]{32}", text):
+                    return text
+            return None
+    except Exception:
+        return None
+    return None
+
+
+def _read_boot_identity():
+    """The identity of this boot of this machine, or None: on macOS the sysctl
+    `kern.bootsessionuuid` (not `kern.uuid`, which is the kernel build's and the same on every
+    machine running it), on Linux the kernel's `boot_id`. It changes at every boot."""
+    try:
+        system = platform.system()
+        if system == "Darwin":
+            import ctypes
+
+            library = _c_library()
+            if library is None:
+                return None
+            call = library.sysctlbyname
+            call.argtypes = [
+                ctypes.c_char_p,
+                ctypes.c_void_p,
+                ctypes.POINTER(ctypes.c_size_t),
+                ctypes.c_void_p,
+                ctypes.c_size_t,
+            ]
+            call.restype = ctypes.c_int
+            buffer = ctypes.create_string_buffer(64)
+            size = ctypes.c_size_t(len(buffer))
+            if call(b"kern.bootsessionuuid", buffer, ctypes.byref(size), None, 0) != 0:
+                return None
+            text = buffer.raw[: size.value].decode("ascii").strip("\0").strip()
+            return text or None
+        if system == "Linux":
+            return _first_line(_BOOT_ID_FILE)
+    except Exception:
+        return None
+    return None
+
+
+def _read_host_name():
+    """A name for this machine, for a person to read and never to judge by:
+    `RUNREGISTRYKIT_HOST_NAME` if it is set and not empty, else `platform.node()`, else None.
+    """
+    try:
+        name = os.environ.get(_HOST_NAME_VARIABLE) or platform.node()
+    except Exception:
+        return None
+    return name or None
+
+
+def _ask(reader):
+    """What ``reader`` gives, if it is a non-empty string, and otherwise None, whatever happens
+    inside it."""
+    try:
+        value = reader()
+    except Exception:
+        return None
+    return value if isinstance(value, str) and value else None
+
+
+def this_host() -> dict:
+    """{"id", "boot", "name", "machine", "system", "release", "python"} for this machine now.
+
+    - `id`: the first 16 hex characters of the SHA-256 of a fixed prefix and the machine's own
+      identity (macOS `gethostuuid(3)`, Linux `/etc/machine-id`), or None where the platform
+      offers none. The identity itself, a hardware identifier, is never returned or written;
+    - `boot`: the identity of the current boot (macOS `kern.bootsessionuuid`, Linux `boot_id`),
+      as it is read, or None;
+    - `name`: `RUNREGISTRYKIT_HOST_NAME` if set and not empty, else `platform.node()`, else None.
+      It is for reading only: the registry judges by `id` and `boot`, never by a name;
+    - `machine`, `system`, `release`, `python`: `platform.machine()`, `platform.system()`,
+      `platform.release()` and `platform.python_version()`.
+
+    Read afresh on each call, with no cache, from the standard library and without a subprocess;
+    a call costs well under a millisecond. It never raises for a reader's sake: a reader that
+    fails gives None there. `begin` records `id`, `name` and the platform fields in the manifest
+    and `id` and `boot` in `status.json`, and `liveness` judges a record by them.
+    """
+    raw = _ask(_read_machine_identity)
+    return {
+        "id": (
+            None
+            if raw is None
+            else hashlib.sha256(_HOST_DIGEST_PREFIX + raw.encode()).hexdigest()[:16]
+        ),
+        "boot": _ask(_read_boot_identity),
+        "name": _ask(_read_host_name),
+        "machine": platform.machine(),
+        "system": platform.system(),
+        "release": platform.release(),
+        "python": platform.python_version(),
+    }
+
+
+def liveness(status, stale_after, now=None, *, here=None) -> str:
+    """`alive`, `stale`, `foreign`, `finished` or `unknown` for one `status.json` payload.
+
+    In this order:
+
+    1. no status is `unknown`; a terminal state is **finished**; any state other than `running`
+       is `unknown`;
+    2. a `running` record **on another host** is **foreign**: its `host.id` is not null and is not
+       ``here``'s, which includes ``here`` having no id, since a record that carries one was
+       written where there was one. Its pid is not tested and its heartbeat is not weighed:
+       `foreign` means "not judged here", and **never** that the run is alive, or that it is
+       dead. A person looks on its host;
+    3. a `running` record **on this host, from another boot** is **stale**: both ids are not null
+       and match, both boots are not null and differ. Its pid cannot name a process of this boot,
+       whatever `kill -0` says;
+    4. otherwise a run is **alive** iff its pid answers `kill -0` *and* its heartbeat is inside
+       the window the caller supplies, and **stale** if it fails either: a crashed job pretending
+       to be alive, which is the thing worth shouting about.
+
+    A record with no `host`, which is every record written before the field existed, or with a
+    `host` that is not an object or whose `id` is null, goes straight to step 4: it is judged
+    here, by pid and heartbeat, exactly as before. ``here`` is a `this_host()` dict, read afresh
+    when it is not given and a record needs it.
     """
     if not status:
         return "unknown"
@@ -304,6 +492,15 @@ def liveness(status, stale_after, now=None) -> str:
         return "finished"
     if status.get("state") != "running":
         return "unknown"
+    host = status.get("host")
+    if isinstance(host, dict) and host.get("id") is not None:
+        if here is None:
+            here = this_host()
+        if host["id"] != here.get("id"):
+            return "foreign"
+        boot, current = host.get("boot"), here.get("boot")
+        if boot is not None and current is not None and boot != current:
+            return "stale"
     if not pid_alive(status.get("pid")):
         return "stale"
     age = heartbeat_age(status, now)
@@ -638,7 +835,7 @@ def begin(
     the results had gone, and because a resume must know what it is resuming into.
 
     `pid` defaults to the calling process; a launcher that spawns a detached child passes the
-    child's pid to `heartbeat()` once it has one. Every manifest field but two is one that would
+    child's pid to `heartbeat()` once it has one. Every manifest field but three is one that would
     have caught something in the failures the README's rules answer; there are no others.
 
     The first is `results_store_id`, which comes with managing stores: it is how a run and its store
@@ -655,6 +852,15 @@ def begin(
     config's `distributions`: what was installed of each when the run began. It exists so that a
     run says which package release it ran, instead of that being implied by `requirements.txt` at
     its `HEAD`; none of those failures asked for it.
+
+    The third is `host`, `this_host()`'s `id`, `name`, `machine`, `system`, `release` and
+    `python`, read once before the run directory is created: what ran the job, as `git_head` says
+    what code it ran, since rows computed on different hardware can differ in their last bits. The
+    first `status.json` records `host` too, as `{"id", "boot"}` from the same reading, beside the
+    pid it qualifies, and every later write keeps it, `heartbeat(pid=…)` included: a launcher's
+    child is on the launcher's machine. Both are written even when every value is null, which
+    means "this platform offered none"; a record with no `host` at all was written before the
+    field existed. `liveness` reads the status's.
 
     `root` is the runs root, and defaults to the client config's `runs_root`. The client root is
     found by walking up from the directory of `script`, or from the working directory when no
@@ -696,6 +902,8 @@ def begin(
                 f"directory was created"
             )
         results_store_id = reading.store_id
+    # the machine and the boot this run's pid belongs to, read once, before anything is created
+    host = this_host()
     os.makedirs(path, exist_ok=True)
     if os.path.exists(os.path.join(path, "manifest.json")):
         raise FileExistsError(
@@ -720,6 +928,10 @@ def begin(
         "results_store_id": results_store_id,
         "scope": scope,
         "heartbeat_means": heartbeat_means,
+        "host": {
+            key: host[key]
+            for key in ("id", "name", "machine", "system", "release", "python")
+        },
     }
     manifest.update(git_provenance(start))
     manifest["packages"] = package_provenance(_recorded_names(client))
@@ -731,6 +943,7 @@ def begin(
         units_total=expected_units,
         pid=os.getpid() if pid is None else pid,
         exit_code=None,
+        host={"id": host["id"], "boot": host["boot"]},
     )
     return run
 
@@ -755,6 +968,13 @@ def list_runs(
     A directory with no manifest is reported, not skipped and not repaired: `var/runs/` holds run
     directories that predate this package, and they are evidence. Loose files beside the run
     directories are ignored. Nothing here writes or deletes anything.
+
+    Each entry's `liveness` is `liveness()`'s, with this host read once per call. Besides the
+    status's and the manifest's fields, each entry has:
+    - `host`: the manifest's `host.name`, or None;
+    - `host_id`: the status's `host.id`, or None;
+    - `host_recorded`: whether the status has a `host` object at all. False is a record written
+      before the field existed (or a directory with no readable status), judged here as before.
     """
     if not root:
         root = find_client_root(client_root=client_root).runs_root
@@ -763,12 +983,15 @@ def list_runs(
         names = os.listdir(root)
     except OSError:
         return entries
+    here = this_host()
     for name in names:
         path = os.path.join(root, name)
         if not os.path.isdir(path):
             continue
         manifest = read_json(os.path.join(path, "manifest.json"))
         status = read_json(os.path.join(path, "status.json")) or {}
+        recorded = status.get("host")
+        described = (manifest or {}).get("host")
         entries.append(
             {
                 "id": name,
@@ -781,8 +1004,13 @@ def list_runs(
                 "units_total": status.get("units_total")
                 or (manifest or {}).get("expected_units"),
                 "stage": status.get("stage"),
-                "liveness": liveness(status, stale_after, now=now),
+                "liveness": liveness(status, stale_after, now=now, here=here),
                 "created_epoch": _created_epoch(path, manifest or {}),
+                "host": (
+                    described.get("name") if isinstance(described, dict) else None
+                ),
+                "host_id": recorded.get("id") if isinstance(recorded, dict) else None,
+                "host_recorded": isinstance(recorded, dict),
             }
         )
     entries.sort(key=lambda entry: entry["created_epoch"], reverse=True)
