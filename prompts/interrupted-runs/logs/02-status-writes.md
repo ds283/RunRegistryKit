@@ -1,7 +1,7 @@
 # Log — prompt 02: status writes
 
 **Subject:** Write status.json through a name of its own, and discard a superseded write
-**Commit:** this commit (on `main`, after `b52cc01`)
+**Commit:** `2bf9c72` (on `main`, after `b52cc01`)
 **Date:** 2026-10-17
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (corrections and readings 1–11)
@@ -130,7 +130,7 @@ Each classified. Corrections 1–11 are section 0's.
    the files as committed, after `black`, and re-checked just before committing. **STRUCTURALLY
    REQUIRED.**
 10. **Mutation diffs** (correction 10) were generated after `black`, from a scratch clone holding
-    this commit's tree (the blob of `runregistrykit/__init__.py` is `700e04c` in both). **STRUCTURALLY
+    `2bf9c72`'s tree (the blob of `runregistrykit/__init__.py` is `700e04c` in both). **STRUCTURALLY
     REQUIRED.**
 11. **The board's Orchestrator notes line** (correction 11) is not edited. **STRUCTURALLY
     REQUIRED.**
@@ -276,7 +276,7 @@ with `FileNotFoundError`; ends the process: `killed`, 143, `units_done` 0.
 
 ### 6. The new tests against the old writer
 
-`b52cc01`'s `runregistrykit/__init__.py` in the scratch clone, with this commit's tests:
+`b52cc01`'s `runregistrykit/__init__.py` in the scratch clone, with `2bf9c72`'s tests:
 `Ran 15 tests in 3.507s`, `FAILED (failures=14, errors=2)`. Passing: the mode, one read and one
 replace, `write_json_atomic`'s name and the old record. Failing: six of the eight reproduction
 cases (the fourth point's two pass), the three second-`Run` tests, all three real-signal tests, the
@@ -300,7 +300,7 @@ children above all, once the user has pushed.
 
 ## The deliberate-breakage record
 
-Each diff below was generated in a scratch clone of this repository holding this commit's tree, and
+Each diff below was generated in a scratch clone of this repository holding `2bf9c72`'s tree, and
 replayed there **as recorded below**, in `bash`, by a script: `git apply --check`, `git apply`, the
 tests, `git apply -R --check`, `git apply -R`. `PYTHONPATH` was the clone, so that the tests and
 their children ran it. After each, the clone's `git status --short` was empty; this checkout was

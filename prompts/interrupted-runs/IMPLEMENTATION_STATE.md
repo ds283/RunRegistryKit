@@ -1,10 +1,11 @@
 # interrupted-runs campaign — implementation state
 
 **Last updated:** 2026-10-17 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
-(run `38911075984`); 02 landed (this commit), not yet reviewed, CI not yet run. L1–L4 (the machine
+(run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI not yet run. L1–L4 (the machine
 decision) taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined (README
 §6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
-the `inherited-issues` board on 2026-10-16: three open (§3), two resolved (§4), by 01 and 02.
+the `inherited-issues` board on 2026-10-16: three open (§3), two resolved (§4), by 01 and 02. Two
+more, found by 02's review, are open in §3.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -40,7 +41,7 @@ tag's.
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
-| 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed** 2026-10-17 ([log](logs/02-status-writes.md)); not yet reviewed; CI not yet run | this commit | 307 → 322 |
+| 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI not yet run | `2bf9c72` | 307 → 322 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -48,10 +49,10 @@ tag's.
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
-from then until 01), and 307 after 01.
+from then until 01), 307 after 01, and 322 after 02.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
-for 01.
+for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02.
 
 **Orchestrator review of prompt 01 (2026-10-16).** Dispatched from `8023e14` to one Opus subagent,
 with the note's §0 as a copy in the session scratchpad: its facts, its eight corrections and
@@ -157,12 +158,124 @@ hex characters whose digest is the `id`. `test_no_raw_identity_reaches_a_file`, 
 the platform offers no identity, did not skip, so it ran against the Linux identity too. **01's
 review is complete; check 9 holds.**
 
+**Orchestrator review of prompt 02 (2026-10-17).** Dispatched from `b52cc01` to one Opus subagent,
+with the note's §0 as a copy in the session scratchpad: its facts, its eleven corrections and
+readings of the prompt, and its conventions. Reviewed against its commit `2bf9c72`, with nothing
+landed after it. **Every check of the note's §3 passed**, and acceptance 1–3 are met; the CI half
+of check 9 waits for a push. No stop condition fired. **Two issues are opened** from checks 6 and 8
+(below), neither a defect in what the prompt's tests or acceptance ask.
+
+*At dispatch.* The note's gate held at `b52cc01`: `main`, clean, nothing staged, this checkout the
+only worktree; `git diff --stat 387c58f HEAD -- runregistrykit pyproject.toml .github` empty; `Ran
+307 tests in 99.007s`, `OK (skipped=1)`, with `TMPDIR` in the scratchpad; no Ray process,
+`RAY_ADDRESS` unset; the index at 9.
+
+*The checks.*
+1. **Scope (W1).** `2bf9c72` touches §0's seven files and no others. The diff from `b52cc01` of
+   `stores.py`, `__main__.py`, `client.py`, `pyproject.toml`, `README.md`, `PROVENANCE.md`,
+   `CLAUDE.md`, `docs/adoption`, the campaign README, the prompt and `orchestrator/` is empty. The
+   workflow's diff is the core job's one line, now naming `test_status_writes`.
+   `runregistrykit/tests/` gains exactly `test_status_writes.py`. In `__init__.py` the diff is
+   `import copy`, `itertools` and `threading`, the writer's section after `write_json_atomic`
+   (`:259-349`), and `_update`'s body and docstring; `write_json_atomic` is byte for byte as it was.
+   `git grep -n 'signal'` in the package finds `finish`'s docstring only (`:755`); no `import
+   signal`, no `tempfile`.
+2. **The suite, re-run.** `Ran 322 tests in 111.343s`, `OK (skipped=1)`, in `venv/` at `2bf9c72`.
+   By the loader, per module, the log's table exactly: `test_status_writes` 15, every other module
+   as at `b52cc01`. `black --check runregistrykit docs`: 31 files. `git status --short --ignored`
+   the same before and after; no `var/`; no Ray process; no child left. The core run of correction
+   2, in the orchestrator's own scratch venv (`uv`, offline, editable, no `[stores]`):
+   `datastorekit`, `ray` and `sqlalchemy` not findable, `Ran 80 tests in 13.801s`, `OK
+   (skipped=1)`; the venv removed.
+3. **The plain write (W2).** In a scratch client root, the same calls (`begin`, `heartbeat`,
+   `heartbeat(pid=…)`, `record`, `finish`, and a heartbeat under umask `0o077`) made through
+   `34afe6d`'s package (by `git archive`; its package is `387c58f`'s) and through `2bf9c72`'s: the
+   same keys after every call, the same number of reads of `status.json` (one; two for `record`, in
+   both), one `os.replace` per call in both, the same modes (`0o644`, then `0o600`). The source of
+   each replace was `status.json.tmp` before and `status.json.<pid>-…` after. Nothing left behind.
+   The old record's keys are pinned by `TestAnOldRecord`, run in check 2.
+4. **`write_json_atomic` and the sidecars.** Unchanged (check 1); pinned by
+   `test_write_json_atomic_still_replaces_from_its_tmp_name` and the sidecar tests that name
+   `<sidecar>.tmp`, all passing in check 2, and caught by (m10) in check 8.
+5. **The re-entered write (W3), by the orchestrator's own probe.** A child process per case, a real
+   `SIGTERM` sent by the child to itself from inside a heartbeat's write (`units_done=7`), at four
+   points (half the payload written, all of it, inside `os.replace` before and after the real
+   replace), the handler calling `finish("killed", exit_code=143)` and then raising, returning or
+   ending the process: twelve cases. **Against `2bf9c72`, all twelve parse, `killed`, 143,
+   `units_done` 7, the heartbeat's stage kept**, the heartbeat raising `SystemExit` or returning;
+   nothing left behind but, where the process ends before the heartbeat's replace, one
+   `status.json.<unique>.tmp`, the documented leftover. Against `34afe6d` the same probe reproduces
+   the prompt's "fixed (today)" rows: raising, half written, `killed` with `exit_code` null and
+   `units_done` 0; raising, all written, `running`; returning, `running` and a `FileNotFoundError`
+   from the heartbeat (`killed` but the same error before the replace); ending the process,
+   `killed`, 143, `units_done` 0.
+6. **The edges (W3, W4).**
+   - **(P3) and (P4) by a real signal**: in check 5's twelve.
+   - **Two processes**: a launcher's `Run(path).heartbeat(pid=…)` from another process lands and is
+     read by the next write here; a heartbeat in a child after the parent's `finish` keeps
+     `killed`, 143.
+   - **A worker thread and a handler on the main thread**: a thread heartbeating in a loop, the main
+     thread sending itself `SIGTERM` twenty times, the handler calling `finish`: the thread joined,
+     `killed`, 143, nothing left behind.
+   - **Correction 6's case, measured**, in one process: a `heartbeat(units_done=7, stage="A")`
+     whose write makes a handler's `heartbeat(stage="B")`, which lands, and then a handler's
+     `finish("killed", 143)` lands `stage` `A`. **Its state variant also reproduces**, as the log's
+     observation 1 says: a `finish("done", exit_code=0)` whose write makes a handler's
+     `finish("killed", exit_code=143)` and then a handler's `heartbeat` ends `done`, 0, so the
+     handler's terminal state is replaced by the interrupted one's. With one handler write
+     (`finish("killed")` alone) it ends `killed`, as it should. The note asked that a lost state go
+     to the user: it does, and it is opened as
+     `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`. No state goes back to
+     `running` by it, and the prompt's tests and acceptance stand.
+7. **The log (W6).** Every section of README §5.1 and the prompt's §4.3 additions; twenty-four
+   deviations, each classified, corrections 1–11 among them (none UNINTENDED DRIFT); the suite
+   before and after; the core run; the §3.4 table; every mutation as a diff; the documented
+   leftover. Every line citation in the log and in the board's notes checked by `grep -n` at
+   `2bf9c72`: right. **Residue fixed here:** "this commit" → `2bf9c72`. **Residue not fixed:**
+   `_update`'s docstring has one line of 121 characters (`__init__.py:696`), which `black` does not
+   reflow; left, so that the package is not changed after its review.
+8. **The mutations (W5).** (m1)–(m10) extracted from the log by a script and replayed in `bash` in a
+   `git clone` of `2bf9c72`, with `PYTHONPATH` on the clone: `--check`, apply, `test_status_writes`
+   with `test_run_registry` (for (m10), `test_status_writes`, `test_store_copy_move` and
+   `test_store_retire`; for (m9), the three real-signal tests by name), `-R --check`, reverse, the
+   clone clean. Each failed exactly as the log says, the same tests and subtests ((m1) 13 and 1
+   error; (m2) 2; (m3) 3; (m4) 15; (m5) 1; (m6) 3; (m7) 5; (m8) 1; (m9) 3, each child timing out at
+   60 s, `Ran 3 tests in 180.431s`; (m10) 6 and 3 errors); no child left. The orchestrator's own,
+   in the same clone:
+   - (o1) the file opened with `open(name, "w")` instead of `O_EXCL`: no test fails, as expected.
+     The name is the write's own (pid, counter and random hex), so two writes cannot share one, and
+     `O_EXCL` only makes that certain;
+   - (o2) step 6's record made after a put-back too (its `return` removed), so the record moves
+     back to the overtaken write's number and payload: **no test fails**. Measured, it matters:
+     after a put-back, a later heartbeat re-entered by a handler's heartbeat composes from the
+     stale `running` payload and lands `running` over `killed`; at `2bf9c72` it stays `killed`. The
+     shipped code is right here, but unpinned, and the same backward move has a one-statement window
+     in it (between the check at `:318` and the record at `:321`). Opened as
+     `[02-the-landed-record-is-unpinned-and-can-move-backwards]`;
+   - (o3) the `RLock` made one per `Run` object: no test fails. The threads test uses one `Run`; two
+     `Run` objects for one directory on two threads would update the shared bookkeeping unlocked.
+     Recorded, not opened: the prompt's §2.3 asks for one writer per path, which `2bf9c72` is.
+9. **The records (W6) and CI.** The board's header, 02's row (307 → 322), W1 ✅, the entry in §4
+   with its five answers and the tests that pin each, the other three entries' "Package lines (02,
+   …)" notes, and the unreadable-status entry's sentence are in. `docs/OPEN_ISSUES.md` counted 8 by
+   its rows at `2bf9c72`, the row gone, the date. `prompts/INDEX.md`'s line is updated. **CI is not
+   read yet:** nothing is pushed, and `test_status_writes` first runs on Linux in CI, the real-signal
+   children above all.
+
+The agent's other observations are recorded in its log and not opened: a fork made while another
+thread holds `_STATUS_LOCK` leaves the child's lock held (the standard hazard of a lock across a
+fork); a handler that raises inside `_write_status`'s `finally` leaves an in-flight entry for the
+life of the process; the bookkeeping lasts the process; and the leftover's name, for 04 and 06.
+
+**Verdict:** 02 is accepted, **pending CI**: all three jobs green, the core job's count 80, read
+from the run's log after the user pushes `main`. The two issues opened here are put to the user.
+
 ### 1.1 Items
 
 | Item | Prompt | What | Closes | State |
 |---|---|---|---|---|
 | **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ `387c58f` |
-| **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ this commit |
+| **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ `2bf9c72` |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
@@ -183,13 +296,14 @@ review is complete; check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Three. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
+Five: three of the five assigned here, and two found by 02's review, at the end of this section.
+Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
 does not keep a terminal state when the handler returns (README §0.2), so its entry gains a
 **Corrected at planning** paragraph. `[04-runs-do-not-say-which-machine-produced-them]` was closed
 by 01 (`387c58f`), and `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
-by 02 (this commit); both are in §4. In the README's order:
+by 02 (`2bf9c72`); both are in §4. In the README's order:
 
 ### `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
 
@@ -239,7 +353,7 @@ Whether `list` flags an `unknown` run that has a manifest is a smaller, separate
 docstring `:102-107` is unmoved. `list`'s rows, `__main__.py:550-556`, are now `:555-566`; 01 adds
 `??` for a `foreign` run there, and `unknown` is still printed without a marker.
 
-*Package lines (02, this commit).* `list_runs`' status read `runregistrykit/__init__.py:992` →
+*Package lines (02, `2bf9c72`).* `list_runs`' status read `runregistrykit/__init__.py:992` →
 `:1115`; `liveness`'s answer for an empty payload `:489` → `:585`. `stores.py` and `__main__.py` are
 not touched by 02, so their lines above stand. 02 removes the one known cause of an unreadable
 `status.json`, a handler's write sharing the heartbeat's temporary file, and every other cause (a
@@ -354,7 +468,7 @@ subcommands `:433-522` → `:438-527`. In `runregistrykit/__init__.py`: `Run.fin
 `:638`; `pid_alive` `:258` → `:260` (`PermissionError` `:276` → `:278`); `liveness` `:294` →
 `:465`; `_fingerprint_results`' `taken_by=self` `:476` → `:673`.
 
-*Package lines (02, this commit).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:621` →
+*Package lines (02, `2bf9c72`).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:621` →
 `:744` (its docstring `:622-623` → `:745-746`), `TERMINAL_STATES` `:101` → `:104`, its check
 `:638` → `:761`; `pid_alive` `:260` → `:356` (`PermissionError` `:278` → `:374`); `liveness`
 `:465` → `:561`; `_fingerprint_results`' `taken_by=self` `:673` → `:796`. `stores.py` and
@@ -405,9 +519,73 @@ check `:686-698` → `:892-904`, the refusal `:692` → `:898`; it now reads `th
 after that check and before the run directory is made. `_running_runs_naming` `stores.py:998`, the
 module docstring `:106-107` and `runs_naming` `:957` are unmoved.
 
-*Package lines (02, this commit).* `begin` `runregistrykit/__init__.py:801` → `:924`; its tombstone
+*Package lines (02, `2bf9c72`).* `begin` `runregistrykit/__init__.py:801` → `:924`; its tombstone
 check `:892-904` → `:1015-1027`, the refusal `:898` → `:1021`; `this_host()` `:906` → `:1029`.
 `stores.py` is not touched by 02, so its lines above stand.
+
+
+### `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`
+
+**Opened:** 2026-10-17 by the orchestrator's review of 02, from the note's correction 6 and the
+agent's log (observation 1); measured. **Owner:** none.
+
+*The defect.* `_write_status` (`runregistrykit/__init__.py:324`) composes a re-entered write from
+the newest landed payload, then the fields of **every** earlier write still in flight, then its
+own (`:337-345`), as 02's §2.3 step 2 says. A landed write that was itself made inside an earlier
+in-flight write already carries that write's fields, and may have set the same keys anew. A third
+write then re-applies the oldest in-flight write's fields over it, so a field goes back to an older
+value.
+
+*Measured* at `2bf9c72`, 2026-10-17, in one process with `json.dump` patched to make two handler
+writes from inside the first write (scratch, not committed):
+- a `heartbeat(units_done=7, stage="A")` whose write makes a handler's `heartbeat(stage="B")`
+  (which lands) and then a handler's `finish("killed", exit_code=143)` ends `killed`, 143, `stage`
+  `A`;
+- a `finish("done", exit_code=0)` whose write makes a handler's `finish("killed", exit_code=143)`
+  and then a handler's `heartbeat` ends **`done`, 0**: the handler's terminal state is replaced by
+  the interrupted write's;
+- the same `finish("done")` with one handler write, `finish("killed")`, ends `killed`, 143.
+
+*Impact.* Small. It needs two handler writes inside one write of the same `status.json`, and a
+state is lost only when the interrupted write is itself a `finish`, at the very end of a run. No
+state goes back to `running` by it, and the file always parses. But 02's §1 asks that the file hold
+the handler's state however the handler ends, and a handler that writes twice (a `finish`, then a
+print that a driver's stdout tee turns into a heartbeat) is the case where it does not.
+
+*Next step.* Apply an in-flight write's fields only to the keys that no later landed write has set,
+which needs the bookkeeping to remember which write set which key (the agent's suggestion); or
+compose a re-entered write from the newest landed payload and its own fields alone, once a write
+has landed since the oldest in-flight one began. Either is a change to 02's step 2, so it is the
+user's to take, with a test of both measured cases.
+
+### `[02-the-landed-record-is-unpinned-and-can-move-backwards]`
+
+**Opened:** 2026-10-17 by the orchestrator's review of 02, from its mutation (o2); measured.
+**Owner:** none.
+
+*The defect.* `_land_status` records the write that landed as `book["landed"]` and its payload
+(`runregistrykit/__init__.py:321`), and returns early after a put-back (`:318-320`), so the record
+never moves to a lower number. Two things leave that unguarded:
+- **no test pins it.** With the early `return` removed (the review's (o2)), the record moves back
+  to the overtaken write after every put-back, and all 44 tests of `test_status_writes` and
+  `test_run_registry` pass;
+- **the shipped code has a one-statement window.** A handler that lands a later write between the
+  check at `:318` and the record at `:321` is overwritten in the book by the earlier write's number
+  and payload. Read, not measured.
+
+*Measured* under (o2), at `2bf9c72`'s tree with the one line removed, 2026-10-17 (scratch, not
+committed): a heartbeat whose replace is preceded by a returning handler's `finish("killed")` ends
+`killed`, by the put-back. A later heartbeat, re-entered by a handler's `heartbeat`, then composes
+from the book's stale `running` payload and lands **`running`** over `killed`. At `2bf9c72` the same
+sequence ends `killed`.
+
+*Impact.* At `2bf9c72`, none measured; the window is one statement, and needs a handler to write
+twice to matter (once in the window, once later re-entered). Its weight is that a later edit could
+drop the `return` and lose a terminal state to `running` with every test passing.
+
+*Next step.* A test of the measured sequence: a put-back, then a later re-entered write, which must
+keep the terminal state. And make the record monotonic, for example by recording only a number
+higher than the one recorded, or by keeping landed payloads per number and reading the highest.
 
 ---
 
@@ -653,7 +831,7 @@ in `__all__` `:96` → `:98`. In the store layer `_tmp_path` `:255`, `_write_new
 `:1105-1108` → `:1117-1120`; retire's failure message `:1532` → `:1544`; its refusal to complete
 `:1650` → `:1662`. The tests cited are unchanged.
 
-**Resolved (2026-10-17, by 02, this commit).** Under L5 (a), refined (README §6.2), as 02's §2
+**Resolved (2026-10-17, by 02, `2bf9c72`).** Under L5 (a), refined (README §6.2), as 02's §2
 states it. `status.json`, and only `status.json`, is written by a private writer in
 `runregistrykit/__init__.py`, and `Run._update` (`:691-723`) is its one caller: `_write_status`
 (`:324`) and `_land_status` (`:291`), with `_status_temporary_name` (`:276`) and
