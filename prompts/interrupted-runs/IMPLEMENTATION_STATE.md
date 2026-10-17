@@ -6,7 +6,7 @@
 `39060913296`), closing the two issues 02's
 review opened; 02c written, not run, for the one 02b's review opened. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
-day; L11 put for 02c (README §6.2).** Holds the five issues that bear on a
+day; L11 taken 2026-10-17 for 02c, as recommended (README §6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3, assigned to 02c.
@@ -39,7 +39,7 @@ tag's.
 | **L8** what `end` checks | 04 | put, recommended (a) |
 | **L9** what `begin` refuses | 05 | put, recommended (a) |
 | **L10** the release | 06 | put, recommended (a) |
-| **L11** the `with` point at Python 3.14 | 02c | put 2026-10-17, recommended (a) |
+| **L11** the `with` point at Python 3.14 | 02c | **taken** 2026-10-17: (a); the window recorded in `_update`'s docstring, the issue narrowed to it, not fixed |
 
 ## 1. Prompts
 
@@ -48,7 +48,7 @@ tag's.
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
-| 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | written 2026-10-17, not run; waits on L11 | — | |
+| 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | written 2026-10-17, not run; L11 taken (a) | — | |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -700,7 +700,7 @@ review's check 6; measured. **Owner:** none.
 as 02b followed 02: it fixes the writer while it is the last thing changed. 02c makes the two
 filters generator expressions, and pins them with a sweep at every `JUMP_BACKWARD`. The `with`
 point at 3.14 is put to the user as L11 (README §6.2), recommended (a): recorded in `_update`'s
-docstring, and this entry narrowed to it, not fixed.
+docstring, and this entry narrowed to it, not fixed. *Taken 2026-10-17: (a).*
 
 *The defect.* `_write_status` (`runregistrykit/__init__.py:352`) holds `_STATUS_LOCK` in a `with`
 (`:355`) and removes its in-flight entry in a `finally`. At 3.13.16 the exception table of its
