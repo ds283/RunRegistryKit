@@ -61,14 +61,17 @@ crash in the first second still leaves a record:
 to be running but are not.
 """
 
+import copy
 import hashlib
 import importlib.metadata
+import itertools
 import json
 import os
 import platform
 import re
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 
@@ -251,6 +254,99 @@ def write_json_atomic(path, payload) -> None:
         handle.flush()
         os.fsync(handle.fileno())
     os.replace(tmp, path)
+
+
+# =================================================================================================
+# the writer of `status.json`, which a handler may re-enter (`Run._update` is its one caller)
+
+# held across a whole status write. Re-entrant, so that a handler that interrupts a write on its
+# own thread and writes again is not blocked by the write it interrupted; a plain lock would
+# leave that handler waiting for ever. Two threads' writes are serialised by it
+_STATUS_LOCK = threading.RLock()
+
+# per `status.json`, keyed by its real path, so that every `Run` object for one run directory in
+# this process is one writer: the next sequence number, the fields of each write still in flight,
+# and the highest sequence number landed with its payload
+_STATUS_WRITES = {}
+
+# a per-process counter, one of the three parts of a temporary name
+_STATUS_NAMES = itertools.count()
+
+
+def _status_temporary_name(path) -> str:
+    """A temporary name for one write of the `status.json` at ``path``, beside it: it begins
+    `status.json.`, ends `.tmp`, and is never `status.json.tmp`, the name `write_json_atomic`
+    uses. The pid, a per-process counter and random hex make it one write's own, in one process or
+    two."""
+    return f"{path}.{os.getpid()}-{next(_STATUS_NAMES)}-{os.urandom(4).hex()}.tmp"
+
+
+def _remove_quietly(name) -> None:
+    try:
+        os.remove(name)
+    except OSError:
+        pass
+
+
+def _land_status(path, book, number, payload) -> None:
+    """Write ``payload``, the payload of write ``number``, to the `status.json` at ``path``,
+    through a temporary file of its own, unless a later write has landed first.
+
+    The file is created with `os.open(…, 0o666)`, so that the umask applies to it exactly as it
+    does to `open(path, "w")`, and written as `write_json_atomic` writes. Any exception before the
+    replace, `BaseException` included, removes it and is re-raised. A write that finds a later
+    write landed is discarded: its file is removed and nothing is replaced. A later write that
+    lands between the check and the replace (a handler can run at the bytecode boundary before
+    the `os.replace` call) is put back afterwards, by a write of its payload under its own number,
+    which is itself checked in the same way.
+    """
+    name = _status_temporary_name(path)
+    try:
+        descriptor = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o666)
+        with open(descriptor, "w") as handle:
+            json.dump(payload, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        if book["landed"] > number:
+            os.remove(name)
+            return
+        os.replace(name, path)
+    except BaseException:
+        _remove_quietly(name)
+        raise
+    if book["landed"] > number:
+        _land_status(path, book, book["landed"], book["payload"])
+        return
+    book["landed"], book["payload"] = number, copy.deepcopy(payload)
+
+
+def _write_status(path, fields) -> dict:
+    """Merge ``fields`` into the `status.json` at ``path``, stamp the heartbeat, write it, and
+    return the payload composed. `Run._update` says what is and is not covered."""
+    with _STATUS_LOCK:
+        book = _STATUS_WRITES.setdefault(
+            os.path.realpath(path),
+            {"next": 0, "in_flight": {}, "landed": -1, "payload": None},
+        )
+        number = book["next"]
+        book["next"] = number + 1
+        try:
+            book["in_flight"][number] = dict(fields)
+            earlier = sorted(n for n in book["in_flight"] if n < number)
+            if earlier and book["payload"] is not None:
+                # a handler has re-entered a write: the file may hold what that write read
+                status = copy.deepcopy(book["payload"])
+            else:
+                status = read_json(path) or {}
+            for n in earlier:
+                status.update(book["in_flight"][n])
+            status.update(fields)
+            status["heartbeat"] = now_iso()
+            _land_status(path, book, number, status)
+            return status
+        finally:
+            book["in_flight"].pop(number, None)
 
 
 # =================================================================================================
@@ -593,11 +689,38 @@ class Run:
         return read_json(self.status_path) or {}
 
     def _update(self, **fields) -> dict:
-        status = self.status()
-        status.update(fields)
-        status["heartbeat"] = now_iso()
-        write_json_atomic(self.status_path, status)
-        return status
+        """Merge ``fields`` into `status.json`, stamp the heartbeat, write it, and return the
+        payload composed. Every write of `status.json` comes through here.
+
+        A handler that interrupts the process, a driver's `finish` made on an interrupt, may write
+        the status while a write is in progress on the same thread, and may then raise, return or end the process. So the
+        status is written through a temporary name of its own per write, `status.json.<unique>.tmp`
+        beside it, created with the mode `open(path, "w")` gives, and never through
+        `write_json_atomic`'s shared `<path>.tmp`. And the writes to one `status.json` in this
+        process, through any `Run` object for it, are ordered by a sequence number:
+
+        - a write takes the next number, and its fields are held as in flight until it ends;
+        - it composes its payload from the file, then the fields of every earlier write still in
+          flight, in order, then its own. When an earlier write is in flight, a handler has
+          re-entered one, and the base is instead the newest payload this process has landed, or
+          the file if it has landed none: the file may then hold what the interrupted write read;
+        - a write that finds a later one landed while it was writing is discarded, and replaces
+          nothing; one that a later write overtakes between its check and its replace puts the
+          later payload back. So a terminal state is never replaced by a payload read before it,
+          and the fields of a discarded heartbeat are kept by the write that overtook it.
+
+        A re-entrant lock is held across the whole write. Two threads' writes are serialised, and
+        a handler that re-enters a write on its own thread is not blocked by it.
+
+        Not covered: a handler that re-enters between a write taking its number and holding its
+        fields as in flight loses those fields, never the terminal state; and writes from two
+        processes at once are not ordered at all. A process that dies between creating its
+        temporary file and replacing it (`SIGKILL`, or a handler that restores the default
+        disposition and kills its own process) leaves a `status.json.<unique>.tmp` in the run
+        directory. Nothing reads it, `list` and the store operations do not look at a run
+        directory's other files, and nothing removes it.
+        """
+        return _write_status(self.status_path, fields)
 
     def heartbeat(
         self, units_done=None, units_total=None, pid=None, stage=None

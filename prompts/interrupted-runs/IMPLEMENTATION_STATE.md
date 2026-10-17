@@ -1,9 +1,10 @@
 # interrupted-runs campaign — implementation state
 
 **Last updated:** 2026-10-17 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
-(run `38911075984`); 02 written, not run. L1–L4 (the machine decision) taken by the user on
-2026-10-16, as recommended; L5 taken 2026-10-17, refined (README §6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
-the `inherited-issues` board on 2026-10-16: four open (§3), one resolved by 01 (§4).
+(run `38911075984`); 02 landed (this commit), not yet reviewed, CI not yet run. L1–L4 (the machine
+decision) taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined (README
+§6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
+the `inherited-issues` board on 2026-10-16: three open (§3), two resolved (§4), by 01 and 02.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -39,7 +40,7 @@ tag's.
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
-| 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | written 2026-10-17, not run | — | |
+| 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed** 2026-10-17 ([log](logs/02-status-writes.md)); not yet reviewed; CI not yet run | this commit | 307 → 322 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -161,7 +162,7 @@ review is complete; check 9 holds.**
 | Item | Prompt | What | Closes | State |
 |---|---|---|---|---|
 | **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ `387c58f` |
-| **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ⬜ |
+| **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ this commit |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
@@ -182,134 +183,13 @@ review is complete; check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Four. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
+Three. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
 does not keep a terminal state when the handler returns (README §0.2), so its entry gains a
 **Corrected at planning** paragraph. `[04-runs-do-not-say-which-machine-produced-them]` was closed
-by 01 (`387c58f`) and is in §4. In the README's order:
-
-### `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
-
-**Opened:** 2026-10-03 by SGK's `a3-v2-readiness` prompt 04, from the orchestrator's reading;
-handed over 2026-10-16. **From:** SGK `prompts/a3-v2-readiness/IMPLEMENTATION_STATE.md` §3.
-**Owner:** none. Read, not measured.
-
-**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 02: `status.json` written
-through a name of its own, and a superseded write discarded, under L5 (its README §2). Moved here
-from the `inherited-issues` board the same day, unchanged above and below but for this line and the
-correction at the end. It is one of the five that bear on a long job that may be interrupted, and
-the campaign takes them together.
-
-*The defect.* Every write of `status.json` goes through one fixed temporary name.
-`write_json_atomic` (`runregistrykit/__init__.py:242-251`) sets `tmp = path + ".tmp"` (`:245`),
-opens it `"w"`, `json.dump`s, flushes, `fsync`s and `os.replace`s it onto `path` (`:251`).
-`Run._update` (`:398-403`) calls it for `status.json` (`:402`), and `heartbeat` (`:405`) and
-`finish` (`:424`) both go through `_update`. A heartbeat's write and a `finish`'s write share
-`status.json.tmp`, and so share its inode while both are open.
-
-*The sequence.* A driver's signal handler runs while a heartbeat is inside `with open(tmp, "w")`,
-before its flush. The handler's `finish` reopens `status.json.tmp`, truncating the heartbeat's
-inode, writes its payload, flushes, and renames it onto `status.json`. That inode is now
-`status.json`, and the heartbeat's handle is still open on it with its payload buffered.
-
-*Corrected on hand-over: both ways the handler can end corrupt it.* The brief described the handler
-raising. It does not have to:
-
-- **The handler raises** (SGK's does). Unwinding closes the heartbeat's handle, which writes its
-  buffered partial JSON at offset 0 of `status.json`'s inode: the file is a prefix of the heartbeat's
-  payload followed by the rest of `finish`'s, and does not parse.
-- **The handler returns.** The heartbeat finishes its dump and flushes it at offset 0 of the same
-  inode. The two payloads have the same keys (`begin` writes `state` and `exit_code` from the
-  start, `:728-734`), and `finish` changes `state` from `running` to a shorter word and
-  `exit_code` from `null` to a number, so the heartbeat's is often the longer. Then it overwrites
-  all of `finish`'s, the file parses, and it says `running`, the state the heartbeat read before
-  `finish`: the terminal state is lost silently, and `list` later shows the run `stale`. If the
-  heartbeat's is shorter, the tail of `finish`'s remains and the file does not parse. Either way its
-  `os.replace` then raises `FileNotFoundError`, because `status.json.tmp` was renamed away.
-
-So the defect is the package's whatever the client's handler does. SGK's `finish_after_exec` makes a
-second `finish`, which reads the unparseable file as `{}` and rewrites it valid but without `pid`,
-`stage` or `units_*`; a `SIGKILL` between the two leaves it unparseable, and `list` shows the run as
-`unknown`.
-
-*Measured.* Read, not measured. The window is one `json.dump`, once per heartbeat (at most every 30 s
-in SGK's driver). SGK has not reproduced it.
-
-*Corrected on hand-over: the fix is not a change to `write_json_atomic`'s name for everyone.* The
-brief proposed a unique temporary name per write (`tempfile.mkstemp` in the same directory), inside
-`write_json_atomic`. The store layer depends on the fixed name. `_tmp_path`
-(`runregistrykit/stores.py:255`, "The temporary name `write_json_atomic` writes through") is how a
-leftover from an interrupted sidecar write is found and refused: by `_write_new_sidecar` (`:789`),
-`_update_sidecar` (`:809`), `create_sidecar` (`:863`), `copy` and `move`'s preparation (`:1105-1108`),
-`retire`'s failure message (`:1532`) and its refusal to complete (`:1650`). Tests pin it:
-`test_run_registry.TestStatus.test_status_is_replaced_atomically_from_the_same_directory` asserts
-the `.tmp` suffix (`runregistrykit/tests/test_run_registry.py:612`), and `test_store_copy_move`'s
-`test_C4_the_sidecar_is_written_to_its_tmp_name_and_the_replace_fails` (`:427`) the sidecar's
-`.tmp`. A unique name inside `write_json_atomic` would make every one of those checks look for a
-file that is never written, and no test of a refusal would notice unless it builds the leftover
-under the old name. Two more points:
-
-- `tempfile.mkstemp` creates the file with mode `0600`, and `os.replace` keeps it; today's
-  `open(tmp, "w")` gives `0666` less the umask. `status.json` would become readable only by its
-  owner unless the mode is set.
-- `write_json_atomic` is in `__all__` (`runregistrykit/__init__.py:96`), so a client may call it
-  and may rely on its `.tmp` name.
-
-*Next step.* Give `status.json` writes, and only those, a unique temporary name in the same
-directory, with the mode the old name had: through `Run._update`, or an argument to
-`write_json_atomic` whose default keeps `<path>.tmp`. Sidecar writes keep the fixed name and its
-leftover checks. The reproduction is a test that writes `status.json` twice through a patched
-`json.dump` which makes the second write from inside the first, run once with the inner write
-raising and once returning. Say in the release notes whether `write_json_atomic` changed.
-
-*Widened (2026-10-16), reading SGK's stale-run brief.* Both outcomes of the race now have measured
-consequences beyond `list`. A `status.json` that does not parse hides a run that is still alive
-from the store operations' in-use check, which then lets fingerprint, copy, move, retire and amend
-proceed: `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, where a retirement
-deleted a live run's store. A terminal state lost silently leaves the run `running` for ever, and
-it then blocks its store as a hard-killed run does: `[a3-v2-a-hard-killed-run-blocks-its-store]`.
-The window is still one `json.dump` per heartbeat, but a ~36-hour run with a heartbeat every 30 s
-has over four thousand of them.
-
-*Corrected at planning (2026-10-16, `interrupted-runs` README §0.2).* The next step above fixes the
-unparseable file and not the lost terminal state. With a unique temporary name per write, a `finish`
-made from inside a heartbeat's `json.dump` lands first; if the handler then returns, the heartbeat's
-`os.replace` lands after it with the payload it read before `finish`, and the run reads `running`
-again. Read, not measured. The fix is the unique name **and** a rule that a write superseded by a
-later write from the same `Run` is discarded, not replaced (that README's L5). The reproduction's
-returning case is the one that tells the two apart.
-
-*Measured at writing 02 (2026-10-17, at `c2911d3`).* Measured, no longer only read, by a planner's
-probe (scratch, not committed; 02's "At writing" gives its table). A child process began a run,
-installed a `SIGTERM` handler calling `run.finish("killed", exit_code=143)`, and sent itself
-`SIGTERM` from inside a heartbeat's `json.dump` (`units_done=7`), with half the payload or all of it
-written to the handle. With today's fixed name:
-- **a handler that raises** (`SystemExit`, as SGK's `make_killed_handler` does) left the file
-  parseable both times. With half written it said `killed` with `exit_code` `null`, a mixture of the
-  two payloads. With all written it said **`running`**: the terminal state was lost though the
-  handler raised, which the entry above did not expect;
-- **a handler that returns** left **`running`** both times, and `heartbeat` raised
-  `FileNotFoundError` into its caller;
-- **a handler that ends the process**, as SGK's two `terminal` handlers do (`SIG_DFL`, then `os.kill`
-  itself), left `killed` and 143 both times. The heartbeat's buffered bytes died with the process.
-
-With a `mkstemp`-named write and nothing else (L5 (b)), raising and ending the process kept `killed`
-and 143, and returning left `running` both times, which confirms the correction above. Ending the
-process left one `status.json.<x>.tmp` behind. In every case that kept `killed`, `units_done` was 0,
-not 7: the `finish` read the file before the heartbeat landed. Two more points bear on the fix (02's
-§2.3). `Run(path)` is public, and SGK's manual remedy goes through it. SGK's pipeline heartbeats from
-its `sys.stdout` stream, so on whichever thread prints.
-
-*Package lines (01, `387c58f`).* 01 moved these lines of `runregistrykit/__init__.py` and
-`runregistrykit/stores.py`; nothing above is otherwise changed by it. `write_json_atomic` `:242-251`
-→ `:244-253` (`tmp` `:245` → `:247`, `os.replace` `:251` → `:253`); `Run._update` `:398-403` →
-`:595-600` (its write `:402` → `:599`); `heartbeat` `:405` → `:602`; `finish` `:424` → `:621`;
-`begin`'s first status `:728-734` → `:940-947`, which now writes `host` besides; `write_json_atomic`
-in `__all__` `:96` → `:98`. In the store layer `_tmp_path` `:255`, `_write_new_sidecar` `:789`,
-`_update_sidecar` `:809` and `create_sidecar` `:863` are unmoved; copy and move's preparation
-`:1105-1108` → `:1117-1120`; retire's failure message `:1532` → `:1544`; its refusal to complete
-`:1650` → `:1662`. The tests cited are unchanged.
+by 01 (`387c58f`), and `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
+by 02 (this commit); both are in §4. In the README's order:
 
 ### `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
 
@@ -358,6 +238,13 @@ Whether `list` flags an `unknown` run that has a manifest is a smaller, separate
 `stores.py:1017` is unmoved; move's check `:1102` → `:1114`, amend's `:2017` → `:2029`; the module
 docstring `:102-107` is unmoved. `list`'s rows, `__main__.py:550-556`, are now `:555-566`; 01 adds
 `??` for a `foreign` run there, and `unknown` is still printed without a marker.
+
+*Package lines (02, this commit).* `list_runs`' status read `runregistrykit/__init__.py:992` →
+`:1115`; `liveness`'s answer for an empty payload `:489` → `:585`. `stores.py` and `__main__.py` are
+not touched by 02, so their lines above stand. 02 removes the one known cause of an unreadable
+`status.json`, a handler's write sharing the heartbeat's temporary file, and every other cause (a
+disk error, a hand edit, a file truncated or lost by anything else) stands, as does this entry's
+defect in the check.
 
 ### `[a3-v2-a-hard-killed-run-blocks-its-store]`
 
@@ -467,6 +354,12 @@ subcommands `:433-522` → `:438-527`. In `runregistrykit/__init__.py`: `Run.fin
 `:638`; `pid_alive` `:258` → `:260` (`PermissionError` `:276` → `:278`); `liveness` `:294` →
 `:465`; `_fingerprint_results`' `taken_by=self` `:476` → `:673`.
 
+*Package lines (02, this commit).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:621` →
+`:744` (its docstring `:622-623` → `:745-746`), `TERMINAL_STATES` `:101` → `:104`, its check
+`:638` → `:761`; `pid_alive` `:260` → `:356` (`PermissionError` `:278` → `:374`); `liveness`
+`:465` → `:561`; `_fingerprint_results`' `taken_by=self` `:673` → `:796`. `stores.py` and
+`__main__.py` are not touched by 02, so their lines above stand.
+
 ### `[00-begin-does-not-refuse-a-second-writer]`
 
 **Opened:** 2026-10-16, split on hand-over from SGK's `[a3-v2-a-hard-killed-run-blocks-its-store]`
@@ -511,6 +404,10 @@ second run directory exists.
 check `:686-698` → `:892-904`, the refusal `:692` → `:898`; it now reads `this_host()` at `:906`,
 after that check and before the run directory is made. `_running_runs_naming` `stores.py:998`, the
 module docstring `:106-107` and `runs_naming` `:957` are unmoved.
+
+*Package lines (02, this commit).* `begin` `runregistrykit/__init__.py:801` → `:924`; its tombstone
+check `:892-904` → `:1015-1027`, the refusal `:898` → `:1021`; `this_host()` `:906` → `:1029`.
+`stores.py` is not touched by 02, so its lines above stand.
 
 ---
 
@@ -634,3 +531,178 @@ SGK's third point, that only terminal-state run directories are moved between ma
 for a client's people and not something the package enforces. A `running` record moved anyway is
 reported `foreign`, which is what keeps the package from judging it.
 
+### `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
+
+**Opened:** 2026-10-03 by SGK's `a3-v2-readiness` prompt 04, from the orchestrator's reading;
+handed over 2026-10-16. **From:** SGK `prompts/a3-v2-readiness/IMPLEMENTATION_STATE.md` §3.
+**Owner:** none. Read, not measured.
+
+**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 02: `status.json` written
+through a name of its own, and a superseded write discarded, under L5 (its README §2). Moved here
+from the `inherited-issues` board the same day, unchanged above and below but for this line and the
+correction at the end. It is one of the five that bear on a long job that may be interrupted, and
+the campaign takes them together.
+
+*The defect.* Every write of `status.json` goes through one fixed temporary name.
+`write_json_atomic` (`runregistrykit/__init__.py:242-251`) sets `tmp = path + ".tmp"` (`:245`),
+opens it `"w"`, `json.dump`s, flushes, `fsync`s and `os.replace`s it onto `path` (`:251`).
+`Run._update` (`:398-403`) calls it for `status.json` (`:402`), and `heartbeat` (`:405`) and
+`finish` (`:424`) both go through `_update`. A heartbeat's write and a `finish`'s write share
+`status.json.tmp`, and so share its inode while both are open.
+
+*The sequence.* A driver's signal handler runs while a heartbeat is inside `with open(tmp, "w")`,
+before its flush. The handler's `finish` reopens `status.json.tmp`, truncating the heartbeat's
+inode, writes its payload, flushes, and renames it onto `status.json`. That inode is now
+`status.json`, and the heartbeat's handle is still open on it with its payload buffered.
+
+*Corrected on hand-over: both ways the handler can end corrupt it.* The brief described the handler
+raising. It does not have to:
+
+- **The handler raises** (SGK's does). Unwinding closes the heartbeat's handle, which writes its
+  buffered partial JSON at offset 0 of `status.json`'s inode: the file is a prefix of the heartbeat's
+  payload followed by the rest of `finish`'s, and does not parse.
+- **The handler returns.** The heartbeat finishes its dump and flushes it at offset 0 of the same
+  inode. The two payloads have the same keys (`begin` writes `state` and `exit_code` from the
+  start, `:728-734`), and `finish` changes `state` from `running` to a shorter word and
+  `exit_code` from `null` to a number, so the heartbeat's is often the longer. Then it overwrites
+  all of `finish`'s, the file parses, and it says `running`, the state the heartbeat read before
+  `finish`: the terminal state is lost silently, and `list` later shows the run `stale`. If the
+  heartbeat's is shorter, the tail of `finish`'s remains and the file does not parse. Either way its
+  `os.replace` then raises `FileNotFoundError`, because `status.json.tmp` was renamed away.
+
+So the defect is the package's whatever the client's handler does. SGK's `finish_after_exec` makes a
+second `finish`, which reads the unparseable file as `{}` and rewrites it valid but without `pid`,
+`stage` or `units_*`; a `SIGKILL` between the two leaves it unparseable, and `list` shows the run as
+`unknown`.
+
+*Measured.* Read, not measured. The window is one `json.dump`, once per heartbeat (at most every 30 s
+in SGK's driver). SGK has not reproduced it.
+
+*Corrected on hand-over: the fix is not a change to `write_json_atomic`'s name for everyone.* The
+brief proposed a unique temporary name per write (`tempfile.mkstemp` in the same directory), inside
+`write_json_atomic`. The store layer depends on the fixed name. `_tmp_path`
+(`runregistrykit/stores.py:255`, "The temporary name `write_json_atomic` writes through") is how a
+leftover from an interrupted sidecar write is found and refused: by `_write_new_sidecar` (`:789`),
+`_update_sidecar` (`:809`), `create_sidecar` (`:863`), `copy` and `move`'s preparation (`:1105-1108`),
+`retire`'s failure message (`:1532`) and its refusal to complete (`:1650`). Tests pin it:
+`test_run_registry.TestStatus.test_status_is_replaced_atomically_from_the_same_directory` asserts
+the `.tmp` suffix (`runregistrykit/tests/test_run_registry.py:612`), and `test_store_copy_move`'s
+`test_C4_the_sidecar_is_written_to_its_tmp_name_and_the_replace_fails` (`:427`) the sidecar's
+`.tmp`. A unique name inside `write_json_atomic` would make every one of those checks look for a
+file that is never written, and no test of a refusal would notice unless it builds the leftover
+under the old name. Two more points:
+
+- `tempfile.mkstemp` creates the file with mode `0600`, and `os.replace` keeps it; today's
+  `open(tmp, "w")` gives `0666` less the umask. `status.json` would become readable only by its
+  owner unless the mode is set.
+- `write_json_atomic` is in `__all__` (`runregistrykit/__init__.py:96`), so a client may call it
+  and may rely on its `.tmp` name.
+
+*Next step.* Give `status.json` writes, and only those, a unique temporary name in the same
+directory, with the mode the old name had: through `Run._update`, or an argument to
+`write_json_atomic` whose default keeps `<path>.tmp`. Sidecar writes keep the fixed name and its
+leftover checks. The reproduction is a test that writes `status.json` twice through a patched
+`json.dump` which makes the second write from inside the first, run once with the inner write
+raising and once returning. Say in the release notes whether `write_json_atomic` changed.
+
+*Widened (2026-10-16), reading SGK's stale-run brief.* Both outcomes of the race now have measured
+consequences beyond `list`. A `status.json` that does not parse hides a run that is still alive
+from the store operations' in-use check, which then lets fingerprint, copy, move, retire and amend
+proceed: `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, where a retirement
+deleted a live run's store. A terminal state lost silently leaves the run `running` for ever, and
+it then blocks its store as a hard-killed run does: `[a3-v2-a-hard-killed-run-blocks-its-store]`.
+The window is still one `json.dump` per heartbeat, but a ~36-hour run with a heartbeat every 30 s
+has over four thousand of them.
+
+*Corrected at planning (2026-10-16, `interrupted-runs` README §0.2).* The next step above fixes the
+unparseable file and not the lost terminal state. With a unique temporary name per write, a `finish`
+made from inside a heartbeat's `json.dump` lands first; if the handler then returns, the heartbeat's
+`os.replace` lands after it with the payload it read before `finish`, and the run reads `running`
+again. Read, not measured. The fix is the unique name **and** a rule that a write superseded by a
+later write from the same `Run` is discarded, not replaced (that README's L5). The reproduction's
+returning case is the one that tells the two apart.
+
+*Measured at writing 02 (2026-10-17, at `c2911d3`).* Measured, no longer only read, by a planner's
+probe (scratch, not committed; 02's "At writing" gives its table). A child process began a run,
+installed a `SIGTERM` handler calling `run.finish("killed", exit_code=143)`, and sent itself
+`SIGTERM` from inside a heartbeat's `json.dump` (`units_done=7`), with half the payload or all of it
+written to the handle. With today's fixed name:
+- **a handler that raises** (`SystemExit`, as SGK's `make_killed_handler` does) left the file
+  parseable both times. With half written it said `killed` with `exit_code` `null`, a mixture of the
+  two payloads. With all written it said **`running`**: the terminal state was lost though the
+  handler raised, which the entry above did not expect;
+- **a handler that returns** left **`running`** both times, and `heartbeat` raised
+  `FileNotFoundError` into its caller;
+- **a handler that ends the process**, as SGK's two `terminal` handlers do (`SIG_DFL`, then `os.kill`
+  itself), left `killed` and 143 both times. The heartbeat's buffered bytes died with the process.
+
+With a `mkstemp`-named write and nothing else (L5 (b)), raising and ending the process kept `killed`
+and 143, and returning left `running` both times, which confirms the correction above. Ending the
+process left one `status.json.<x>.tmp` behind. In every case that kept `killed`, `units_done` was 0,
+not 7: the `finish` read the file before the heartbeat landed. Two more points bear on the fix (02's
+§2.3). `Run(path)` is public, and SGK's manual remedy goes through it. SGK's pipeline heartbeats from
+its `sys.stdout` stream, so on whichever thread prints.
+
+*Package lines (01, `387c58f`).* 01 moved these lines of `runregistrykit/__init__.py` and
+`runregistrykit/stores.py`; nothing above is otherwise changed by it. `write_json_atomic` `:242-251`
+→ `:244-253` (`tmp` `:245` → `:247`, `os.replace` `:251` → `:253`); `Run._update` `:398-403` →
+`:595-600` (its write `:402` → `:599`); `heartbeat` `:405` → `:602`; `finish` `:424` → `:621`;
+`begin`'s first status `:728-734` → `:940-947`, which now writes `host` besides; `write_json_atomic`
+in `__all__` `:96` → `:98`. In the store layer `_tmp_path` `:255`, `_write_new_sidecar` `:789`,
+`_update_sidecar` `:809` and `create_sidecar` `:863` are unmoved; copy and move's preparation
+`:1105-1108` → `:1117-1120`; retire's failure message `:1532` → `:1544`; its refusal to complete
+`:1650` → `:1662`. The tests cited are unchanged.
+
+**Resolved (2026-10-17, by 02, this commit).** Under L5 (a), refined (README §6.2), as 02's §2
+states it. `status.json`, and only `status.json`, is written by a private writer in
+`runregistrykit/__init__.py`, and `Run._update` (`:691-723`) is its one caller: `_write_status`
+(`:324`) and `_land_status` (`:291`), with `_status_temporary_name` (`:276`) and
+`_remove_quietly` (`:284`). The bookkeeping is `_STATUS_WRITES` (`:270`), per `status.json` in the
+process, keyed by `os.path.realpath` (`:329`), under the re-entrant `_STATUS_LOCK` (`:265`, held
+from `:327`). `begin`'s first status (`:1063-1070`) goes through `_update`, so nothing writes
+`status.json.tmp` any more. The log is [`logs/02-status-writes.md`](logs/02-status-writes.md). What
+resolved each part:
+
+- **The shared temporary name.** Each write has a name of its own, `status.json.<pid>-<counter>-<8
+  hex>.tmp` beside the file (`:276`), created with `os.open(…, O_WRONLY | O_CREAT | O_EXCL, 0o666)`
+  (`:305`). A handler's write no longer reopens or truncates the heartbeat's file. Pinned by
+  `test_status_writes.TestThePlainWrite.test_the_temporary_name` and by the reproduction,
+  `test_status_writes.TestAHandlerInsideAHeartbeat.test_each_point_each_ending` (four points, the
+  handler raising and returning: eight cases).
+- **The lost terminal state when the handler returns.** A write that finds a later write landed
+  while it was writing is discarded, its file removed and nothing replaced (`:311`). One that a later
+  write overtakes between its check and its replace puts the later payload back (`:318-319`), under
+  the later write's number, so a handler that re-enters the put-back is not undone by it. A write
+  composes from the file, then the fields of every earlier write still in flight, then its own; when
+  an earlier write is in flight the base is the newest payload landed (`:337-341`). So the
+  discarded heartbeat's `units_done` and `stage` are kept. Pinned by the reproduction (with the
+  count of replaces at the two points inside `json.dump`), by
+  `test_status_writes.TestASecondRunObject` (three tests, one through a symlinked spelling of the
+  run directory), by
+  `test_status_writes.TestAHandlerDuringThePutBack.test_a_second_handler_inside_the_put_back`, by
+  `test_status_writes.TestARealSignal` (a real `SIGTERM` in a child; the handler raises, returns, or
+  ends the process) and by `test_status_writes.TestTwoThreads.test_a_heartbeat_thread_and_a_finish`.
+- **The `FileNotFoundError` into the caller.** Gone with the shared name: the heartbeat's
+  `os.replace` renames its own file, which nothing else has renamed away. Pinned by the reproduction
+  (the heartbeat returns, or raises `SystemExit`, and never anything else) and by
+  `test_status_writes.TestARealSignal.test_a_handler_that_returns`.
+- **The mode.** `0666` less the umask, as `open(path, "w")` gave, not `mkstemp`'s `0600`. Pinned by
+  `test_status_writes.TestThePlainWrite.test_the_mode_is_the_one_a_plain_open_gives` (umask `0o022`
+  and `0o077`).
+- **`write_json_atomic` and the sidecars.** Unchanged: its body, its `<path>.tmp` (`:250`), its
+  `os.replace` (`:256`) and its place in `__all__` (`:101`); `stores.py` is not touched, so
+  `_tmp_path` and every leftover check built on it stand. Pinned by
+  `test_status_writes.TestThePlainWrite.test_write_json_atomic_still_replaces_from_its_tmp_name`
+  and the store tests that name `<sidecar>.tmp`. **06's release notes say "`write_json_atomic`:
+  unchanged".**
+
+A plain write, with nothing in flight, reads the file once and calls `os.replace` once, and writes
+the keys it wrote before (`test_status_writes.TestThePlainWrite.test_a_heartbeat_with_nothing_in_flight_reads_once_and_replaces_once`);
+a failed write leaves `status.json` as it was and nothing behind
+(`test_a_failed_write_leaves_the_status_as_it_was`); a `v0.1.0` record keeps its keys and gains no
+`host` (`test_status_writes.TestAnOldRecord`). **Not covered, and said in `_update`'s docstring:**
+a handler that re-enters between a write taking its number and holding its fields as in flight
+loses those fields, never the terminal state; writes from two processes at once are not ordered;
+and a process that dies between creating its temporary file and replacing it (`SIGKILL`, or a
+handler that restores `SIG_DFL` and kills its own process) leaves one `status.json.<unique>.tmp`,
+which nothing reads and nothing removes.
