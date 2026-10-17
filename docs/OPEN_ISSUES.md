@@ -3,8 +3,8 @@
 One line per open issue, pointing at the board that holds it. The board is right if the two
 disagree. See `CLAUDE.md` for the maintenance rule.
 
-**Last updated:** 2026-10-17 · **9 open**: 2 on the `extraction` board (§1.1), 3 on the
-`inherited-issues` board (§1.2) and 4 on the `interrupted-runs` board (§1.3).
+**Last updated:** 2026-10-18 · **10 open**: 2 on the `extraction` board (§1.1), 3 on the
+`inherited-issues` board (§1.2) and 5 on the `interrupted-runs` board (§1.3).
 
 ## 1. By campaign
 
@@ -37,7 +37,7 @@ may be interrupted, taken in this order, one prompt each (the campaign's README 
 `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, by 02 on 2026-10-17. Two more were opened by 02's review on 2026-10-17, on the bookkeeping of the
 `status.json` writer, and closed by 02b the same day. One was opened by 02b's review, the same day,
 and assigned to 02c, which fixed it at Python 3.12 and 3.13 and narrowed it to its 3.14 `with`
-point, now with no owner.
+point, now with no owner. One was opened at the writing of 03, on 2026-10-18, with no owner.
 
 | Issue | Owner | Hook |
 |---|---|---|
@@ -45,3 +45,4 @@ point, now with no owner.
 | `[a3-v2-a-hard-killed-run-blocks-its-store]` | 04 | A `SIGKILL`'d run stays `running`, and the store operations count a stale run as in use, so fingerprint, copy, move, retire, amend and a resumed run's fingerprint are refused; the named remedy, `Run.finish`, has no command and checks no pid |
 | `[00-begin-does-not-refuse-a-second-writer]` | 05 | `begin` does not look for a `running` run on its results store, so a second writer on a live run's store is begun silently |
 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` | none | At Python 3.14 only, a handler raising just after `with` takes the writer's lock leaves it held, as at any `with` on that version; no client or CI runs 3.14 |
+| `[03-a-run-whose-manifest-cannot-be-read-names-no-store]` | none | A live run whose manifest is torn or missing names no store, so the store operations proceed on the store it is writing |

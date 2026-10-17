@@ -1,17 +1,19 @@
 # interrupted-runs campaign — implementation state
 
-**Last updated:** 2026-10-17 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
+**Last updated:** 2026-10-18 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
 (run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
 `39060913296`), closing the two issues 02's
 review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`), narrowing the one 02b's review opened
-to its Python 3.14 `with` point. L1–L4 (the machine decision)
+to its Python 3.14 `with` point; 03 written 2026-10-18, not run. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
-day; L11 taken 2026-10-17 for 02c, as recommended (README §6.2).** Holds the five issues that bear on a
+day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined (README
+§6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
-to its 3.14 `with` point, under L11 (a), with no owner.
+to its 3.14 `with` point, under L11 (a), with no owner. One, found at the writing of 03, is open in
+§3 with no owner.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -36,7 +38,7 @@ tag's.
 | **L3** what identifies a boot | 01 | **taken** 2026-10-16: (a) |
 | **L4** what `liveness` and `list` say | 01 | **taken** 2026-10-16: (a) |
 | **L5** how `status.json` is written | 02, 02b | **taken** 2026-10-17: (a), refined: superseded per `status.json` in the process, not per `Run`; the later write keeps an in-flight write's fields; an `RLock`. **Amended** 2026-10-17 after 02's review: only in-flight writes newer than the landed base are re-applied, and the record of what landed is never lowered (02b) |
-| **L6** an unreadable status in the in-use check | 03 | put, recommended (a) |
+| **L6** an unreadable status in the in-use check | 03 | **taken** 2026-10-18: (a), refined: in use unless the status says a terminal state; a non-object status or manifest read as unreadable |
 | **L7** what `end` writes | 04 | put, recommended (a) |
 | **L8** what `end` checks | 04 | put, recommended (a) |
 | **L9** what `begin` refuses | 05 | put, recommended (a) |
@@ -51,7 +53,7 @@ tag's.
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
-| 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
+| 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | written 2026-10-18, not run | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
@@ -541,8 +543,9 @@ complete; check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Four: three of the five assigned here, and one found by 02b's review, at the end of this section,
-narrowed by 02c (`35ce264`) to its Python 3.14 `with` point, with no owner.
+Five: three of the five assigned here; one found by 02b's review, narrowed by 02c (`35ce264`) to
+its Python 3.14 `with` point, with no owner; and one opened at the writing of 03, with no owner.
+The last two are at the end of this section.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
@@ -613,6 +616,17 @@ not touched by 02b, so their lines above stand.
 *Package lines (02c, `35ce264`).* `list_runs`' status read `runregistrykit/__init__.py:1156` →
 `:1159`; `liveness`'s answer for an empty payload `:618` → `:619`. `stores.py` and `__main__.py` are
 not touched by 02c, so their lines above stand.
+
+*Measured at writing 03 (2026-10-18, at `0c75dd3`).* By a scratch probe on `test_host_stores`'
+fixtures, a live run (the probe's own pid) on a full store, its `status.json` replaced by each of
+thirteen forms. Missing, empty, torn, not JSON, `null`, `[]`, `{}`, state `null`, state
+`"paused"` and state `5`: `list_runs` gave liveness `unknown`, `list` no marker, and copy, move,
+fingerprint, fingerprint `--write`, retire's dry run and amend all proceeded. `[1]`, `"x"` and
+`5`: `list_runs` raised `AttributeError` (`__init__.py:1159`), so `list` and every store
+operation under the runs root raised, other stores' included, and `Run.finish` raised on the same
+files from the writer's base read (`:375`). So the check fails open on ten forms and fails with a
+traceback on three, and the named remedy fails on those three. 03's file states the rule the user
+took (L6 (a) refined, 2026-10-18).
 
 ### `[a3-v2-a-hard-killed-run-blocks-its-store]`
 
@@ -905,6 +919,32 @@ since an `INSTRUCTION` event fires before an instruction and this point follows 
 are unmoved; the filters `:365` → `:366` and `:372` → `:373`, with the comment at `:365`; the
 `finally` `:381-382` → `:382-383`. `_update`'s docstring `:725-763` → `:726-766`, its "Not covered"
 paragraph `:756-762` → `:757-765`.
+
+### `[03-a-run-whose-manifest-cannot-be-read-names-no-store]`
+
+**Opened:** 2026-10-18 at the writing of prompt 03, by its planner's probe; measured. **Owner:**
+none.
+
+*The defect.* `runs_naming` (`runregistrykit/stores.py:957`) skips every entry without a readable
+manifest (`:973`): a run directory whose `manifest.json` is missing, torn or not JSON names no
+store, whatever its status says. So a `running` run, alive, whose manifest cannot be read is not
+counted as in use by copy, move, fingerprint, retire or amend, on the store it is writing.
+`Run.__init__` reads the manifest as `read_json(…) or {}` (`runregistrykit/__init__.py:667`).
+
+*Measured* at `0c75dd3`, 2026-10-18 (scratch, not committed): a run begun in the probe's process
+on a full store, its status left `running` and its pid alive. With its manifest torn to its first
+half, or removed, `list_runs` gave `has_manifest` false, state `running`, liveness `alive`, and
+`fingerprint_store` on the store proceeded. With the manifest `[1]`, `list_runs` raised
+`AttributeError`; 03 fixes that raise (it reads such a manifest as none), not this entry.
+
+*Impact.* Lower than the status's: the manifest is written once, by `begin`, through
+`write_json_atomic` before the first status, and is never rewritten, so no known cause tears it
+in a run's life. A hand edit, a disk error or a copy that loses it would.
+
+*Next step.* Decide what a running run with no readable manifest means for the store operations:
+counted as in use for **every** store (it may name any), refused with words that name it; or
+reported by `list` and the refusals without blocking; or left. Whichever, a test of the probe's
+case.
 
 ---
 
