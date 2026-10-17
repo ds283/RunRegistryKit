@@ -3,8 +3,8 @@
 One line per open issue, pointing at the board that holds it. The board is right if the two
 disagree. See `CLAUDE.md` for the maintenance rule.
 
-**Last updated:** 2026-10-17 · **10 open**: 2 on the `extraction` board (§1.1), 3 on the
-`inherited-issues` board (§1.2) and 5 on the `interrupted-runs` board (§1.3).
+**Last updated:** 2026-10-17 · **8 open**: 2 on the `extraction` board (§1.1), 3 on the
+`inherited-issues` board (§1.2) and 3 on the `interrupted-runs` board (§1.3).
 
 ## 1. By campaign
 
@@ -29,18 +29,16 @@ two found here reading it, read at `79015a7`. The five that bear on a long job w
 | `[01-cross-filesystem-move-advice-says-delete-by-hand]` | none | `store move` relays DatastoreKit's "delete the source by hand" for a registered store, which is retired instead |
 | `[06-runregistrykit-list-into-a-closed-pipe-ends-in-a-traceback]` | none | `list \| head` can end in a `BrokenPipeError` traceback; cosmetic, nothing lost |
 
-### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01 and 02 landed
+### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01, 02 and 02b landed
 
 Assigned from the `inherited-issues` board on 2026-10-16: the five that bear on a long job that
 may be interrupted, taken in this order, one prompt each (the campaign's README §2). The first,
 `[04-runs-do-not-say-which-machine-produced-them]`, was closed by 01 on 2026-10-16, and the second,
 `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, by 02 on 2026-10-17. Two more were opened by 02's review on 2026-10-17, on the bookkeeping of the
-`status.json` writer, and assigned to 02b the same day at the user's request.
+`status.json` writer, and closed by 02b the same day.
 
 | Issue | Owner | Hook |
 |---|---|---|
 | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | 03 | A torn or missing `status.json` drops a live run from the in-use check; measured, `retire` deleted a live run's store |
 | `[a3-v2-a-hard-killed-run-blocks-its-store]` | 04 | A `SIGKILL`'d run stays `running`, and the store operations count a stale run as in use, so fingerprint, copy, move, retire, amend and a resumed run's fingerprint are refused; the named remedy, `Run.finish`, has no command and checks no pid |
 | `[00-begin-does-not-refuse-a-second-writer]` | 05 | `begin` does not look for a `running` run on its results store, so a second writer on a live run's store is begun silently |
-| `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]` | 02b | With two handler writes inside one `status.json` write, an older in-flight field is re-applied over a newer landed one; measured, a handler's `killed` replaced by an interrupted `finish("done")` |
-| `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | 02b | No test pins that the writer's record of what landed never moves back; with one `return` removed, or a handler inside `copy.deepcopy`, a terminal state goes back to `running` |

@@ -2,11 +2,12 @@
 
 **Last updated:** 2026-10-17 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
-(run `39049728089`); 02b written, not run, for the two issues 02's review opened. L1–L4 (the machine
-decision) taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined (README
-§6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
-the `inherited-issues` board on 2026-10-16: three open (§3), two resolved (§4), by 01 and 02. Two
-more, found by 02's review, are open in §3.
+(run `39049728089`); 02b landed (this commit), not yet reviewed, closing the two issues 02's review
+opened. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended; L5 taken
+2026-10-17, refined, and amended the same day (README §6.2).** Holds the five issues that bear on a
+long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
+three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
+02b (§4).
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -43,7 +44,7 @@ tag's.
 |---|---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
-| 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | written 2026-10-17, not run | — | |
+| 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)), not yet reviewed; CI not yet run | this commit | 322 → 328 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -51,7 +52,7 @@ tag's.
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
-from then until 01), 307 after 01, and 322 after 02.
+from then until 01), 307 after 01, 322 after 02, and 328 after 02b.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02.
@@ -287,7 +288,7 @@ of its tests ran and passed on Linux in all three jobs, the three real-signal ch
 |---|---|---|---|---|
 | **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ `387c58f` |
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ `2bf9c72` |
-| **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ⬜ |
+| **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ✅ this commit |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
@@ -308,8 +309,8 @@ of its tests ran and passed on Linux in all three jobs, the three real-signal ch
 
 ## 3. Active and unresolved issues
 
-Five: three of the five assigned here, and two found by 02's review, at the end of this section.
-Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
+Three: three of the five assigned here. The two found by 02's review were closed by 02b (this
+commit), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
 does not keep a terminal state when the handler returns (README §0.2), so its entry gains a
@@ -371,6 +372,10 @@ not touched by 02, so their lines above stand. 02 removes the one known cause of
 `status.json`, a handler's write sharing the heartbeat's temporary file, and every other cause (a
 disk error, a hand edit, a file truncated or lost by anything else) stands, as does this entry's
 defect in the check.
+
+*Package lines (02b, this commit).* `list_runs`' status read `runregistrykit/__init__.py:1115` →
+`:1156`; `liveness`'s answer for an empty payload `:585` → `:618`. `stores.py` and `__main__.py` are
+not touched by 02b, so their lines above stand.
 
 ### `[a3-v2-a-hard-killed-run-blocks-its-store]`
 
@@ -486,6 +491,12 @@ subcommands `:433-522` → `:438-527`. In `runregistrykit/__init__.py`: `Run.fin
 `:465` → `:561`; `_fingerprint_results`' `taken_by=self` `:673` → `:796`. `stores.py` and
 `__main__.py` are not touched by 02, so their lines above stand.
 
+*Package lines (02b, this commit).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:744` →
+`:785` (its docstring `:745-746` → `:786-787`), its check `:761` → `:802`; `TERMINAL_STATES` `:104`
+is unmoved; `pid_alive` `:356` → `:389` (`PermissionError` `:374` → `:407`); `liveness` `:561` →
+`:594`; `_fingerprint_results`' `taken_by=self` `:796` → `:837`. `stores.py` and `__main__.py` are
+not touched by 02b, so their lines above stand.
+
 ### `[00-begin-does-not-refuse-a-second-writer]`
 
 **Opened:** 2026-10-16, split on hand-over from SGK's `[a3-v2-a-hard-killed-run-blocks-its-store]`
@@ -535,97 +546,9 @@ module docstring `:106-107` and `runs_naming` `:957` are unmoved.
 check `:892-904` → `:1015-1027`, the refusal `:898` → `:1021`; `this_host()` `:906` → `:1029`.
 `stores.py` is not touched by 02, so its lines above stand.
 
-
-### `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`
-
-**Opened:** 2026-10-17 by the orchestrator's review of 02, from the note's correction 6 and the
-agent's log (observation 1); measured. **Owner:** none.
-
-**Assigned (2026-10-17):** to prompt 02b of this campaign. The user asked for it to be fixed "at the
-earliest sensible opportunity"; 02b follows 02 at once, ahead of 03, which touches no part of the
-writer. Under L5 as amended the same day (README §6.2): a re-entered write re-applies only the
-in-flight writes newer than the landed payload it composes from.
-
-*The defect.* `_write_status` (`runregistrykit/__init__.py:324`) composes a re-entered write from
-the newest landed payload, then the fields of **every** earlier write still in flight, then its
-own (`:337-345`), as 02's §2.3 step 2 says. A landed write that was itself made inside an earlier
-in-flight write already carries that write's fields, and may have set the same keys anew. A third
-write then re-applies the oldest in-flight write's fields over it, so a field goes back to an older
-value.
-
-*Measured* at `2bf9c72`, 2026-10-17, in one process with `json.dump` patched to make two handler
-writes from inside the first write (scratch, not committed):
-- a `heartbeat(units_done=7, stage="A")` whose write makes a handler's `heartbeat(stage="B")`
-  (which lands) and then a handler's `finish("killed", exit_code=143)` ends `killed`, 143, `stage`
-  `A`;
-- a `finish("done", exit_code=0)` whose write makes a handler's `finish("killed", exit_code=143)`
-  and then a handler's `heartbeat` ends **`done`, 0**: the handler's terminal state is replaced by
-  the interrupted write's;
-- the same `finish("done")` with one handler write, `finish("killed")`, ends `killed`, 143.
-
-*Impact.* Small. It needs two handler writes inside one write of the same `status.json`, and a
-state is lost only when the interrupted write is itself a `finish`, at the very end of a run. No
-state goes back to `running` by it, and the file always parses. But 02's §1 asks that the file hold
-the handler's state however the handler ends, and a handler that writes twice (a `finish`, then a
-print that a driver's stdout tee turns into a heartbeat) is the case where it does not.
-
-*Measured at writing 02b (2026-10-17, at `91e8e9c`).* By a sweep that runs a handler at every
-instruction the writer executes (02b's "At writing"), with the interrupted write a `finish("done")`
-and the handler's `finish("killed")` followed by a heartbeat: 178 of 202 instructions end other than
-`killed` with the handler returning, 157 with it raising. A candidate that applies only the
-in-flight writes numbered above the landed base's number leaves none raising, and with the handler
-returning only the points before the interrupted write takes its number, where the handler's write
-is the earlier and `done` is right. Both measured cases above then end `stage` `B` and `killed`.
-
-*Next step.* Apply an in-flight write's fields only to the keys that no later landed write has set,
-which needs the bookkeeping to remember which write set which key (the agent's suggestion); or
-compose a re-entered write from the newest landed payload and its own fields alone, once a write
-has landed since the oldest in-flight one began. Either is a change to 02's step 2, so it is the
-user's to take, with a test of both measured cases.
-
-### `[02-the-landed-record-is-unpinned-and-can-move-backwards]`
-
-**Opened:** 2026-10-17 by the orchestrator's review of 02, from its mutation (o2); measured.
-**Owner:** none.
-
-**Assigned (2026-10-17):** to prompt 02b of this campaign, with
-`[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`. The user asked for a test; the
-measurement below shows the window is reachable as well, so 02b also makes the record one that is
-never lowered.
-
-*The defect.* `_land_status` records the write that landed as `book["landed"]` and its payload
-(`runregistrykit/__init__.py:321`), and returns early after a put-back (`:318-320`), so the record
-never moves to a lower number. Two things leave that unguarded:
-- **no test pins it.** With the early `return` removed (the review's (o2)), the record moves back
-  to the overtaken write after every put-back, and all 44 tests of `test_status_writes` and
-  `test_run_registry` pass;
-- **the shipped code has a one-statement window.** A handler that lands a later write between the
-  check at `:318` and the record at `:321` is overwritten in the book by the earlier write's number
-  and payload. Read, not measured.
-
-*Measured* under (o2), at `2bf9c72`'s tree with the one line removed, 2026-10-17 (scratch, not
-committed): a heartbeat whose replace is preceded by a returning handler's `finish("killed")` ends
-`killed`, by the put-back. A later heartbeat, re-entered by a handler's `heartbeat`, then composes
-from the book's stale `running` payload and lands **`running`** over `killed`. At `2bf9c72` the same
-sequence ends `killed`.
-
-*Impact.* At `2bf9c72`, none measured; the window is one statement, and needs a handler to write
-twice to matter (once in the window, once later re-entered). Its weight is that a later edit could
-drop the `return` and lose a terminal state to `running` with every test passing.
-
-*Measured at writing 02b (2026-10-17, at `91e8e9c`): wider than one statement, and reachable by a
-real signal.* The sweep of 02b's "At writing" runs a handler, `finish("killed")` then returning, at
-each of the 202 instructions an interrupted heartbeat executes in the writer, then makes a later
-heartbeat re-entered by a handler's heartbeat. At 15 instructions the file says `killed` after the
-first heartbeat and `running` after the later one. They run from line 318's check to line 321's
-call of `copy.deepcopy`, before the store; `copy.deepcopy` is pure Python, and a signal's handler
-runs at the instruction boundaries of Python code, so a real signal can land a write there. With
-the handler raising, none. A candidate that keeps landed payloads by number, records with one store
-after the deep copy, and prunes over a snapshot of the keys leaves none in any mode.
-
-*Next step.* A test of the measured sequence: a put-back, then a later re-entered write, which must
-keep the terminal state. And make the record monotonic, for example by recording only a number
-higher than the one recorded, or by keeping landed payloads per number and reading the highest.
+*Package lines (02b, this commit).* `begin` `runregistrykit/__init__.py:924` → `:965`; its
+tombstone check `:1015-1027` → `:1056-1068`, the refusal `:1021` → `:1062`; `this_host()` `:1029` →
+`:1070`. `stores.py` is not touched by 02b, so its lines above stand.
 
 ---
 
@@ -924,3 +847,145 @@ loses those fields, never the terminal state; writes from two processes at once 
 and a process that dies between creating its temporary file and replacing it (`SIGKILL`, or a
 handler that restores `SIG_DFL` and kills its own process) leaves one `status.json.<unique>.tmp`,
 which nothing reads and nothing removes.
+
+### `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`
+
+**Opened:** 2026-10-17 by the orchestrator's review of 02, from the note's correction 6 and the
+agent's log (observation 1); measured. **Owner:** none.
+
+**Assigned (2026-10-17):** to prompt 02b of this campaign. The user asked for it to be fixed "at the
+earliest sensible opportunity"; 02b follows 02 at once, ahead of 03, which touches no part of the
+writer. Under L5 as amended the same day (README §6.2): a re-entered write re-applies only the
+in-flight writes newer than the landed payload it composes from.
+
+*The defect.* `_write_status` (`runregistrykit/__init__.py:324`) composes a re-entered write from
+the newest landed payload, then the fields of **every** earlier write still in flight, then its
+own (`:337-345`), as 02's §2.3 step 2 says. A landed write that was itself made inside an earlier
+in-flight write already carries that write's fields, and may have set the same keys anew. A third
+write then re-applies the oldest in-flight write's fields over it, so a field goes back to an older
+value.
+
+*Measured* at `2bf9c72`, 2026-10-17, in one process with `json.dump` patched to make two handler
+writes from inside the first write (scratch, not committed):
+- a `heartbeat(units_done=7, stage="A")` whose write makes a handler's `heartbeat(stage="B")`
+  (which lands) and then a handler's `finish("killed", exit_code=143)` ends `killed`, 143, `stage`
+  `A`;
+- a `finish("done", exit_code=0)` whose write makes a handler's `finish("killed", exit_code=143)`
+  and then a handler's `heartbeat` ends **`done`, 0**: the handler's terminal state is replaced by
+  the interrupted write's;
+- the same `finish("done")` with one handler write, `finish("killed")`, ends `killed`, 143.
+
+*Impact.* Small. It needs two handler writes inside one write of the same `status.json`, and a
+state is lost only when the interrupted write is itself a `finish`, at the very end of a run. No
+state goes back to `running` by it, and the file always parses. But 02's §1 asks that the file hold
+the handler's state however the handler ends, and a handler that writes twice (a `finish`, then a
+print that a driver's stdout tee turns into a heartbeat) is the case where it does not.
+
+*Measured at writing 02b (2026-10-17, at `91e8e9c`).* By a sweep that runs a handler at every
+instruction the writer executes (02b's "At writing"), with the interrupted write a `finish("done")`
+and the handler's `finish("killed")` followed by a heartbeat: 178 of 202 instructions end other than
+`killed` with the handler returning, 157 with it raising. A candidate that applies only the
+in-flight writes numbered above the landed base's number leaves none raising, and with the handler
+returning only the points before the interrupted write takes its number, where the handler's write
+is the earlier and `done` is right. Both measured cases above then end `stage` `B` and `killed`.
+
+*Next step.* Apply an in-flight write's fields only to the keys that no later landed write has set,
+which needs the bookkeeping to remember which write set which key (the agent's suggestion); or
+compose a re-entered write from the newest landed payload and its own fields alone, once a write
+has landed since the oldest in-flight one began. Either is a change to 02's step 2, so it is the
+user's to take, with a test of both measured cases.
+
+**Resolved (2026-10-17, by 02b, this commit).** Under L5 as amended (README §6.2), as 02b's §2.2
+states it. In `_write_status` (`runregistrykit/__init__.py:352`), a write that composes from the
+newest landed payload, numbered `L`, applies only the earlier in-flight writes numbered above `L`
+(`:372`). Those at or below `L` were in flight throughout it, so its payload holds their fields
+already, and any key it set since is newer. A write whose base is the file applies every earlier
+in-flight write, as in 02, and a discarded heartbeat's fields are still kept. The merge needs
+sequence numbers to be unique, so a write now takes its number with one call,
+`next(book["numbers"])` (`:362`); 02's read-then-increment let a handler take the same number,
+which under the new merge loses a later write's fields (02b's log, deviation 2). Pinned by:
+- `test_status_writes.TestTwoHandlerWritesInsideOne`: both measured cases, which end `killed`, 143,
+  `units_done` 7 and `stage` **B**, and `killed`, 143; and the one-write `finish`, `killed`, 143;
+- `test_status_writes.TestAHandlerAtEveryInstruction.test_an_interrupted_finish`: a handler at each
+  of the 323 instructions an interrupted `finish("done")` executes in the writer, in four modes.
+  Every point ends `killed`, 143, except, with the handler returning, the 24 at or before the
+  `CALL` that takes the interrupted write's number, where the handler's write is the earlier and
+  `done` is right. At `2bf9c72` the same sweep finds 167 of 212 wrong in both two-write modes.
+  Mutation (m1), the merge applying every in-flight write again, fails it (281 of 323) and both
+  measured two-write cases.
+
+The log is [`logs/02b-the-writers-bookkeeping.md`](logs/02b-the-writers-bookkeeping.md).
+
+### `[02-the-landed-record-is-unpinned-and-can-move-backwards]`
+
+**Opened:** 2026-10-17 by the orchestrator's review of 02, from its mutation (o2); measured.
+**Owner:** none.
+
+**Assigned (2026-10-17):** to prompt 02b of this campaign, with
+`[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`. The user asked for a test; the
+measurement below shows the window is reachable as well, so 02b also makes the record one that is
+never lowered.
+
+*The defect.* `_land_status` records the write that landed as `book["landed"]` and its payload
+(`runregistrykit/__init__.py:321`), and returns early after a put-back (`:318-320`), so the record
+never moves to a lower number. Two things leave that unguarded:
+- **no test pins it.** With the early `return` removed (the review's (o2)), the record moves back
+  to the overtaken write after every put-back, and all 44 tests of `test_status_writes` and
+  `test_run_registry` pass;
+- **the shipped code has a one-statement window.** A handler that lands a later write between the
+  check at `:318` and the record at `:321` is overwritten in the book by the earlier write's number
+  and payload. Read, not measured.
+
+*Measured* under (o2), at `2bf9c72`'s tree with the one line removed, 2026-10-17 (scratch, not
+committed): a heartbeat whose replace is preceded by a returning handler's `finish("killed")` ends
+`killed`, by the put-back. A later heartbeat, re-entered by a handler's `heartbeat`, then composes
+from the book's stale `running` payload and lands **`running`** over `killed`. At `2bf9c72` the same
+sequence ends `killed`.
+
+*Impact.* At `2bf9c72`, none measured; the window is one statement, and needs a handler to write
+twice to matter (once in the window, once later re-entered). Its weight is that a later edit could
+drop the `return` and lose a terminal state to `running` with every test passing.
+
+*Measured at writing 02b (2026-10-17, at `91e8e9c`): wider than one statement, and reachable by a
+real signal.* The sweep of 02b's "At writing" runs a handler, `finish("killed")` then returning, at
+each of the 202 instructions an interrupted heartbeat executes in the writer, then makes a later
+heartbeat re-entered by a handler's heartbeat. At 15 instructions the file says `killed` after the
+first heartbeat and `running` after the later one. They run from line 318's check to line 321's
+call of `copy.deepcopy`, before the store; `copy.deepcopy` is pure Python, and a signal's handler
+runs at the instruction boundaries of Python code, so a real signal can land a write there. With
+the handler raising, none. A candidate that keeps landed payloads by number, records with one store
+after the deep copy, and prunes over a snapshot of the keys leaves none in any mode.
+
+*Next step.* A test of the measured sequence: a put-back, then a later re-entered write, which must
+keep the terminal state. And make the record monotonic, for example by recording only a number
+higher than the one recorded, or by keeping landed payloads per number and reading the highest.
+
+**Resolved (2026-10-17, by 02b, this commit).** As 02b's §2.3 states it, in the prompt's own shape.
+The record of what landed is a dict per book, sequence number → payload, and the newest is its
+highest key, read through `_newest_landed` (`runregistrykit/__init__.py:294`). After its replace,
+`_land_status` (`:308`) takes its deep copy (`:340`), then checks for a later landed write and
+puts it back (`:341-344`, the early `return` kept), then records itself with one store (`:346`),
+then prunes the lower keys over a snapshot, `list(landed)` (`:347-349`). Every store adds a key,
+and only keys below the one just stored are removed, so a handler that lands a later write at any
+instruction leaves its higher key, and the record is never lowered. Pinned by:
+- `test_status_writes.TestAPutBackThenALaterReenteredWrite.test_the_terminal_state_is_kept_throughout`:
+  the (o2) sequence, a put-back (three replaces) and then a later re-entered heartbeat, `killed`,
+  143, `units_done` 8 throughout;
+- `test_status_writes.TestAHandlerAtEveryInstruction.test_an_interrupted_heartbeat`: a handler at
+  each of the 323 instructions an interrupted heartbeat executes, in four modes, then a later
+  heartbeat re-entered by a handler's heartbeat: `killed`, 143 and its `units_done` at every point.
+  At `2bf9c72` it finds the 15 measured above in both returning modes. Mutations (m2), the record a
+  single number again (24 of 244), (m3′), the put-back's call removed (17 of 323, with five other
+  tests), (m4), the prune over the live dict (21 of 334, a `RuntimeError`), and (m5), the prune
+  removing higher numbers (22 of 323), each fail it.
+
+**The early `return` after a put-back is kept, and is no longer what keeps the record.** Under the
+by-number record, removing it (02b's (m3)) only leaves a dead lower entry beside the put-back's,
+which the next prune removes: all 78 tests of `test_status_writes`, `test_run_registry` and
+`test_host` pass, both sweeps with 0 wrong in all eight modes. The user's decision of 2026-10-17
+took this as a mutant that changes nothing, with (m3′) in its place (02b's log, deviation 1).
+
+The sweeps run in a child process, never signalled: a handler raising at an instruction the
+interpreter's exception table leaves uncovered left the writer's lock held in the test process
+(02b's log, deviation 3 and observation 1, read and not measured for a real signal; no issue
+opened). The log is [`logs/02b-the-writers-bookkeeping.md`](logs/02b-the-writers-bookkeeping.md).

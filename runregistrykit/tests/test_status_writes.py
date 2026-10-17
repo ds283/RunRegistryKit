@@ -26,13 +26,17 @@ signals only itself; each child runs under a timeout, so that a handler waiting 
 write it interrupted fails the test instead of hanging it.
 """
 
+import itertools
 import json
 import os
 import re
+import shutil
 import stat
 import subprocess
 import sys
 import threading
+import time
+import types
 import unittest
 from unittest import mock
 
@@ -482,6 +486,479 @@ class TestAnOldRecord(StatusTestCase):
         self.assertEqual(set(status), set(old) | {"stage"})
         self.assertNotIn("host", status)
         self.assertEqual(runregistrykit.liveness(status, 900.0), "finished")
+
+
+# =================================================================================================
+# the writer's bookkeeping: which in-flight writes a re-entered write applies, and the record of
+# what landed, which is never lowered. A handler is still a call made from inside the write; the
+# sweep below makes it at every instruction the writer executes, by `sys.monitoring`
+
+
+def made_inside(run, write, handler) -> str:
+    """Make ``write``, a write of ``run``'s status, with ``handler`` called once from inside its
+    `json.dump`, half the payload written; say how it ended."""
+    interruption = Interruption(run, HALF_WRITTEN, handler)
+    with mock.patch("json.dump", new=interruption.dump):
+        try:
+            write()
+        except SystemExit as exc:
+            outcome = f"raised SystemExit({exc.code})"
+        except BaseException as exc:
+            outcome = f"raised {type(exc).__name__}: {exc}"
+        else:
+            outcome = "returned"
+    if not interruption.fired:
+        return "the handler never ran"
+    return outcome
+
+
+def a_later_reentered_heartbeat(run, units) -> str:
+    """A `heartbeat(units_done=units)` whose `json.dump` makes a handler's `heartbeat()`: the
+    handler's write composes from the record of what landed, so a lowered record shows here.
+    """
+    return made_inside(run, lambda: run.heartbeat(units_done=units), run.heartbeat)
+
+
+class TestTwoHandlerWritesInsideOne(StatusTestCase):
+    """Two handler writes inside one write, the cases 02's review measured: an older in-flight
+    write's fields are not re-applied over a newer landed write's. And the same `finish` with one
+    handler write."""
+
+    def test_a_heartbeat_then_a_finish_inside_a_heartbeat(self):
+        run = self.begin("two-inside-a-heartbeat")
+        begun = run.status()
+
+        def handler():
+            run.heartbeat(stage="B")
+            run.finish("killed", exit_code=143)
+
+        outcome = made_inside(
+            run, lambda: run.heartbeat(units_done=UNITS, stage="A"), handler
+        )
+        self.assertEqual(outcome, "returned")
+        self.assertKilledWithTheHeartbeatsFields(run, begun, stage="B")
+
+    def finish_inside_a_finish(self, handler_writes) -> None:
+        run = self.begin("inside-a-finish")
+        run.heartbeat(units_done=UNITS, stage=STAGE)
+        begun = run.status()
+
+        def handler():
+            run.finish("killed", exit_code=143)
+            if handler_writes == 2:
+                run.heartbeat()
+
+        outcome = made_inside(run, lambda: run.finish("done", exit_code=0), handler)
+        self.assertEqual(outcome, "returned")
+        self.assertKilledWithTheHeartbeatsFields(run, begun)
+
+    def test_a_finish_then_a_heartbeat_inside_a_finish(self):
+        self.finish_inside_a_finish(2)
+
+    def test_a_finish_inside_a_finish(self):
+        self.finish_inside_a_finish(1)
+
+
+class TestAPutBackThenALaterReenteredWrite(StatusTestCase):
+    """02's review, (o2): after a put-back, the record of what landed is the put-back's, so a
+    later write that a handler re-enters composes from the terminal state."""
+
+    def test_the_terminal_state_is_kept_throughout(self):
+        run = self.begin("put-back-then-later")
+        begun = run.status()
+        interruption = Interruption(
+            run, BEFORE_REPLACE, a_handler(run.finish, "returns")
+        )
+        self.assertEqual(interruption.heartbeat(), "returned")
+        self.assertTrue(interruption.fired, "the handler never ran")
+        # the heartbeat's replace clobbered `killed`, and it put the handler's payload back
+        self.assertEqual(len(interruption.replaced), 3, interruption.replaced)
+        self.assertKilledWithTheHeartbeatsFields(run, begun)
+
+        self.assertEqual(a_later_reentered_heartbeat(run, UNITS + 1), "returned")
+        with open(run.status_path) as handle:
+            status = json.load(handle)
+        self.assertEqual(
+            (status["state"], status["exit_code"], status["units_done"]),
+            ("killed", 143, UNITS + 1),
+            "a later re-entered heartbeat put back a state the record should have left behind",
+        )
+        self.assertEqual(self.leftovers(run), [])
+
+
+# the line that opens the writer's section of `runregistrykit/__init__.py`, and the rule that
+# opens the next section
+WRITER_SECTION = "# the writer of `status.json`"
+SECTION_RULE = "# ====="
+
+# the most instructions one uninterrupted write may execute in the writer, and the most seconds
+# one sweep of one mode may take: bounds, not measurements (the log gives those)
+MOST_INSTRUCTIONS = 2000
+SWEEP_SECONDS = 120.0
+
+# the handler's four modes: what it writes, then whether it raises `SystemExit(143)`
+MODES = (
+    ("finish", "returns"),
+    ("finish", "raises"),
+    ("finish, then heartbeat", "returns"),
+    ("finish, then heartbeat", "raises"),
+)
+
+
+def the_writers_code() -> list:
+    """Every code object of the writer's section of `runregistrykit/__init__.py`: each function
+    the section defines, and every code object nested in one (a generator expression is one),
+    found through `co_consts`, recursively."""
+    with open(runregistrykit.__file__) as handle:
+        lines = handle.read().splitlines()
+    start = next(
+        number
+        for number, line in enumerate(lines, 1)
+        if line.startswith(WRITER_SECTION)
+    )
+    end = next(
+        number
+        for number, line in enumerate(lines, 1)
+        if number > start and line.startswith(SECTION_RULE)
+    )
+    functions = sorted(
+        (
+            value
+            for value in vars(runregistrykit).values()
+            if isinstance(value, types.FunctionType)
+            and value.__module__ == runregistrykit.__name__
+            and start < value.__code__.co_firstlineno < end
+        ),
+        key=lambda function: function.__code__.co_firstlineno,
+    )
+    codes = []
+
+    def add(code):
+        codes.append(code)
+        for constant in code.co_consts:
+            if isinstance(constant, types.CodeType):
+                add(constant)
+
+    for function in functions:
+        add(function.__code__)
+    return codes
+
+
+def line_of(code, offset):
+    for begin, end, line in code.co_lines():
+        if begin <= offset < end:
+            return line
+    return None
+
+
+class Attempt:
+    """One interrupted write: ``handler`` is called at the ``at``-th instruction the writer
+    executes (never, if ``at`` is 0), once. Instructions executed while it runs are not counted.
+    """
+
+    def __init__(self, at, handler=None):
+        self.at, self.handler = at, handler
+        self.seen = 0
+        self.busy = self.fired = False
+        self.where = None
+        self.per_code = {}
+
+
+class Instructions:
+    """`sys.monitoring` `INSTRUCTION` events on ``codes``, and on nothing else, under a tool id
+    that was free; the events cleared and the id freed however the block ends."""
+
+    def __init__(self, codes):
+        self.codes = codes
+        self.attempt = None
+        self.tool = None
+
+    def __enter__(self):
+        monitoring = sys.monitoring
+        for tool in range(6):
+            try:
+                monitoring.use_tool_id(tool, "runregistrykit's status-writer sweep")
+            except ValueError:
+                continue
+            self.tool = tool
+            break
+        else:
+            raise AssertionError("no sys.monitoring tool id is free")
+        try:
+            monitoring.register_callback(
+                self.tool, monitoring.events.INSTRUCTION, self.on_instruction
+            )
+            for code in self.codes:
+                monitoring.set_local_events(
+                    self.tool, code, monitoring.events.INSTRUCTION
+                )
+        except BaseException:
+            self.close()
+            raise
+        return self
+
+    def __exit__(self, *exc_info):
+        self.close()
+
+    def close(self):
+        monitoring = sys.monitoring
+        try:
+            for code in self.codes:
+                monitoring.set_local_events(self.tool, code, 0)
+            monitoring.register_callback(self.tool, monitoring.events.INSTRUCTION, None)
+        finally:
+            monitoring.free_tool_id(self.tool)
+
+    def on_instruction(self, code, offset):
+        # never `sys.monitoring.DISABLE`, which would silence this instruction for every later
+        # attempt. In a raising mode the handler's exception propagates from the instruction
+        attempt = self.attempt
+        if attempt is None or attempt.busy or attempt.fired:
+            return None
+        attempt.seen += 1
+        attempt.per_code[code] = attempt.per_code.get(code, 0) + 1
+        if attempt.seen == attempt.at:
+            attempt.fired = True
+            attempt.where = (code, offset)
+            attempt.busy = True
+            try:
+                attempt.handler()
+            finally:
+                attempt.busy = False
+        return None
+
+    def run(self, attempt, write) -> str:
+        """Make ``write`` under ``attempt``; say how it ended."""
+        self.attempt = attempt
+        try:
+            write()
+        except SystemExit as exc:
+            return f"raised SystemExit({exc.code})"
+        except BaseException as exc:
+            return f"raised {type(exc).__name__}: {exc}"
+        finally:
+            self.attempt = None
+        return "returned"
+
+
+def the_handler(run, writes, ending, seen=None):
+    """The sweep's handler: `finish("killed", exit_code=143)`, alone or followed by a
+    `heartbeat()`, then returning or raising `SystemExit(143)`. With a list ``seen``, it first
+    appends whether the interrupted `finish` was in flight or had landed."""
+
+    def handler():
+        if seen is not None:
+            seen.append(seen_by_the_handler(run))
+        run.finish("killed", exit_code=143)
+        if writes == "finish, then heartbeat":
+            run.heartbeat()
+        if ending == "raises":
+            raise SystemExit(143)
+
+    return handler
+
+
+def seen_by_the_handler(run) -> bool:
+    """Whether the interrupted `finish("done")` had, when the handler ran, registered its fields
+    as in flight in the writer's bookkeeping, or landed. The bookkeeping is read, never changed.
+    """
+    book = runregistrykit._STATUS_WRITES.get(os.path.realpath(run.status_path))
+    if book is not None and any(
+        fields.get("state") == "done" for fields in list(book["in_flight"].values())
+    ):
+        return True
+    return (runregistrykit.read_json(run.status_path) or {}).get("state") == "done"
+
+
+def ending_of(run):
+    """The file's state and exit code, or what is wrong with it."""
+    try:
+        with open(run.status_path) as handle:
+            status = json.load(handle)
+    except (OSError, ValueError) as exc:
+        return f"status.json does not parse: {type(exc).__name__}"
+    left = sorted(n for n in os.listdir(run.path) if n.endswith(".tmp"))
+    if left:
+        return f"left behind: {left}"
+    return [status.get("state"), status.get("exit_code")]
+
+
+def judge_a_heartbeat(run, ending, seen) -> list:
+    """After an interrupted heartbeat: `killed` and 143, nothing left; and still so after a later
+    heartbeat that a handler re-enters, which composes from the record of what landed, with the
+    later heartbeat's `units_done` kept.
+    """
+    found = []
+    ended = ending_of(run)
+    if ended != ["killed", 143]:
+        found.append(f"after the heartbeat: {ended}")
+    later = a_later_reentered_heartbeat(run, UNITS + 1)
+    if later != "returned":
+        found.append(f"the later heartbeat {later}")
+    ended = ending_of(run)
+    if ended != ["killed", 143]:
+        found.append(f"after a later re-entered heartbeat: {ended}")
+    elif run.status().get("units_done") != UNITS + 1:
+        found.append("a later re-entered heartbeat lost its units_done")
+    return found
+
+
+def judge_a_finish(run, ending, seen) -> list:
+    """After an interrupted `finish("done")`: `killed` and 143, nothing left; except that where
+    the handler returns and its write is the earlier one, because the interrupted write had
+    neither registered its fields as in flight nor landed, `done` and 0 landing last is right.
+    """
+    ended = ending_of(run)
+    if ended == ["killed", 143]:
+        return []
+    if ending == "returns" and not seen and ended == ["done", 0]:
+        return ["accepted: the handler's write is the earlier"]
+    return [f"after the finish: {ended}"]
+
+
+# what each sweep interrupts, and how its ending is judged
+SWEEPS = {
+    "heartbeat": (
+        lambda run: lambda: run.heartbeat(units_done=UNITS),
+        judge_a_heartbeat,
+    ),
+    "finish": (lambda run: lambda: run.finish("done", exit_code=0), judge_a_finish),
+}
+
+
+def sweep_in_this_process(which, root, client) -> dict:
+    """The sweep ``which``, in this process: a run begun under ``root``; then for each of the
+    handler's four modes, the instructions of one uninterrupted write counted, and the write
+    interrupted at each in turn, each attempt on a fresh run (a copy of the begun run's directory,
+    at a new real path and so with a book of its own, given one plain write first, as `begin`
+    gives a run). Says, per mode, what went wrong at which instruction."""
+    write_of, judge = SWEEPS[which]
+    template = runregistrykit.begin(
+        campaign="example",
+        prompt="01",
+        slug=f"every-instruction-of-a-{which}",
+        purpose="a sweep of the status writer, in a temporary directory",
+        root=root,
+        client_root=client,
+        argv=["sweep", which],
+    )
+    copies = itertools.count()
+
+    def a_fresh_run():
+        path = os.path.join(root, f"{template.id}-{next(copies)}")
+        shutil.copytree(template.path, path)
+        run = runregistrykit.Run(path)
+        run.heartbeat()
+        return run
+
+    codes = the_writers_code()
+    report = {
+        "codes": [f"{code.co_name}:{code.co_firstlineno}" for code in codes],
+        "modes": [],
+    }
+    with Instructions(codes) as instructions:
+        for writes, ending in MODES:
+            mode = {"handler": writes, "ending": ending, "wrong": [], "accepted": 0}
+            report["modes"].append(mode)
+            counting = Attempt(0)
+            run = a_fresh_run()
+            mode["uninterrupted"] = instructions.run(counting, write_of(run))
+            mode["total"] = total = counting.seen
+            mode["per_code"] = {
+                f"{code.co_name}:{code.co_firstlineno}": count
+                for code, count in counting.per_code.items()
+            }
+            shutil.rmtree(run.path)
+            if not 0 < total <= MOST_INSTRUCTIONS:
+                continue
+            expected = "raised SystemExit(143)" if ending == "raises" else "returned"
+            started = time.monotonic()
+            for at in range(1, total + 1):
+                run = a_fresh_run()
+                seen = [] if which == "finish" else None
+                attempt = Attempt(at, the_handler(run, writes, ending, seen))
+                outcome = instructions.run(attempt, write_of(run))
+                if not attempt.fired:
+                    found = ["the handler never ran"]
+                    where = ""
+                else:
+                    code, offset = attempt.where
+                    where = f" ({code.co_name}, line {line_of(code, offset)}, offset {offset})"
+                    found = [] if outcome == expected else [outcome]
+                    found.extend(judge(run, ending, bool(seen and seen[0])))
+                    if found and found[0].startswith("accepted:"):
+                        mode["accepted"] += 1
+                        found = []
+                if found:
+                    mode["wrong"].append(f"{at}{where}: {'; '.join(found)}")
+                shutil.rmtree(run.path)
+                if time.monotonic() - started > SWEEP_SECONDS:
+                    mode["wrong"].append(f"the sweep passed {SWEEP_SECONDS} s at {at}")
+                    break
+            mode["seconds"] = round(time.monotonic() - started, 3)
+    return report
+
+
+# a child that runs one sweep and prints its report. The sweep runs in a child of its own so that
+# what a raising handler leaves in the process at an instruction where the interpreter itself
+# never raises (the writer's lock held, an in-flight entry kept: the log of 02b says which) ends
+# with the child, and reaches no other test
+SWEEPER = """\
+import json, sys
+
+sys.path.insert(0, {repo!r})
+from runregistrykit.tests import test_status_writes
+
+which, root, client = sys.argv[1:4]
+print(json.dumps(test_status_writes.sweep_in_this_process(which, root, client)))
+"""
+
+# a sweeping child's timeout: its four sweeps' bounds, and a margin for starting
+SWEEPER_TIMEOUT = 4 * SWEEP_SECONDS + 60
+
+
+class TestAHandlerAtEveryInstruction(StatusTestCase):
+    """A handler run at every instruction the writer executes, one instruction per attempt
+    (`sweep_in_this_process`), in a child process the test starts and does not signal. The
+    handler records `killed`, alone or followed by a heartbeat, then returns or raises
+    `SystemExit(143)`."""
+
+    def sweep(self, which) -> dict:
+        script = os.path.join(temporary_directory(self), "sweeper.py")
+        with open(script, "w") as handle:
+            handle.write(SWEEPER.format(repo=PACKAGE_PARENT))
+        try:
+            done = subprocess.run(
+                [sys.executable, script, which, self.root, self.client],
+                cwd=self.client,
+                capture_output=True,
+                text=True,
+                timeout=SWEEPER_TIMEOUT,
+            )
+        except subprocess.TimeoutExpired:
+            self.fail(f"the {which} sweep did not end in {SWEEPER_TIMEOUT} s")
+        self.assertEqual(done.returncode, 0, done.stderr[-2000:])
+        report = json.loads(done.stdout.splitlines()[-1])
+        names = {code.split(":")[0] for code in report["codes"]}
+        self.assertLessEqual({"_write_status", "_land_status"}, names)
+        self.assertEqual(len(report["modes"]), len(MODES))
+        for mode in report["modes"]:
+            with self.subTest(handler=mode["handler"], ending=mode["ending"]):
+                self.assertEqual(mode["uninterrupted"], "returned")
+                self.assertGreater(mode["total"], 0, "no instruction was seen")
+                self.assertLessEqual(mode["total"], MOST_INSTRUCTIONS)
+                self.assertEqual(
+                    mode["wrong"],
+                    [],
+                    f"{len(mode['wrong'])} of {mode['total']} instructions went wrong",
+                )
+        return report
+
+    def test_an_interrupted_heartbeat(self):
+        self.sweep("heartbeat")
+
+    def test_an_interrupted_finish(self):
+        self.sweep("finish")
 
 
 if __name__ == "__main__":

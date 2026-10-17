@@ -265,8 +265,11 @@ def write_json_atomic(path, payload) -> None:
 _STATUS_LOCK = threading.RLock()
 
 # per `status.json`, keyed by its real path, so that every `Run` object for one run directory in
-# this process is one writer: the next sequence number, the fields of each write still in flight,
-# and the highest sequence number landed with its payload
+# this process is one writer: its sequence numbers, the fields of each write still in flight,
+# and what has landed, sequence number → payload, of which the highest number is the newest.
+# A write records itself with one store under its own number and then prunes the lower numbers,
+# so that a handler landing a later write at any instruction of it adds a key that no lower one
+# hides: the newest number held never goes down
 _STATUS_WRITES = {}
 
 # a per-process counter, one of the three parts of a temporary name
@@ -288,6 +291,20 @@ def _remove_quietly(name) -> None:
         pass
 
 
+def _newest_landed(book) -> tuple:
+    """The number and payload of the newest write landed for ``book``, or `(-1, None)` if none
+    has. A handler's write that prunes the number read here before its payload is read makes it
+    read again, so a number is never returned without its payload."""
+    landed = book["landed"]
+    while True:
+        number = max(landed, default=-1)
+        if number < 0:
+            return number, None
+        payload = landed.get(number)
+        if payload is not None:
+            return number, payload
+
+
 def _land_status(path, book, number, payload) -> None:
     """Write ``payload``, the payload of write ``number``, to the `status.json` at ``path``,
     through a temporary file of its own, unless a later write has landed first.
@@ -299,6 +316,11 @@ def _land_status(path, book, number, payload) -> None:
     lands between the check and the replace (a handler can run at the bytecode boundary before
     the `os.replace` call) is put back afterwards, by a write of its payload under its own number,
     which is itself checked in the same way.
+
+    Otherwise the write records itself: its deep copy is taken first, then the check for a later
+    write, then one store under its own number, then the lower numbers are pruned, over a
+    snapshot of the keys. A handler that interrupts any of these and lands a later write leaves
+    its own, higher, number in the record, which neither the store nor the prune removes.
     """
     name = _status_temporary_name(path)
     try:
@@ -308,17 +330,23 @@ def _land_status(path, book, number, payload) -> None:
             handle.write("\n")
             handle.flush()
             os.fsync(handle.fileno())
-        if book["landed"] > number:
+        if _newest_landed(book)[0] > number:
             os.remove(name)
             return
         os.replace(name, path)
     except BaseException:
         _remove_quietly(name)
         raise
-    if book["landed"] > number:
-        _land_status(path, book, book["landed"], book["payload"])
+    recorded = copy.deepcopy(payload)
+    newest, newest_payload = _newest_landed(book)
+    if newest > number:
+        _land_status(path, book, newest, newest_payload)
         return
-    book["landed"], book["payload"] = number, copy.deepcopy(payload)
+    landed = book["landed"]
+    landed[number] = recorded
+    for n in list(landed):
+        if n < number:
+            landed.pop(n, None)
 
 
 def _write_status(path, fields) -> dict:
@@ -327,16 +355,21 @@ def _write_status(path, fields) -> dict:
     with _STATUS_LOCK:
         book = _STATUS_WRITES.setdefault(
             os.path.realpath(path),
-            {"next": 0, "in_flight": {}, "landed": -1, "payload": None},
+            {"numbers": itertools.count(), "in_flight": {}, "landed": {}},
         )
-        number = book["next"]
-        book["next"] = number + 1
+        # one call, so that a handler cannot take the same number: the merge below skips an
+        # in-flight write numbered at or below the landed payload's, which a shared number breaks
+        number = next(book["numbers"])
         try:
             book["in_flight"][number] = dict(fields)
-            earlier = sorted(n for n in book["in_flight"] if n < number)
-            if earlier and book["payload"] is not None:
-                # a handler has re-entered a write: the file may hold what that write read
-                status = copy.deepcopy(book["payload"])
+            earlier = [n for n in sorted(book["in_flight"]) if n < number]
+            landed, payload = _newest_landed(book)
+            if earlier and payload is not None:
+                # a handler has re-entered a write: the file may hold what that write read. The
+                # newest landed payload already holds the fields of every in-flight write older
+                # than it, and may have set the same keys since, so only the newer are applied
+                status = copy.deepcopy(payload)
+                earlier = [n for n in earlier if n > landed]
             else:
                 status = read_json(path) or {}
             for n in earlier:
@@ -693,21 +726,29 @@ class Run:
         payload composed. Every write of `status.json` comes through here.
 
         A handler that interrupts the process, a driver's `finish` made on an interrupt, may write
-        the status while a write is in progress on the same thread, and may then raise, return or end the process. So the
-        status is written through a temporary name of its own per write, `status.json.<unique>.tmp`
-        beside it, created with the mode `open(path, "w")` gives, and never through
-        `write_json_atomic`'s shared `<path>.tmp`. And the writes to one `status.json` in this
-        process, through any `Run` object for it, are ordered by a sequence number:
+        the status while a write is in progress on the same thread, and may then raise, return or
+        end the process. So the status is written through a temporary name of its own per write,
+        `status.json.<unique>.tmp` beside it, created with the mode `open(path, "w")` gives, and
+        never through `write_json_atomic`'s shared `<path>.tmp`. And the writes to one
+        `status.json` in this process, through any `Run` object for it, are ordered by a sequence
+        number:
 
         - a write takes the next number, and its fields are held as in flight until it ends;
         - it composes its payload from the file, then the fields of every earlier write still in
           flight, in order, then its own. When an earlier write is in flight, a handler has
           re-entered one, and the base is instead the newest payload this process has landed, or
-          the file if it has landed none: the file may then hold what the interrupted write read;
+          the file if it has landed none: the file may then hold what the interrupted write read.
+          From a landed payload, only the in-flight writes numbered above it are applied: those
+          below it were in flight throughout it, so it holds their fields already, and any key it
+          set since is newer;
         - a write that finds a later one landed while it was writing is discarded, and replaces
           nothing; one that a later write overtakes between its check and its replace puts the
           later payload back. So a terminal state is never replaced by a payload read before it,
-          and the fields of a discarded heartbeat are kept by the write that overtook it.
+          and the fields of a discarded heartbeat are kept by the write that overtook it;
+        - what has landed is held by number, and the newest is the highest number held. A write
+          records itself with one store under its own number and then prunes the lower ones, so
+          a handler that interrupts it and lands a later write is never hidden from a later
+          write's composition: the record of what landed never goes back.
 
         A re-entrant lock is held across the whole write. Two threads' writes are serialised, and
         a handler that re-enters a write on its own thread is not blocked by it.
