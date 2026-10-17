@@ -1,7 +1,8 @@
 # interrupted-runs campaign — implementation state
 
 **Last updated:** 2026-10-17 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
-(run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI not yet run. L1–L4 (the machine
+(run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
+(run `39049728089`). L1–L4 (the machine
 decision) taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined (README
 §6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
 the `inherited-issues` board on 2026-10-16: three open (§3), two resolved (§4), by 01 and 02. Two
@@ -41,7 +42,7 @@ tag's.
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
-| 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI not yet run | `2bf9c72` | 307 → 322 |
+| 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -269,6 +270,15 @@ life of the process; the bookkeeping lasts the process; and the leftover's name,
 
 **Verdict:** 02 is accepted, **pending CI**: all three jobs green, the core job's count 80, read
 from the run's log after the user pushes `main`. The two issues opened here are put to the user.
+
+*CI (2026-10-17).* The user said yes, and `main` was pushed, `c2911d3..a38022f`. Run
+`39049728089` (`tests`, on the push of `a38022f`) passed all three jobs, each on `ubuntu-24.04`:
+`core (no store layer)` ran `test_run_registry`, `test_public_names`, `test_host` and
+`test_status_writes` by name, `Ran 80 tests in 2.905s`, `OK (skipped=1)`; `suite (low)` `Ran 322
+tests in 28.855s` and `suite (high)` `Ran 322 tests in 40.277s`, each `OK (skipped=1)`. The one
+skip in each is `test_host`'s macOS readers, as at 01; `test_status_writes` has no skip, so all 15
+of its tests ran and passed on Linux in all three jobs, the three real-signal children among them.
+**02's review is complete; check 9 holds.**
 
 ### 1.1 Items
 
