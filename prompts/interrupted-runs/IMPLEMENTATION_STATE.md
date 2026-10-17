@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-10-17 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
-(run `39049728089`). L1–L4 (the machine
+(run `39049728089`); 02b written, not run, for the two issues 02's review opened. L1–L4 (the machine
 decision) taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined (README
 §6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
 the `inherited-issues` board on 2026-10-16: three open (§3), two resolved (§4), by 01 and 02. Two
@@ -30,7 +30,7 @@ tag's.
 | **L2** where the host is recorded | 01 | **taken** 2026-10-16: (a) |
 | **L3** what identifies a boot | 01 | **taken** 2026-10-16: (a) |
 | **L4** what `liveness` and `list` say | 01 | **taken** 2026-10-16: (a) |
-| **L5** how `status.json` is written | 02 | **taken** 2026-10-17: (a), refined: superseded per `status.json` in the process, not per `Run`; the later write keeps an in-flight write's fields; an `RLock` |
+| **L5** how `status.json` is written | 02, 02b | **taken** 2026-10-17: (a), refined: superseded per `status.json` in the process, not per `Run`; the later write keeps an in-flight write's fields; an `RLock`. **Amended** 2026-10-17 after 02's review: only in-flight writes newer than the landed base are re-applied, and the record of what landed is never lowered (02b) |
 | **L6** an unreadable status in the in-use check | 03 | put, recommended (a) |
 | **L7** what `end` writes | 04 | put, recommended (a) |
 | **L8** what `end` checks | 04 | put, recommended (a) |
@@ -43,6 +43,7 @@ tag's.
 |---|---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
+| 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | written 2026-10-17, not run | — | |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -286,6 +287,7 @@ of its tests ran and passed on Linux in all three jobs, the three real-signal ch
 |---|---|---|---|---|
 | **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ `387c58f` |
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ `2bf9c72` |
+| **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ⬜ |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
@@ -539,6 +541,11 @@ check `:892-904` → `:1015-1027`, the refusal `:898` → `:1021`; `this_host()`
 **Opened:** 2026-10-17 by the orchestrator's review of 02, from the note's correction 6 and the
 agent's log (observation 1); measured. **Owner:** none.
 
+**Assigned (2026-10-17):** to prompt 02b of this campaign. The user asked for it to be fixed "at the
+earliest sensible opportunity"; 02b follows 02 at once, ahead of 03, which touches no part of the
+writer. Under L5 as amended the same day (README §6.2): a re-entered write re-applies only the
+in-flight writes newer than the landed payload it composes from.
+
 *The defect.* `_write_status` (`runregistrykit/__init__.py:324`) composes a re-entered write from
 the newest landed payload, then the fields of **every** earlier write still in flight, then its
 own (`:337-345`), as 02's §2.3 step 2 says. A landed write that was itself made inside an earlier
@@ -562,6 +569,14 @@ state goes back to `running` by it, and the file always parses. But 02's §1 ask
 the handler's state however the handler ends, and a handler that writes twice (a `finish`, then a
 print that a driver's stdout tee turns into a heartbeat) is the case where it does not.
 
+*Measured at writing 02b (2026-10-17, at `91e8e9c`).* By a sweep that runs a handler at every
+instruction the writer executes (02b's "At writing"), with the interrupted write a `finish("done")`
+and the handler's `finish("killed")` followed by a heartbeat: 178 of 202 instructions end other than
+`killed` with the handler returning, 157 with it raising. A candidate that applies only the
+in-flight writes numbered above the landed base's number leaves none raising, and with the handler
+returning only the points before the interrupted write takes its number, where the handler's write
+is the earlier and `done` is right. Both measured cases above then end `stage` `B` and `killed`.
+
 *Next step.* Apply an in-flight write's fields only to the keys that no later landed write has set,
 which needs the bookkeeping to remember which write set which key (the agent's suggestion); or
 compose a re-entered write from the newest landed payload and its own fields alone, once a write
@@ -572,6 +587,11 @@ user's to take, with a test of both measured cases.
 
 **Opened:** 2026-10-17 by the orchestrator's review of 02, from its mutation (o2); measured.
 **Owner:** none.
+
+**Assigned (2026-10-17):** to prompt 02b of this campaign, with
+`[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`. The user asked for a test; the
+measurement below shows the window is reachable as well, so 02b also makes the record one that is
+never lowered.
 
 *The defect.* `_land_status` records the write that landed as `book["landed"]` and its payload
 (`runregistrykit/__init__.py:321`), and returns early after a put-back (`:318-320`), so the record
@@ -592,6 +612,16 @@ sequence ends `killed`.
 *Impact.* At `2bf9c72`, none measured; the window is one statement, and needs a handler to write
 twice to matter (once in the window, once later re-entered). Its weight is that a later edit could
 drop the `return` and lose a terminal state to `running` with every test passing.
+
+*Measured at writing 02b (2026-10-17, at `91e8e9c`): wider than one statement, and reachable by a
+real signal.* The sweep of 02b's "At writing" runs a handler, `finish("killed")` then returning, at
+each of the 202 instructions an interrupted heartbeat executes in the writer, then makes a later
+heartbeat re-entered by a handler's heartbeat. At 15 instructions the file says `killed` after the
+first heartbeat and `running` after the later one. They run from line 318's check to line 321's
+call of `copy.deepcopy`, before the store; `copy.deepcopy` is pure Python, and a signal's handler
+runs at the instruction boundaries of Python code, so a real signal can land a write there. With
+the handler raising, none. A candidate that keeps landed payloads by number, records with one store
+after the deep copy, and prunes over a snapshot of the keys leaves none in any mode.
 
 *Next step.* A test of the measured sequence: a put-back, then a later re-entered write, which must
 keep the terminal state. And make the record monotonic, for example by recording only a number

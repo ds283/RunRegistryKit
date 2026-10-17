@@ -8,8 +8,11 @@ a specification. The board holds each issue in full; this plan does not repeat t
 the machine decision, L1–L4, on 2026-10-16, as recommended (§6.2). **Prompt 01 has landed and
 been reviewed** ([`01-the-host.md`](01-the-host.md), `387c58f`). The user took L5 on 2026-10-17,
 refined (§6.2), and **prompt 02 has landed and been reviewed**
-([`02-status-writes.md`](02-status-writes.md), `2bf9c72`). The others are written one at a time
-after it (§2.1).
+([`02-status-writes.md`](02-status-writes.md), `2bf9c72`). Its review opened two issues in the
+writer's bookkeeping; the user asked on 2026-10-17 for both to be fixed at the earliest sensible
+opportunity, and **prompt 02b is written** for them
+([`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md)), ahead of 03. The others are
+written one at a time after it (§2.1).
 
 ## 0. Why this campaign exists
 
@@ -111,7 +114,8 @@ run is the user's to say (L1).
 
 **In scope:**
 - the machine and the boot a run is on, recorded and used by `liveness` and `list` (01);
-- `status.json` writes that neither corrupt the file nor lose a terminal state under a signal (02);
+- `status.json` writes that neither corrupt the file nor lose a terminal state under a signal (02,
+  02b);
 - the store operations' in-use check made to refuse when a run's status cannot be read (03);
 - a person-run command that records an unrecorded end as terminal, after checking the evidence
   (04);
@@ -138,17 +142,20 @@ run is the user's to say (L1).
 |---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | `[04-runs-do-not-say-which-machine-produced-them]`, under L1–L4: a host identity and a boot identity read from the standard library, recorded in the manifest and `status.json` by `begin`, kept by every later write. `liveness` answers for a run on another machine without testing its pid, and calls a run on this machine `stale` when its boot is not this one; `list` shows both, and counts records with no host. The store operations' refusal names a run on another machine as such. Tests: a record from another host, from an earlier boot, and with no host; the identity functions on this platform, and their absence handled. **Acceptance:** every existing test passes unchanged in what it asserts; a record from another host is never judged by `kill -0`; a record with no `host` is judged as today and counted. | Opus | landed and reviewed 2026-10-16, `387c58f`; CI green (run `38911075984`) |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, under L5 as refined: `status.json` written through a temporary name of its own, with the mode the fixed name gave, and a write superseded by a later write to the same `status.json` from the same process discarded, whichever `Run` made it, the later write keeping the earlier one's fields, so a terminal state is never replaced by the payload a heartbeat read before it. Sidecar writes keep `<path>.tmp` and their leftover checks. **Acceptance:** the reproduction the board names, a heartbeat whose `json.dump` makes a `finish` from inside it, run once raising and once returning, leaves a parseable `status.json` with the terminal state both times. *At writing (2026-10-17, `c2911d3`), measured by a probe with a real signal: today a raising handler can leave `running`, or `killed` with `exit_code` `null`; a returning one leaves `running` and a `FileNotFoundError` in the caller; one that ends the process survives. A unique name alone still loses the state when the handler returns.* | Opus | landed and reviewed 2026-10-17, `2bf9c72`; CI green (run `39049728089`); two issues opened by the review |
+| 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]` and `[02-the-landed-record-is-unpinned-and-can-move-backwards]`, opened by 02's review, under L5 as amended 2026-10-17: a re-entered write re-applies only the in-flight writes newer than the payload it composes from; the record of what landed never lowered, whatever instruction a handler interrupts. Tests: both measured cases; a put-back followed by a later re-entered write; and a sweep that runs a handler at every instruction the writer executes (`sys.monitoring`), for an interrupted heartbeat and an interrupted `finish`, the handler returning or raising. **Acceptance:** both sweeps keep the terminal state at every instruction where it is the later write; 02's 15 tests unchanged. *At writing (2026-10-17, `91e8e9c`): against `2bf9c72` the heartbeat sweep finds 15 of 202 instructions where a later re-entered write puts `running` back, line 318's check through `:321`'s `copy.deepcopy`, which is pure Python and so reachable by a real signal; the `finish` sweep, 43, 7, 178 and 157 in its four modes. A candidate of the design found none in the heartbeat sweep and only the points where the handler's write is the earlier in the `finish` sweep.* | Opus | written 2026-10-17 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, under L6: a run with a manifest that names the store and a `status.json` that cannot be read is counted as in use by copy, move, fingerprint, retire and amend, and refused in words that say the registry cannot tell whether it is alive; `list` flags such a run. **Acceptance:** the planner's probe as a test: each operation refuses, and the store is untouched. | Sonnet | not written |
 | 04 | `04-end-a-run.md` | `[a3-v2-a-hard-killed-run-blocks-its-store]`, under L7 and L8: `python -m runregistrykit end RUN_ID --reason TEXT`, which records a `running` run as ended when the evidence on this machine says it is over, and refuses otherwise; what it writes; the store operations' refusals name it. `Run.finish` unchanged. **Acceptance:** a child process begun and sent `SIGKILL`, then `end`, then every store operation and a resumed run's fingerprint succeeding; `end` refused for a live pid, for a run on another host, and for a run already terminal. | Opus | not written |
 | 05 | `05-begin-refuses-a-second-writer.md` | `[00-begin-does-not-refuse-a-second-writer]`, under L9: `begin` refuses, before creating the run directory, when a `running` run names its `results` store, by path or `results_store_id`, and names `end` for a stale one. **Acceptance:** a second `begin` on a live run's store, a stale run's store, and a store named by an unreadable status, each refused with no run directory left; a store whose runs are all terminal accepted. | Sonnet | not written |
 | 06 | `06-release-v0.2.0.md` | `pyproject.toml` at `0.2.0`; the README's rules and usage for the host, `end` and the new refusals; release notes saying field by field what the registry now writes and what an older record means; an adoption note per client in `docs/adoption/`. CI green, then **tag `v0.2.0`** (L10). | Opus | not written |
 | 07 | `07-verification-and-close-out.md` | `docs/interrupted-runs-verification.md`, from the package at `v0.2.0` and the logs; a smoke run against the pin installed from GitHub that hard-kills a run, ends it, resumes on its store and fingerprints it; the campaign closed. | Opus | not written |
 
-**Order.** 01 → 02 → 03 → 04 → 05 → 06 → 07.
+**Order.** 01 → 02 → 02b → 03 → 04 → 05 → 06 → 07.
 - 01 is first because 04's and 05's guards judge a run's liveness by its pid, and they mean what
   they say only once the host and boot are recorded.
 - 02 precedes 03 so that the known cause of an unreadable status is gone before the check that
   catches every cause is changed.
+- 02b follows 02 at once, at the user's request (2026-10-17): it fixes 02's writer while it is the
+  last thing changed, and 03 touches no part of it.
 - 04 follows 01 and 03 because `end` handles a run on another host and a run with an unreadable
   status.
 - 05 follows 04 because its refusal of a stale run names `end` as the remedy.
@@ -172,6 +179,8 @@ test that hard-kills a process kills a child the test started, and nothing else.
   says so; the liveness value for another host. 03, 04 and 05 use them.
 - **After 02:** `Run._update`'s supersession rule; `write_json_atomic` either unchanged or changed
   in a way the release notes state.
+- **After 02b:** the supersession rule with its amended merge and a record of what landed that is
+  never lowered, and the instruction sweep that pins both.
 - **After 03:** the in-use check's rule for an unreadable status, used by 05's `begin` check.
 - **After 04:** the `end` command, its record in `status.json`, and the state it writes; the
   refusal texts that name it, which 05 reuses.
@@ -290,7 +299,11 @@ the decision. The others are put when the prompt that needs them is written.
   `Run(path)` object is covered. The later write merges the fields of an earlier one still in
   flight, so a discarded heartbeat loses nothing. Two threads are serialised by an `RLock`, which
   a handler re-entering on its own thread does not wait on. 02's planner probe measured the race
-  first, with a real signal (02's "At writing").*
+  first, with a real signal (02's "At writing").* *Amended 2026-10-17, after 02's review: the user
+  asked for both issues it opened to be fixed, the merge "at the earliest sensible opportunity" and
+  the record with a test. As 02b states it: a re-entered write re-applies only the in-flight writes
+  newer than the landed payload it composes from (they are already in it), and the record of what
+  landed is never lowered. A discarded heartbeat still loses nothing.*
 - **L6: an unreadable status in the in-use check** *(for 03)*.
   (a) **Counted as in use**, and refused in words saying the status cannot be read, so whether the
   run is alive cannot be told, with `end` (after 04) or a person's repair as the remedy. `list`
