@@ -2,7 +2,8 @@
 
 **Last updated:** 2026-10-17 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
-(run `39049728089`); 02b landed (`2959b78`) and reviewed, CI pending a push, closing the two issues 02's
+(run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
+`39060913296`), closing the two issues 02's
 review opened. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended; L5 taken
 2026-10-17, refined, and amended the same day (README §6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
@@ -44,7 +45,7 @@ tag's.
 |---|---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
-| 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI pending a push; one issue opened by the review | `2959b78` | 322 → 328 |
+| 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -406,6 +407,16 @@ only worktree; `git diff --stat 2bf9c72 HEAD -- runregistrykit pyproject.toml .g
 **Verdict:** 02b is accepted, **pending CI**: all three jobs green, the core job's count 86, read
 from the run's log after the user pushes `main`. Its two fixes hold and are pinned. The issue its
 review opens is put to the user.
+
+*CI (2026-10-17).* The user said yes, and `main` was pushed, `a38022f..c18ec34`. Run
+`39060913296` (`tests`, on the push of `c18ec34`) passed all three jobs, each on `ubuntu-24.04`:
+`core (no store layer)`, on 3.12.15, with `datastorekit`, `ray` and `sqlalchemy` absent, ran the
+four core modules by name, `Ran 86 tests in 24.001s`, `OK (skipped=1)`; `suite (low)`, on 3.12.15,
+`Ran 328 tests in 50.746s` and `suite (high)`, on 3.13.16, `Ran 328 tests in 42.989s`, each `OK
+(skipped=1)`; `black` 31 files unchanged. The one skip in each is `test_host`'s macOS readers, as at
+01 and 02, so both sweeps ran and passed on Linux, at 3.12 and at 3.13, in all eight modes. The
+3.13 hazard opened above is not something these tests look for, and a green run does not narrow
+it. **02b's review is complete; check 9 holds.**
 
 ### 1.1 Items
 
