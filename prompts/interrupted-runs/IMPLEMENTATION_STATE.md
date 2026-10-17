@@ -4,7 +4,7 @@
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
 (run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
 `39060913296`), closing the two issues 02's
-review opened; 02c landed (this commit), not yet reviewed, narrowing the one 02b's review opened
+review opened; 02c landed (`35ce264`) and reviewed, CI pending a push, narrowing the one 02b's review opened
 to its Python 3.14 `with` point. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended (README §6.2).** Holds the five issues that bear on a
@@ -50,7 +50,7 @@ tag's.
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
-| 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed, not yet reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI not yet run; L11 taken (a), the issue narrowed | this commit | 328 → 329 |
+| 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI pending a push; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -62,7 +62,8 @@ from then until 01), 307 after 01, 322 after 02, 328 after 02b, and 329 after 02
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
-[`orchestrator/prompt-02b.md`](orchestrator/prompt-02b.md) (`201e507`), used for 02b.
+[`orchestrator/prompt-02b.md`](orchestrator/prompt-02b.md) (`201e507`), used for 02b;
+[`orchestrator/prompt-02c.md`](orchestrator/prompt-02c.md) (`e4a2b6c`), used for 02c.
 
 **Orchestrator review of prompt 01 (2026-10-16).** Dispatched from `8023e14` to one Opus subagent,
 with the note's §0 as a copy in the session scratchpad: its facts, its eight corrections and
@@ -423,6 +424,86 @@ four core modules by name, `Ran 86 tests in 24.001s`, `OK (skipped=1)`; `suite (
 3.13 hazard opened above is not something these tests look for, and a green run does not narrow
 it. **02b's review is complete; check 9 holds.**
 
+**Orchestrator review of prompt 02c (2026-10-17).** Dispatched from `e4a2b6c` to one Opus
+subagent, with the note's §0 as a copy in the session scratchpad: its facts, its sixteen
+corrections and readings of the prompt (L11 taken as (a) first), and its conventions. Reviewed
+against its commit `35ce264`, with nothing landed after it. No stop condition fired. **Every check
+of the note's §3 passed**, and acceptance 1–3 are met; the CI half of check 9 waits for a push.
+Nothing is opened. `[02b-a-raising-handler-can-leave-the-status-lock-held]` is narrowed, as L11 (a)
+says, to its 3.14 `with` point.
+
+*At dispatch.* The note's gate held at `e4a2b6c`: `main`, clean, nothing staged, this checkout the
+only worktree; `git diff --stat 2959b78 HEAD -- runregistrykit pyproject.toml .github` empty; `Ran
+328 tests in 120.555s`, `OK (skipped=1)`, with `TMPDIR` in the scratchpad; no Ray process,
+`RAY_ADDRESS` unset; MacPorts' 3.13.16 and 3.14.8 present; the index at 9.
+
+*The checks.*
+1. **Scope (K1).** `35ce264` touches §0's seven files and no others; the diff from `e4a2b6c` of
+   `pyproject.toml`, `stores.py`, `__main__.py`, `client.py`, `.github`, `README.md`,
+   `PROVENANCE.md`, `CLAUDE.md`, `docs/adoption`, the prompt and `orchestrator/` is empty, and the
+   campaign README's diff is 02c's row. `__init__.py`'s `git diff -U0` is three hunks: the comment
+   and `list(<genexpr>)` at `:365-366`, `list(<genexpr>)` at `:373`, and §2.4's sentence at
+   `:763-765`. The test module adds 283 lines and removes none.
+2. **The suite (K5).** `Ran 329 tests in 102.281s`, `OK (skipped=1)`, in `venv/` at `35ce264`. At
+   3.13.16 and 3.14.8, `test_status_writes` and `test_host` with `PYTHONPATH` on the checkout: `Ran
+   50 tests`, `OK (skipped=1)`, each. `black --check runregistrykit docs`: 31 files. The core run in
+   the orchestrator's own scratch venv (`uv`, offline, editable, no `[stores]`): the three absent,
+   `Ran 87 tests in 22.057s`, `OK (skipped=1)`; the venv removed. `git status --short --ignored` and
+   `var/ledger.jsonl` the same before and after; no Ray process; no child left.
+3. **The plain and re-entered writes (K5).** 02b's review's probes against `35ce264`: the plain-write
+   output identical to `2bf9c72`'s and `2959b78`'s; the merge probe's six cases as at `2959b78`
+   (`killed` with `stage` B; `killed`; `killed`; units kept; `stage` C; `killed`, C); the threads
+   edge joined, `killed`, 143.
+4. **The table (K2).** The orchestrator's `dis` script over `the_writers_code()`, uncovered
+   instructions between each code object's first and last table entries. `_write_status` at
+   `2959b78`: `JUMP_BACKWARD` 278 and 398 at 3.12, 282 and 422 at 3.13, 326 and 470 at 3.14. At
+   `35ce264`: **no `JUMP_BACKWARD` uncovered at any version**; left are the `NOP` of `try:`, the
+   `with`'s exit, and at 3.14 a `NOT_TAKEN` and the `with`'s entry. The two `<genexpr>` code objects
+   each have their filter's `JUMP_BACKWARD` uncovered (26 at 3.12, 28 at 3.13 and 3.14); an
+   exception there leaves the generator's frame and reaches `_write_status` at the covered `CALL` of
+   `list`, so the agent's deviation 9 is right: §5's "`JUMP_BACKWARD` outside the table" is
+   `_write_status`'s own. `_land_status`'s prune loop and `_newest_landed`'s loop are uncovered at
+   both commits; neither frame holds the lock, and each is called from a covered `CALL`.
+5. **The real signal (K3).** The orchestrator's `bombard.py` (02b's review), one row at a time,
+   nothing else running, 45 s unless stated, against `35ce264`: **3.12.15, 0 held** in 27 428
+   interrupted writes; **3.13.16, 0** in 27 511; **3.13.16 for 120 s, 0** in 73 707; 3.14.8, 11, all
+   at the `with` (`:355`, offset 26), no in-flight entry kept. `consequence.py` at 3.13.16, the
+   handler recording `killed` before it raises, 90 s: 0 in 58 208 attempts. The first 3.12 row
+   printed nothing, its stderr discarded; run again, it gave the row above.
+6. **The twelve cases (K5).** `signals.py` against `35ce264`, at 3.12.15 and 3.13.16: the two
+   tables identical, and as at `2959b78` and `2bf9c72`: `killed`, 143, `units_done` 7, the stage
+   kept, one `.tmp` only where the process ends before the replace.
+7. **The log (K7).** Every section of README §5.1 and the prompt's §4.3 additions; the deviations
+   classified, corrections 1–16 among them, none UNINTENDED DRIFT; the suite before (328) and after
+   (329); the core, 3.13 and 3.14 runs; the static table against both trees; the real-signal table
+   with interruptions per row; the twelve cases; the new test against `2959b78` (`FAILED
+   (failures=3)` at 3.12 and 3.13, 1 of 3, 2 of 7 and 4 of 12 attempts); every mutation as a diff.
+   Every line citation in the log checked by `grep -n` at `35ce264`: right. **Residue fixed here:**
+   "this commit" → `35ce264`.
+8. **The mutations (K6).** (m1)–(m4) extracted from the log by a script and replayed in `bash` in a
+   `git clone` of `35ce264`, `PYTHONPATH` on the clone, `test_status_writes` (22 tests): each fails
+   the new test only, as the log says: (m1) 1/3, 2/7, 3/12, at 3.12 and at 3.13; (m2) write (3)
+   alone, 1/12; (m3) and (m4) 1/3, 2/7, 3/12. The clone clean after each. The orchestrator's own:
+   - (o1) `:373` as a `for` loop with an `if`, the first line kept: caught by write (3) alone, 1 of
+     12;
+   - (o2) the `with` replaced by `_STATUS_LOCK.acquire()` and a `try` whose `finally` releases it:
+     **no test fails**, at 3.12 or 3.13. By a real signal (45 s) it leaves the lock held 6 times at
+     3.12.15 and 13 at 3.13.16, each just after the `acquire()` call returns, before the `try`:
+     a handler run after a `CALL` returns, which the prompt says the sweep cannot model (§2.5). The
+     shipped `with` has no such point at 3.12 or 3.13 (check 5), and the prompt's §2.3 forbids the
+     form. Recorded, not opened, as 02b's review recorded 02's `RLock` made per `Run`;
+   - (o3) the new test's lock check made always "free", against `2959b78`'s writer: the test still
+     fails, 1/3, 2/7, 4/12, by its in-flight check, so the two checks each catch the defect.
+9. **The records (K7) and CI.** The board's header, 02c's row (328 → 329), W3, the §3 count line,
+   the issue's "Narrowed" paragraph (owner none, the 3.14 `with` point left) and the "Package lines
+   (02c, …)" sentences are in. `docs/OPEN_ISSUES.md` counts 9 by its rows, the row's owner none and
+   its hook narrowed to 3.14, the date. `prompts/INDEX.md`'s line and the README's 02c row are
+   updated. **CI is not read yet:** nothing is pushed, and the new test first runs on Linux, and at
+   3.13.16 in `suite (high)`.
+
+**Verdict:** 02c is accepted, **pending CI**: all three jobs green, the core job's count 87, read
+from the run's log after the user pushes `main`.
+
 ### 1.1 Items
 
 | Item | Prompt | What | Closes | State |
@@ -430,7 +511,7 @@ it. **02b's review is complete; check 9 holds.**
 | **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ `387c58f` |
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ `2bf9c72` |
 | **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ✅ `2959b78` |
-| **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ✅ this commit |
+| **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ✅ `35ce264` |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
@@ -452,7 +533,7 @@ it. **02b's review is complete; check 9 holds.**
 ## 3. Active and unresolved issues
 
 Four: three of the five assigned here, and one found by 02b's review, at the end of this section,
-narrowed by 02c (this commit) to its Python 3.14 `with` point, with no owner.
+narrowed by 02c (`35ce264`) to its Python 3.14 `with` point, with no owner.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
@@ -520,7 +601,7 @@ defect in the check.
 `:1156`; `liveness`'s answer for an empty payload `:585` → `:618`. `stores.py` and `__main__.py` are
 not touched by 02b, so their lines above stand.
 
-*Package lines (02c, this commit).* `list_runs`' status read `runregistrykit/__init__.py:1156` →
+*Package lines (02c, `35ce264`).* `list_runs`' status read `runregistrykit/__init__.py:1156` →
 `:1159`; `liveness`'s answer for an empty payload `:618` → `:619`. `stores.py` and `__main__.py` are
 not touched by 02c, so their lines above stand.
 
@@ -644,7 +725,7 @@ is unmoved; `pid_alive` `:356` → `:389` (`PermissionError` `:374` → `:407`);
 `:594`; `_fingerprint_results`' `taken_by=self` `:796` → `:837`. `stores.py` and `__main__.py` are
 not touched by 02b, so their lines above stand.
 
-*Package lines (02c, this commit).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:785` →
+*Package lines (02c, `35ce264`).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:785` →
 `:788` (its docstring `:786-787` → `:789-790`), its check `:802` → `:805`; `TERMINAL_STATES` `:104`
 is unmoved; `pid_alive` `:389` → `:390` (`PermissionError` `:407` → `:408`); `liveness` `:594` →
 `:595`; `_fingerprint_results`' `taken_by=self` `:837` → `:840`. `stores.py` and `__main__.py` are
@@ -703,7 +784,7 @@ check `:892-904` → `:1015-1027`, the refusal `:898` → `:1021`; `this_host()`
 tombstone check `:1015-1027` → `:1056-1068`, the refusal `:1021` → `:1062`; `this_host()` `:1029` →
 `:1070`. `stores.py` is not touched by 02b, so its lines above stand.
 
-*Package lines (02c, this commit).* `begin` `runregistrykit/__init__.py:965` → `:968`; its
+*Package lines (02c, `35ce264`).* `begin` `runregistrykit/__init__.py:965` → `:968`; its
 tombstone check `:1056-1068` → `:1059-1071`, the refusal `:1062` → `:1065`; `this_host()` `:1070` →
 `:1073`. `stores.py` is not touched by 02c, so its lines above stand.
 
@@ -773,7 +854,7 @@ short:
   attempts leave the lock held and the in-flight entry. `:372` is reached only by the twice
   re-entered write. The generator expressions: 0 at every version.
 
-**Narrowed (2026-10-17, by 02c, this commit), under L11 (a).** Fixed at Python 3.12 and 3.13, and
+**Narrowed (2026-10-17, by 02c, `35ce264`), under L11 (a).** Fixed at Python 3.12 and 3.13, and
 narrowed to the `with` point at 3.14, which stays open. **Owner:** none again. The log is
 [`logs/02c-the-writers-lock.md`](logs/02c-the-writers-lock.md). What 02c resolved:
 - **The two filters.** `_write_status`'s two filters (`runregistrykit/__init__.py:366`, `:373`)
@@ -811,7 +892,7 @@ client runs 3.14, and CI does not. *Next step:* none until a client or CI moves 
 measure it there again. Whether to report it to CPython is the user's. 02c's sweep cannot model it,
 since an `INSTRUCTION` event fires before an instruction and this point follows a `CALL`.
 
-*Package lines (02c, this commit).* `_write_status` `:352`, its `with` `:355` and `next()` `:362`
+*Package lines (02c, `35ce264`).* `_write_status` `:352`, its `with` `:355` and `next()` `:362`
 are unmoved; the filters `:365` → `:366` and `:372` → `:373`, with the comment at `:365`; the
 `finally` `:381-382` → `:382-383`. `_update`'s docstring `:725-763` → `:726-766`, its "Not covered"
 paragraph `:756-762` → `:757-765`.

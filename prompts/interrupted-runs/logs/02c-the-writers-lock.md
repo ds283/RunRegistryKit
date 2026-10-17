@@ -1,7 +1,7 @@
 # Log — prompt 02c: the writer's lock
 
 **Subject:** Make the status writer's filters generator expressions
-**Commit:** this commit (on `main`, after `e4a2b6c`)
+**Commit:** `35ce264` (on `main`, after `e4a2b6c`)
 **Date:** 2026-10-17
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (corrections and readings 1–16). No stop condition fired.
@@ -176,10 +176,10 @@ Each is classified. Corrections 1–16 are section 0's.
     It says "handler". **STRUCTURALLY REQUIRED.**
 14. **Line citations** (correction 13) were taken by `grep -n` on the files after `black`, and
     re-checked just before committing. The three §3 entries of 03, 04 and 05 each gain one
-    "Package lines (02c, this commit)" sentence, and are otherwise unchanged. The narrowed entry
+    "Package lines (02c, `35ce264`)" sentence, and are otherwise unchanged. The narrowed entry
     gains its own sentence, inside its new "Narrowed" paragraph. **STRUCTURALLY REQUIRED.**
 15. **Mutation diffs** (correction 14) were taken after `black` in a scratch clone (`agent-02c/new`)
-    of this tree. Its `runregistrykit/__init__.py` blob is `57f820d`, the same as this commit's.
+    of this tree. Its `runregistrykit/__init__.py` blob is `57f820d`, the same as `35ce264`'s.
     They were replayed as recorded. **STRUCTURALLY REQUIRED.**
 16. **`black`** (correction 15): `black --check runregistrykit docs` passes on this tree, 31 files,
     the count section 0 gives for `2959b78`; no file is added under `runregistrykit` or `docs`.
@@ -285,7 +285,7 @@ an exception never reaches with the lock to release. Those are not repeated belo
 | Tree | 3.12.15 | 3.13.16 | 3.14.8 |
 |---|---|---|---|
 | `2959b78` | before the table: `RESUME`, `LOAD_GLOBAL`, `BEFORE_WITH` 12; `NOP` 190 (`try:`); **`JUMP_BACKWARD` 278 (`:365`), 398 (`:372`)**; the exit 636–654 | before: through `BEFORE_WITH` 12; `NOP` 192; **`POP_JUMP_IF_TRUE` 278 + `JUMP_BACKWARD` 282 (`:365`); 418 + 422 (`:372`)**; the exit 676–694 | the `with`'s entry, `LOAD_GLOBAL` 2 through `CALL` 22; `NOP` 220; **`POP_JUMP_IF_TRUE` 320, `NOT_TAKEN` 324, `JUMP_BACKWARD` 326 (`:365`); 464, 468, 470 (`:372`)**; `NOT_TAKEN` 526 (`:374`); the exit 750–770 |
-| this commit | before the table: `MAKE_CELL` 0, 2, `RESUME`, `LOAD_GLOBAL`, `BEFORE_WITH` 16; `NOP` 194 (`try:`); the exit 636–654 | before: through `BEFORE_WITH` 16; `NOP` 196; the exit 668–686 | the `with`'s entry, `LOAD_GLOBAL` 6 through `CALL` 26; `NOP` 224; `NOT_TAKEN` 516 (`:375`); the exit 742–762 |
+| `35ce264` | before the table: `MAKE_CELL` 0, 2, `RESUME`, `LOAD_GLOBAL`, `BEFORE_WITH` 16; `NOP` 194 (`try:`); the exit 636–654 | before: through `BEFORE_WITH` 16; `NOP` 196; the exit 668–686 | the `with`'s entry, `LOAD_GLOBAL` 6 through `CALL` 26; `NOP` 224; `NOT_TAKEN` 516 (`:375`); the exit 742–762 |
 
 So no `JUMP_BACKWARD` of `_write_status` is uncovered after the change. Its one remaining
 `JUMP_BACKWARD` is the `for n in earlier` loop's (`:376-377`), covered at every version: 500, 530 and 596.
@@ -322,14 +322,14 @@ parses. Nothing else is signalled. The rows ran one at a time:
 
 | Tree | Python | s | Handler | Heartbeats | Interrupted | In the writer | **Lock held** | **In flight left** | Where | Final |
 |---|---|---:|---|---:|---:|---:|---:|---:|---|---|
-| this commit | 3.12.15 | 45 | raises | 115 319 | 14 821 | 14 757 | **0** | **0** | — | `running` |
-| this commit | 3.13.16 | 45 | raises | 124 684 | 13 869 | 13 775 | **0** | **0** | — | `running` |
-| this commit | 3.14.8 | 45 | raises | 121 601 | 13 948 | 13 854 | 1 | 0 | `_write_status:355`, offset 26 (the `with`'s `CALL` of `__enter__`) | `running` |
+| `35ce264` | 3.12.15 | 45 | raises | 115 319 | 14 821 | 14 757 | **0** | **0** | — | `running` |
+| `35ce264` | 3.13.16 | 45 | raises | 124 684 | 13 869 | 13 775 | **0** | **0** | — | `running` |
+| `35ce264` | 3.14.8 | 45 | raises | 121 601 | 13 948 | 13 854 | 1 | 0 | `_write_status:355`, offset 26 (the `with`'s `CALL` of `__enter__`) | `running` |
 | `2959b78` | 3.12.15 | 45 | raises | 118 520 | 13 859 | 13 788 | 0 | 0 | — | `running` |
 | `2959b78` | 3.13.16 | 45 | raises | 123 977 | 13 516 | 13 443 | **1** | **1** | `_write_status:365`, offset 282 | `running` |
 | `2959b78` | 3.14.8 | 45 | raises | 122 626 | 13 755 | 13 668 | 0 | 0 | — | `running` |
-| this commit | 3.13.16 | 120 | raises | 331 587 | 36 506 | 36 287 | **0** | **0** | — | `running` |
-| this commit | 3.13.16 | 45 | `killed`, then raises | 113 448 | 12 466 | 12 390 | **0** | **0** | — | `killed`, 143 |
+| `35ce264` | 3.13.16 | 120 | raises | 331 587 | 36 506 | 36 287 | **0** | **0** | — | `running` |
+| `35ce264` | 3.13.16 | 45 | `killed`, then raises | 113 448 | 12 466 | 12 390 | **0** | **0** | — | `killed`, 143 |
 | `2959b78` | 3.13.16 | 45 | `killed`, then raises | 110 854 | 12 422 | 12 356 | 1 | 1 | `_write_status:365`, offset 282 | `killed`, 143 |
 
 "In the writer" counts interruptions whose stack held a writer frame; the rest fell in the
