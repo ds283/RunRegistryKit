@@ -1,7 +1,7 @@
 # Log — prompt 02b: the writer's bookkeeping
 
 **Subject:** Apply only newer in-flight writes, and never lower the landed record
-**Commit:** this commit (on `main`, after `201e507`)
+**Commit:** `2959b78` (on `main`, after `201e507`)
 **Date:** 2026-10-17
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (corrections and readings 1–15). It stopped once, on (m3), and was resumed with

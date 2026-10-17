@@ -2,12 +2,12 @@
 
 **Last updated:** 2026-10-17 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
-(run `39049728089`); 02b landed (this commit), not yet reviewed, closing the two issues 02's review
-opened. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended; L5 taken
+(run `39049728089`); 02b landed (`2959b78`) and reviewed, CI pending a push, closing the two issues 02's
+review opened. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended; L5 taken
 2026-10-17, refined, and amended the same day (README §6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
-02b (§4).
+02b (§4). One, found by 02b's review, is open in §3.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -44,7 +44,7 @@ tag's.
 |---|---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
-| 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)), not yet reviewed; CI not yet run | this commit | 322 → 328 |
+| 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI pending a push; one issue opened by the review | `2959b78` | 322 → 328 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -55,7 +55,8 @@ The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistry
 from then until 01), 307 after 01, 322 after 02, and 328 after 02b.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
-for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02.
+for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
+[`orchestrator/prompt-02b.md`](orchestrator/prompt-02b.md) (`201e507`), used for 02b.
 
 **Orchestrator review of prompt 01 (2026-10-16).** Dispatched from `8023e14` to one Opus subagent,
 with the note's §0 as a copy in the session scratchpad: its facts, its eight corrections and
@@ -282,13 +283,137 @@ skip in each is `test_host`'s macOS readers, as at 01; `test_status_writes` has 
 of its tests ran and passed on Linux in all three jobs, the three real-signal children among them.
 **02's review is complete; check 9 holds.**
 
+**Orchestrator review of prompt 02b (2026-10-17).** Dispatched from `201e507` to one Opus
+subagent, with the note's §0 as a copy in the session scratchpad: its facts, its fifteen
+corrections and readings of the prompt, and its conventions. The agent stopped once, before
+committing, on the prompt's §5: (m3), the early `return` after a put-back removed, was caught by
+no test. The user took (A) the same day: record (m3) as a mutant that changes nothing under the
+by-number record, keep the `return`, and add (m3′), the put-back's re-landing call removed. Reviewed
+against its commit `2959b78`, with nothing landed after it. **Every check of the note's §3 passed**
+on 3.12.15, and acceptance 1–3 are met; the CI half of check 9 waits for a push. **One issue is
+opened**, from a measurement on 3.13.16 that the note's check 5 led to (below): a regression on a
+supported Python, not a failure of what the prompt's tests or acceptance ask.
+
+*At dispatch.* The note's gate held at `201e507`: `main`, clean, nothing staged, this checkout the
+only worktree; `git diff --stat 2bf9c72 HEAD -- runregistrykit pyproject.toml .github` empty; `Ran
+322 tests in 134.049s`, `OK (skipped=1)`, with `TMPDIR` in the scratchpad; no Ray process,
+`RAY_ADDRESS` unset; the index at 10; `var/ledger.jsonl` (left by 02's review) `471d0859…`.
+
+*The checks.*
+1. **Scope (B1).** `2959b78` touches §0's six files and no others; the diff from `201e507` of
+   `stores.py`, `__main__.py`, `client.py`, `pyproject.toml`, `.github`, `README.md`,
+   `PROVENANCE.md`, `CLAUDE.md`, `docs/adoption`, the campaign README, the prompt and
+   `orchestrator/` is empty. `test_status_writes.py` gains lines and loses none. `__init__.py`
+   changes in six hunks, all in the writer section (`:259-380`) and `_update`'s docstring;
+   `write_json_atomic` is byte for byte as it was. No new import in the package; `git grep -n
+   'signal'` finds `finish`'s docstring only (`:796`).
+2. **The suite, re-run.** `Ran 328 tests in 120.485s`, `OK (skipped=1)`, in `venv/` at `2959b78`;
+   `test_status_writes` alone `Ran 21 tests in 18.846s`, OK. `git status --short --ignored` the same
+   before and after; `var/ledger.jsonl` unchanged; no Ray process; no child left. The core run of
+   correction 2, in the orchestrator's own scratch venv (`uv`, offline, editable, no `[stores]`):
+   `datastorekit`, `ray` and `sqlalchemy` not findable, `Ran 86 tests in 21.466s`, `OK
+   (skipped=1)`; the venv removed.
+3. **The plain write (B2).** The orchestrator's probe, through `2bf9c72`'s package (by `git
+   archive`) and `2959b78`'s: `heartbeat`, `heartbeat(pid=…)`, `record`, a heartbeat under umask
+   `0o077`, `finish`. The output of the two is identical: the same keys, one read of `status.json`
+   (two for `record`), one `os.replace` from `status.json.<unique>.tmp` per call, modes `0o644` and
+   `0o600`, nothing left.
+4. **The merge (B3).** In one process, `json.dump` patched to fire once, the handler's writes made
+   from inside it. `2959b78` / `2bf9c72`: a heartbeat `stage=A` with a handler's `heartbeat(stage=B)`
+   then `finish("killed")`: `killed`, `stage` **B** / `stage` A; a `finish("done")` with a handler's
+   `finish("killed")` then `heartbeat`: **`killed`, 143** / `done`, 0; with `finish("killed")` alone:
+   `killed` / `killed`; a heartbeat (`units_done` 7) discarded by a handler's `heartbeat(stage=B)`:
+   units 7 kept / kept. **Three handler writes**, which no test names (`heartbeat(stage=B)`,
+   `heartbeat(stage=C)`, `finish("killed")`): `killed`, `stage` **C** / `stage` A. And a
+   `finish("done")` with `heartbeat(B)`, `finish("killed")`, `heartbeat(C)`: `killed`, C / `done`.
+5. **The record (B4) and the sweep (B5).**
+   - *By reading.* A key is stored only by a write whose check found no higher one, and a prune
+     removes only keys below the pruning write's own number, so the highest key can be neither
+     lowered by a store nor removed by a prune, whatever instruction a handler interrupts; a handler
+     landing a higher key between the check and the store keeps it. `_newest_landed` reads `max` and
+     then the payload, and re-reads if the key went. Payloads stored are deep copies of dicts, never
+     `None`.
+   - *The sweep's reach.* `sweep_in_this_process` run by the orchestrator's own script on
+     `2959b78`, both sweeps, all eight modes: 323 instructions per write, in `_write_status` 104,
+     `_land_status` 118, `_newest_landed` 78, `_status_temporary_name` 23 (`_remove_quietly` runs
+     only on an error); 0 wrong in every mode; the finish sweep accepts 24 points in each returning
+     mode. Afterwards no `sys.monitoring` tool id is in use and every writer code object has no
+     local events. On 3.13.16, the same: 320 instructions, 0 wrong, 25 accepted.
+   - *The (o2) sequence and the `return`:* pinned by
+     `TestAPutBackThenALaterReenteredWrite.test_the_terminal_state_is_kept_throughout`, which (m3′)
+     fails; (m3) changes nothing (check 8).
+6. **The real signal.** The orchestrator's twelve-case probe (a child per case, its own `SIGTERM`
+   from inside a heartbeat's write, `units_done=7`), against `2959b78` and `2bf9c72`: every case
+   parses, `killed`, 143, `units_done` 7, the stage kept; one `status.json.<unique>.tmp` left only
+   where the process ends before the replace. The two tables are identical, and equal to the log's
+   and 02's review's. The threads edge (a worker heartbeating in a loop, the main thread sending
+   itself `SIGTERM` twenty times): joined, `killed`, 143, nothing left.
+
+   **The log's observation 1, measured by a real signal.** The agent recorded seven instructions,
+   uncovered by `_write_status`'s exception table, at which the sweep's raising handler left
+   `_STATUS_LOCK` held, and reasoned that a real signal cannot reach them; it said this was not
+   measured on 3.13. Measured here: a child that signals only itself, `SIGALRM` by a one-shot
+   interval timer of 20 µs–2 ms, re-armed after each, its handler raising, through heartbeats of
+   one run for 45 s (about 27 000 interrupted writes per row), counting writes after which the
+   lock was still owned:
+
+   | Tree | 3.12.15 | 3.13.16 | 3.14.8 |
+   |---|---|---|---|
+   | `2bf9c72` | 0 | 0 | 16, at the `with` (`:327`, offset 24) |
+   | `2959b78` | 0 | **14, at `:365`, offset 282** | 16: 11 at the `with` (`:355`), 5 at `:365` |
+
+   At 3.13.16 offset 282 is the `JUMP_BACKWARD` of the filter in `earlier = [n for n in
+   sorted(book["in_flight"]) if n < number]`, a comprehension 3.13 inlines; `dis` shows its
+   exception table with no entry for offsets 278–286. An exception raised by a handler run at that
+   jump's eval-breaker check leaves `_write_status` without its `finally` or its `with` exit. At
+   `2bf9c72` the same line was a generator expression, a frame of its own, which never left the lock
+   held at 3.13. Its consequence, measured at 3.13.16 with a handler that records `killed` and then
+   raises: the file says `killed`; the in-flight entry stays; a heartbeat from another thread does
+   not complete; and with that thread non-daemon, a `sys.exit(143)` from the main thread did not end
+   the process within 200 s. **Opened as
+   `[02b-a-raising-handler-can-leave-the-status-lock-held]`.** The 3.14 rows at the `with` are
+   02's, and recorded in the same entry; 3.14 is not a client's version and is not in CI.
+7. **The log (B7).** Every section of README §5.1 and the prompt's §4.3 additions; the deviations
+   classified, corrections 1–15 among them, the (m3) decision first, one UNINTENDED DRIFT (a test
+   docstring that named an issue, caught by the citation guard and reworded before committing); the
+   suite before and after; the core run; the §3.4 table; the sweeps against `2bf9c72` (15, 0, 15, 0;
+   0, 0, 167, 167) and after (0 in every mode); the shape of the record; every mutation as a diff.
+   Every line citation in the log's "State handed to the next prompt" checked by `grep -n` at
+   `2959b78`: right. **Residue fixed here:** "this commit" → `2959b78`.
+8. **The mutations (B6).** (m1)–(m5) and (m3′) extracted from the log by a script and replayed in
+   `bash` in a `git clone` of `2959b78`, `PYTHONPATH` on the clone: `--check`, apply,
+   `test_status_writes`, `test_run_registry` and `test_host` (78 tests), `-R --check`, reverse, the
+   clone clean. Each ended exactly as the log says: (m1) 4 failures, 281 of 323 twice; (m2) 2, 24 of
+   244 twice; (m3) OK; (m3′) 8, 17 of 323 four times; (m4) 4, 21 of 334 four times; (m5) 2, 22 of
+   323 twice. The orchestrator's own, in the same clone:
+   - (o1) the merge applying **no** in-flight write from a landed base: 21 failures, the real-signal
+     children and every point of `test_each_point_each_ending` among them, so the "above `L`" half
+     is pinned. The comparison made `>=`: no test fails, as expected (the base holds its own
+     write's fields);
+   - (o2) `_newest_landed`'s re-read removed: no test fails. By reading, the window (a handler
+     between `max` and the payload read that lands a higher write and prunes the key read) gives
+     `None` only to a write the handler's higher write then discards, so it is defensive. Recorded,
+     not opened;
+   - (o3) the prune made before the store, not after: no test fails, and by reading it keeps the
+     property (a prune removes only lower keys either way). The note's (o3), the prune removing
+     every key but its own, is the agent's (m5), caught.
+9. **The records (B7) and CI.** The board's header, 02b's row (322 → 328), W2 ✅, both entries in
+   §4 with what resolved each and the tests that pin it, the three "Package lines (02b, …)"
+   sentences and the §3 count line are in. `docs/OPEN_ISSUES.md` counted 8 by its rows at
+   `2959b78`, the two rows gone, the date. `prompts/INDEX.md`'s line is updated. **CI is not read
+   yet:** nothing is pushed, and the sweeps first run on Linux and in `suite (high)` on 3.13.16.
+
+**Verdict:** 02b is accepted, **pending CI**: all three jobs green, the core job's count 86, read
+from the run's log after the user pushes `main`. Its two fixes hold and are pinned. The issue its
+review opens is put to the user.
+
 ### 1.1 Items
 
 | Item | Prompt | What | Closes | State |
 |---|---|---|---|---|
 | **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ `387c58f` |
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ `2bf9c72` |
-| **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ✅ this commit |
+| **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ✅ `2959b78` |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
@@ -309,8 +434,8 @@ of its tests ran and passed on Linux in all three jobs, the three real-signal ch
 
 ## 3. Active and unresolved issues
 
-Three: three of the five assigned here. The two found by 02's review were closed by 02b (this
-commit), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
+Four: three of the five assigned here, and one found by 02b's review, at the end of this section.
+The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
 does not keep a terminal state when the handler returns (README §0.2), so its entry gains a
@@ -373,7 +498,7 @@ not touched by 02, so their lines above stand. 02 removes the one known cause of
 disk error, a hand edit, a file truncated or lost by anything else) stands, as does this entry's
 defect in the check.
 
-*Package lines (02b, this commit).* `list_runs`' status read `runregistrykit/__init__.py:1115` →
+*Package lines (02b, `2959b78`).* `list_runs`' status read `runregistrykit/__init__.py:1115` →
 `:1156`; `liveness`'s answer for an empty payload `:585` → `:618`. `stores.py` and `__main__.py` are
 not touched by 02b, so their lines above stand.
 
@@ -491,7 +616,7 @@ subcommands `:433-522` → `:438-527`. In `runregistrykit/__init__.py`: `Run.fin
 `:465` → `:561`; `_fingerprint_results`' `taken_by=self` `:673` → `:796`. `stores.py` and
 `__main__.py` are not touched by 02, so their lines above stand.
 
-*Package lines (02b, this commit).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:744` →
+*Package lines (02b, `2959b78`).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:744` →
 `:785` (its docstring `:745-746` → `:786-787`), its check `:761` → `:802`; `TERMINAL_STATES` `:104`
 is unmoved; `pid_alive` `:356` → `:389` (`PermissionError` `:374` → `:407`); `liveness` `:561` →
 `:594`; `_fingerprint_results`' `taken_by=self` `:796` → `:837`. `stores.py` and `__main__.py` are
@@ -546,9 +671,51 @@ module docstring `:106-107` and `runs_naming` `:957` are unmoved.
 check `:892-904` → `:1015-1027`, the refusal `:898` → `:1021`; `this_host()` `:906` → `:1029`.
 `stores.py` is not touched by 02, so its lines above stand.
 
-*Package lines (02b, this commit).* `begin` `runregistrykit/__init__.py:924` → `:965`; its
+*Package lines (02b, `2959b78`).* `begin` `runregistrykit/__init__.py:924` → `:965`; its
 tombstone check `:1015-1027` → `:1056-1068`, the refusal `:1021` → `:1062`; `this_host()` `:1029` →
 `:1070`. `stores.py` is not touched by 02b, so its lines above stand.
+
+### `[02b-a-raising-handler-can-leave-the-status-lock-held]`
+
+**Opened:** 2026-10-17 by the orchestrator's review of 02b, from the log's observation 1 and the
+review's check 6; measured. **Owner:** none.
+
+*The defect.* `_write_status` (`runregistrykit/__init__.py:352`) holds `_STATUS_LOCK` in a `with`
+(`:355`) and removes its in-flight entry in a `finally`. At 3.13.16 the exception table of its
+code leaves offsets 278–286 uncovered: the filter of the comprehension `earlier = [n for n in
+sorted(book["in_flight"]) if n < number]` (`:365`), which 3.13 inlines, and whose
+`JUMP_BACKWARD` (offset 282) checks the eval breaker. A handler run there that raises leaves the
+function without the `finally` or the `with` exit: the lock stays held by the thread that was
+writing, and the in-flight entry stays. 02's `:336` was a generator expression, a frame of its
+own, and its exception surfaced at a covered `CALL`; 02b made it a list comprehension. The second
+comprehension, `:372`, has the same shape and was not reached in the measurement. At 3.14.8 the
+`with` statement itself (`:355`; `:327` at `2bf9c72`) has such a point, at both commits; 3.14 is
+in no client's use and not in CI.
+
+*Measured* at `2959b78`, 2026-10-17 (scratch, not committed): a child that signals only itself,
+`SIGALRM` from a one-shot timer of 20 µs–2 ms re-armed after each, the handler raising, through
+45 s of heartbeats on one run (about 27 000 interrupted writes): the lock left held after 0 writes
+at 3.12.15 (both commits), **14 at 3.13.16** (all at `:365`, offset 282; 0 at `2bf9c72`), and 16 at
+3.14.8 (11 at the `with`, 5 at `:365`; 16 at the `with` at `2bf9c72`). With a handler that
+records `finish("killed", exit_code=143)` and then raises, at 3.13.16: the file says `killed`; the
+in-flight entry stays; another thread's `heartbeat` does not complete in 5 s; and with that thread
+non-daemon, `sys.exit(143)` from the main thread did not end the process within 200 s.
+
+*Impact.* The terminal state is kept, and the file parses. But a driver whose handler raises (as
+SGK's do, `SystemExit(128 + signum)`), on 3.13, with a second thread that writes the status (a
+heartbeat thread, a stdout tee), can hang instead of exiting, about once in 2 000 interrupted
+writes here; and a process that goes on after the raise composes every later write from its
+landed payload rather than the file, since an in-flight entry is always present, so a launcher's
+`heartbeat(pid=…)` from another process is overwritten. SGK runs 3.12, where it was not seen; CPBH
+and SI run 3.13 and call nothing of the registry yet. 02b's sweep did not see it because it raises
+at every instruction, uncovered ones included, and so runs in a child process; it does not check
+the lock after an attempt.
+
+*Next step.* Make the writer's two comprehensions forms whose exception tables are complete on 3.12
+and 3.13 (a generator expression, as 02 had, or a loop), and measure them as above. A test: the
+real-signal bombardment, bounded in time, in a child, asserting the lock not owned and no in-flight
+entry after each interrupted write; or the sweep restricted to the instructions that check the eval
+breaker, with the same assertions. The `with` point at 3.14 is for the same prompt to decide.
 
 ---
 
@@ -895,7 +1062,7 @@ compose a re-entered write from the newest landed payload and its own fields alo
 has landed since the oldest in-flight one began. Either is a change to 02's step 2, so it is the
 user's to take, with a test of both measured cases.
 
-**Resolved (2026-10-17, by 02b, this commit).** Under L5 as amended (README §6.2), as 02b's §2.2
+**Resolved (2026-10-17, by 02b, `2959b78`).** Under L5 as amended (README §6.2), as 02b's §2.2
 states it. In `_write_status` (`runregistrykit/__init__.py:352`), a write that composes from the
 newest landed payload, numbered `L`, applies only the earlier in-flight writes numbered above `L`
 (`:372`). Those at or below `L` were in flight throughout it, so its payload holds their fields
@@ -960,7 +1127,7 @@ after the deep copy, and prunes over a snapshot of the keys leaves none in any m
 keep the terminal state. And make the record monotonic, for example by recording only a number
 higher than the one recorded, or by keeping landed payloads per number and reading the highest.
 
-**Resolved (2026-10-17, by 02b, this commit).** As 02b's §2.3 states it, in the prompt's own shape.
+**Resolved (2026-10-17, by 02b, `2959b78`).** As 02b's §2.3 states it, in the prompt's own shape.
 The record of what landed is a dict per book, sequence number → payload, and the newest is its
 highest key, read through `_newest_landed` (`runregistrykit/__init__.py:294`). After its replace,
 `_land_status` (`:308`) takes its deep copy (`:340`), then checks for a later landed write and
