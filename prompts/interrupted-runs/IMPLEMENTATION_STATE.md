@@ -4,12 +4,14 @@
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
 (run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
 `39060913296`), closing the two issues 02's
-review opened; 02c written, not run, for the one 02b's review opened. L1–L4 (the machine decision)
+review opened; 02c landed (this commit), not yet reviewed, narrowing the one 02b's review opened
+to its Python 3.14 `with` point. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended (README §6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
-02b (§4). One, found by 02b's review, is open in §3, assigned to 02c.
+02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
+to its 3.14 `with` point, under L11 (a), with no owner.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -48,7 +50,7 @@ tag's.
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
-| 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | written 2026-10-17, not run; L11 taken (a) | — | |
+| 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed, not yet reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI not yet run; L11 taken (a), the issue narrowed | this commit | 328 → 329 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -56,7 +58,7 @@ tag's.
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
-from then until 01), 307 after 01, 322 after 02, and 328 after 02b.
+from then until 01), 307 after 01, 322 after 02, 328 after 02b, and 329 after 02c.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
@@ -428,7 +430,7 @@ it. **02b's review is complete; check 9 holds.**
 | **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ `387c58f` |
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ `2bf9c72` |
 | **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ✅ `2959b78` |
-| **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ⬜ |
+| **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ✅ this commit |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
@@ -450,7 +452,7 @@ it. **02b's review is complete; check 9 holds.**
 ## 3. Active and unresolved issues
 
 Four: three of the five assigned here, and one found by 02b's review, at the end of this section,
-assigned to 02c.
+narrowed by 02c (this commit) to its Python 3.14 `with` point, with no owner.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
@@ -517,6 +519,10 @@ defect in the check.
 *Package lines (02b, `2959b78`).* `list_runs`' status read `runregistrykit/__init__.py:1115` →
 `:1156`; `liveness`'s answer for an empty payload `:585` → `:618`. `stores.py` and `__main__.py` are
 not touched by 02b, so their lines above stand.
+
+*Package lines (02c, this commit).* `list_runs`' status read `runregistrykit/__init__.py:1156` →
+`:1159`; `liveness`'s answer for an empty payload `:618` → `:619`. `stores.py` and `__main__.py` are
+not touched by 02c, so their lines above stand.
 
 ### `[a3-v2-a-hard-killed-run-blocks-its-store]`
 
@@ -638,6 +644,12 @@ is unmoved; `pid_alive` `:356` → `:389` (`PermissionError` `:374` → `:407`);
 `:594`; `_fingerprint_results`' `taken_by=self` `:796` → `:837`. `stores.py` and `__main__.py` are
 not touched by 02b, so their lines above stand.
 
+*Package lines (02c, this commit).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:785` →
+`:788` (its docstring `:786-787` → `:789-790`), its check `:802` → `:805`; `TERMINAL_STATES` `:104`
+is unmoved; `pid_alive` `:389` → `:390` (`PermissionError` `:407` → `:408`); `liveness` `:594` →
+`:595`; `_fingerprint_results`' `taken_by=self` `:837` → `:840`. `stores.py` and `__main__.py` are
+not touched by 02c, so their lines above stand.
+
 ### `[00-begin-does-not-refuse-a-second-writer]`
 
 **Opened:** 2026-10-16, split on hand-over from SGK's `[a3-v2-a-hard-killed-run-blocks-its-store]`
@@ -690,6 +702,10 @@ check `:892-904` → `:1015-1027`, the refusal `:898` → `:1021`; `this_host()`
 *Package lines (02b, `2959b78`).* `begin` `runregistrykit/__init__.py:924` → `:965`; its
 tombstone check `:1015-1027` → `:1056-1068`, the refusal `:1021` → `:1062`; `this_host()` `:1029` →
 `:1070`. `stores.py` is not touched by 02b, so its lines above stand.
+
+*Package lines (02c, this commit).* `begin` `runregistrykit/__init__.py:965` → `:968`; its
+tombstone check `:1056-1068` → `:1059-1071`, the refusal `:1062` → `:1065`; `this_host()` `:1070` →
+`:1073`. `stores.py` is not touched by 02c, so its lines above stand.
 
 ### `[02b-a-raising-handler-can-leave-the-status-lock-held]`
 
@@ -756,6 +772,49 @@ short:
   heartbeat (3, 7 and 12 attempts), catches `2959b78` at 3.12 as well as at 3.13: 1, 2 and 4
   attempts leave the lock held and the in-flight entry. `:372` is reached only by the twice
   re-entered write. The generator expressions: 0 at every version.
+
+**Narrowed (2026-10-17, by 02c, this commit), under L11 (a).** Fixed at Python 3.12 and 3.13, and
+narrowed to the `with` point at 3.14, which stays open. **Owner:** none again. The log is
+[`logs/02c-the-writers-lock.md`](logs/02c-the-writers-lock.md). What 02c resolved:
+- **The two filters.** `_write_status`'s two filters (`runregistrykit/__init__.py:366`, `:373`)
+  are generator expressions, `list(n for n in … if …)`, with a one-line comment at `:365` that says
+  why. A generator expression's filter runs in a frame of its own; an exception raised there leaves
+  that frame and reaches `_write_status` at the `CALL` of `list`, which its exception table covers.
+  By `dis`, at 3.12.15, 3.13.16 and 3.14.8, no `JUMP_BACKWARD` of `_write_status` is outside its
+  table: the uncovered instructions are the `NOP` of `try:` and the `with`'s exit, and at 3.14 the
+  `with`'s entry and one `NOT_TAKEN`. At `2959b78` the filters' jumps were among them, at every
+  version. Nothing else in the writer moved.
+- **A real signal** (02c's probe: a child that signals only itself, one-shot `SIGALRM` of 20 µs–2
+  ms, a raising handler, 45 s per row, one row at a time): the lock left held after 0 of 14 821
+  interruptions at 3.12.15 and 0 of 13 869 at 3.13.16; 0 of 36 506 at 3.13.16 over 120 s; 0 of
+  12 466 at 3.13.16 with the handler recording `killed` first, the file `killed`, 143. At 3.14.8,
+  once in 13 948, at the `with`'s entry (`:355`, offset 26), with no in-flight entry. Against
+  `2959b78`, the same probe: 0 at 3.12.15, **1 at 3.13.16 (`:365`, offset 282, the in-flight entry
+  left)**, and 1 again with `killed` recorded first.
+- **Pinned by** `test_status_writes.TestARaisingHandlerAtEveryJump.test_the_lock_is_free_and_nothing_is_in_flight`,
+  core: in a child it starts and does not signal, a handler that records `killed` and raises
+  `SystemExit(143)` at every `JUMP_BACKWARD` the writer executes, for a plain heartbeat, one a
+  handler's heartbeat re-enters, and one a handler's two heartbeats re-enter (3, 7 and 12 attempts
+  at all three versions). After each, the lock is free to another thread, no write is in flight,
+  and the file says `killed`, 143. Against `2959b78` it fails at 3.12.15 and at 3.13.16, 1, 2 and 4
+  attempts. Mutations (m1) and (m4), the first filter an inlined list or set comprehension, (m2),
+  the second one a list comprehension (caught by the twice re-entered write alone), and (m3), the
+  first a `for` loop with an `if`, each fail it.
+
+*What stays open.* At Python 3.14 the `with` statement calls the lock's `__enter__` by a `CALL`,
+and the interpreter can run a pending handler just after it returns, before the function's first
+exception-table entry. A handler that raises there leaves `_STATUS_LOCK` held by the thread that was
+writing, with no in-flight entry, since the write has not taken its number. A bare `with` over an
+`RLock`, with no registry code, does the same at 3.14.8 and not at 3.12 or 3.13 (02c's "At
+writing"), so the window is the interpreter's. `_update`'s docstring now names it (`:763-765`). No
+client runs 3.14, and CI does not. *Next step:* none until a client or CI moves to 3.14; then
+measure it there again. Whether to report it to CPython is the user's. 02c's sweep cannot model it,
+since an `INSTRUCTION` event fires before an instruction and this point follows a `CALL`.
+
+*Package lines (02c, this commit).* `_write_status` `:352`, its `with` `:355` and `next()` `:362`
+are unmoved; the filters `:365` → `:366` and `:372` → `:373`, with the comment at `:365`; the
+`finally` `:381-382` → `:382-383`. `_update`'s docstring `:725-763` → `:726-766`, its "Not covered"
+paragraph `:756-762` → `:757-765`.
 
 ---
 

@@ -26,6 +26,7 @@ signals only itself; each child runs under a timeout, so that a handler waiting 
 write it interrupted fails the test instead of hanging it.
 """
 
+import dis
 import itertools
 import json
 import os
@@ -959,6 +960,288 @@ class TestAHandlerAtEveryInstruction(StatusTestCase):
 
     def test_an_interrupted_finish(self):
         self.sweep("finish")
+
+
+# =================================================================================================
+# the writer's lock: a handler that raises at a jump back in the writer, where the interpreter
+# runs a pending handler, must leave the lock free and no write in flight. A handler is still a
+# call made from inside the write, by `sys.monitoring`, at every `JUMP_BACKWARD` the write executes
+
+# the opname at which the interpreter runs a pending handler inside a loop, and at which an
+# `INSTRUCTION` event fires before its effect
+JUMP_BACK = "JUMP_BACKWARD"
+
+# the most seconds the attempts of one write may take, and the most times the lock is released
+# on the writing thread after an attempt that left it held: bounds, not measurements
+JUMP_SWEEP_SECONDS = 60.0
+MOST_RELEASES = 100
+
+
+class CountedInOrder(Instructions):
+    """02b's `Instructions`, which also records, while ``order`` is a list, the ``(code,
+    offset)`` of each instruction an attempt counts, in the order it counts them."""
+
+    def __init__(self, codes):
+        super().__init__(codes)
+        self.order = None
+
+    def on_instruction(self, code, offset):
+        attempt = self.attempt
+        if (
+            self.order is not None
+            and attempt is not None
+            and not (attempt.busy or attempt.fired)
+        ):
+            self.order.append((code, offset))
+        return super().on_instruction(code, offset)
+
+
+class InsideTheSweptWrite(Interruption):
+    """02's `Interruption`, half written, firing once, for the writes made from inside the write
+    swept. It does not fire inside a write of the sweep's own handler, which is not part of the
+    write swept."""
+
+    def __init__(self, run, handler, instructions):
+        super().__init__(run, HALF_WRITTEN, handler)
+        self.instructions = instructions
+
+    def dump(self, obj, fp, *args, **kwargs):
+        attempt = self.instructions.attempt
+        if attempt is not None and attempt.busy:
+            return self.real_dump(obj, fp, *args, **kwargs)
+        return super().dump(obj, fp, *args, **kwargs)
+
+
+def the_jumps_writes(instructions):
+    """The three writes swept, each a heartbeat, by name: a plain one; one whose `json.dump`
+    makes a handler's `heartbeat()`, which is re-entered and composes from a landed base; and one
+    whose `json.dump` makes a handler's `heartbeat(stage="B")` and then `heartbeat(stage="C")`,
+    the second composing from B's landed payload with an older write still in flight. The
+    handler's writes are part of the write swept. Each returns whether that handler ran.
+    """
+
+    def plain(run):
+        run.heartbeat(units_done=UNITS)
+        return None
+
+    def inside(run, handler):
+        interruption = InsideTheSweptWrite(run, handler, instructions)
+        with mock.patch("json.dump", new=interruption.dump):
+            run.heartbeat(units_done=UNITS + 1)
+        return interruption.fired
+
+    def once(run):
+        return inside(run, run.heartbeat)
+
+    def twice(run):
+        def handler():
+            run.heartbeat(stage="B")
+            run.heartbeat(stage="C")
+
+        return inside(run, handler)
+
+    return (
+        ("a plain heartbeat", plain),
+        ("a heartbeat re-entered by a handler's heartbeat", once),
+        ("a heartbeat re-entered by a handler's two heartbeats", twice),
+    )
+
+
+def the_lock_is_free() -> bool:
+    """Whether another thread can take the writer's lock at once; it releases it at once if so."""
+    taken = []
+
+    def check():
+        if runregistrykit._STATUS_LOCK.acquire(blocking=False):
+            runregistrykit._STATUS_LOCK.release()
+            taken.append(True)
+        else:
+            taken.append(False)
+
+    thread = threading.Thread(target=check, daemon=True)
+    thread.start()
+    thread.join(timeout=10)
+    return taken == [True]
+
+
+def free_the_lock() -> int:
+    """Release the writer's lock on this thread, the one that made the write, until another
+    thread can take it; say how many releases it took."""
+    released = 0
+    while not the_lock_is_free():
+        if released >= MOST_RELEASES:
+            raise AssertionError(f"the lock is still held after {released} releases")
+        runregistrykit._STATUS_LOCK.release()
+        released += 1
+    return released
+
+
+def in_flight_for(run) -> list:
+    """The sequence numbers the writer's bookkeeping holds as in flight for ``run``'s status,
+    read, never changed."""
+    book = runregistrykit._STATUS_WRITES.get(os.path.realpath(run.status_path))
+    return sorted(book["in_flight"]) if book is not None else []
+
+
+def jumps_in_this_process(root, client) -> dict:
+    """The writer's jumps back, swept in this process: a run begun under ``root``; then for each
+    of the three writes, the instructions of one uninterrupted write recorded in order, and an
+    attempt at each one whose opname is `JUMP_BACKWARD`, on a fresh run each time (as
+    `sweep_in_this_process` makes one). The sweep's handler records `finish("killed",
+    exit_code=143)` and raises `SystemExit(143)`. After each attempt: the lock is free, no write
+    is in flight for the run, and the file says `killed`, 143, with nothing left behind. Says, per
+    write, which instructions were attempted and what was wrong after each."""
+    template = runregistrykit.begin(
+        campaign="example",
+        prompt="01",
+        slug="every-jump-of-the-writer",
+        purpose="a sweep of the status writer's jumps, in a temporary directory",
+        root=root,
+        client_root=client,
+        argv=["sweep", "jumps"],
+    )
+    copies = itertools.count()
+
+    def a_fresh_run():
+        path = os.path.join(root, f"{template.id}-{next(copies)}")
+        shutil.copytree(template.path, path)
+        run = runregistrykit.Run(path)
+        run.heartbeat()
+        return run
+
+    def name(code, offset):
+        return f"{code.co_name}, line {line_of(code, offset)}, offset {offset}"
+
+    codes = the_writers_code()
+    opnames = {
+        code: {i.offset: i.opname for i in dis.get_instructions(code)} for code in codes
+    }
+    report = {
+        "codes": [f"{code.co_name}:{code.co_firstlineno}" for code in codes],
+        "writes": [],
+    }
+    with CountedInOrder(codes) as instructions:
+        for write_name, write in the_jumps_writes(instructions):
+            entry = {"write": write_name, "attempts": [], "wrong": []}
+            report["writes"].append(entry)
+            run = a_fresh_run()
+            instructions.order = order = []
+            counting = Attempt(0)
+            fired = []
+            entry["uninterrupted"] = instructions.run(
+                counting, lambda: fired.append(write(run))
+            )
+            instructions.order = None
+            entry["handler's writes made"] = fired == [True]
+            entry["total"] = len(order)
+            entry["uninterrupted ending"] = ending_of(run)
+            shutil.rmtree(run.path)
+            targets = [
+                at
+                for at, (code, offset) in enumerate(order, 1)
+                if opnames[code].get(offset) == JUMP_BACK
+            ]
+            started = time.monotonic()
+            for at in targets:
+                code, offset = order[at - 1]
+                where = name(code, offset)
+                entry["attempts"].append(where)
+                run = a_fresh_run()
+                attempt = Attempt(at, the_handler(run, "finish", "raises"))
+                outcome = instructions.run(attempt, lambda: write(run))
+                found = []
+                if not attempt.fired:
+                    found.append("the handler never ran")
+                elif attempt.where != (code, offset):
+                    found.append(f"the handler ran at {name(*attempt.where)}")
+                if outcome != "raised SystemExit(143)":
+                    found.append(f"the write {outcome}")
+                left = in_flight_for(run)
+                if left:
+                    found.append(f"in flight after it: {left}")
+                released = free_the_lock()
+                if released:
+                    found.append(f"the lock was held: {released} releases freed it")
+                ended = ending_of(run)
+                if ended != ["killed", 143]:
+                    found.append(f"after it: {ended}")
+                if found:
+                    entry["wrong"].append(f"{at} ({where}): {'; '.join(found)}")
+                shutil.rmtree(run.path)
+                if time.monotonic() - started > JUMP_SWEEP_SECONDS:
+                    entry["wrong"].append(f"the attempts passed {JUMP_SWEEP_SECONDS} s")
+                    break
+            entry["seconds"] = round(time.monotonic() - started, 3)
+    return report
+
+
+# a child that sweeps the writer's jumps and prints its report, in a process of its own because
+# an attempt that leaves the lock held, or a write in flight, leaves it in the process that made
+# it. The child is never signalled
+JUMP_SWEEPER = """\
+import json, sys
+
+sys.path.insert(0, {repo!r})
+from runregistrykit.tests import test_status_writes
+
+root, client = sys.argv[1:3]
+print(json.dumps(test_status_writes.jumps_in_this_process(root, client)))
+"""
+
+# the jump sweeper's timeout: its three writes' bounds, and a margin for starting
+JUMP_SWEEPER_TIMEOUT = 3 * JUMP_SWEEP_SECONDS + 60
+
+
+class TestARaisingHandlerAtEveryJump(StatusTestCase):
+    """A handler that records `killed` and raises `SystemExit(143)`, run at every `JUMP_BACKWARD`
+    the writer executes, where the interpreter runs a pending handler inside a loop, for three
+    writes: a plain heartbeat, one a handler's heartbeat re-enters, and one a handler's two
+    heartbeats re-enter (`jumps_in_this_process`). The writes made from inside the heartbeat's
+    `json.dump` are part of the write swept, and their jumps are attempted too; the sweep's own
+    handler's are not. After each attempt the writer's lock is free, no write is in flight, and
+    the file says `killed`, 143. In a child process the test starts and does not signal.
+    """
+
+    def test_the_lock_is_free_and_nothing_is_in_flight(self):
+        script = os.path.join(temporary_directory(self), "jump_sweeper.py")
+        with open(script, "w") as handle:
+            handle.write(JUMP_SWEEPER.format(repo=PACKAGE_PARENT))
+        try:
+            done = subprocess.run(
+                [sys.executable, script, self.root, self.client],
+                cwd=self.client,
+                capture_output=True,
+                text=True,
+                timeout=JUMP_SWEEPER_TIMEOUT,
+            )
+        except subprocess.TimeoutExpired:
+            self.fail(f"the jump sweep did not end in {JUMP_SWEEPER_TIMEOUT} s")
+        self.assertEqual(done.returncode, 0, done.stderr[-2000:])
+        report = json.loads(done.stdout.splitlines()[-1])
+        names = {code.split(":")[0] for code in report["codes"]}
+        self.assertLessEqual({"_write_status", "_land_status"}, names)
+        self.assertEqual(len(report["writes"]), 3)
+        for index, entry in enumerate(report["writes"]):
+            with self.subTest(write=entry["write"]):
+                self.assertEqual(entry["uninterrupted"], "returned")
+                self.assertEqual(entry["uninterrupted ending"][0], "running")
+                self.assertEqual(
+                    entry["handler's writes made"],
+                    index > 0,
+                    "the handler's writes were not made as the write asks",
+                )
+                self.assertLessEqual(entry["total"], MOST_INSTRUCTIONS)
+                self.assertGreater(
+                    len(entry["attempts"]),
+                    0,
+                    f"no jump back among {entry['total']} instructions",
+                )
+                self.assertEqual(
+                    entry["wrong"],
+                    [],
+                    f"{len(entry['wrong'])} of {len(entry['attempts'])} attempts went "
+                    f"wrong; attempted: {entry['attempts']}",
+                )
 
 
 if __name__ == "__main__":

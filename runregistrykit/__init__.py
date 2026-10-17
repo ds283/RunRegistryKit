@@ -362,14 +362,15 @@ def _write_status(path, fields) -> dict:
         number = next(book["numbers"])
         try:
             book["in_flight"][number] = dict(fields)
-            earlier = [n for n in sorted(book["in_flight"]) if n < number]
+            # generators: a handler raising at a comprehension or loop filter leaves the lock held
+            earlier = list(n for n in sorted(book["in_flight"]) if n < number)
             landed, payload = _newest_landed(book)
             if earlier and payload is not None:
                 # a handler has re-entered a write: the file may hold what that write read. The
                 # newest landed payload already holds the fields of every in-flight write older
                 # than it, and may have set the same keys since, so only the newer are applied
                 status = copy.deepcopy(payload)
-                earlier = [n for n in earlier if n > landed]
+                earlier = list(n for n in earlier if n > landed)
             else:
                 status = read_json(path) or {}
             for n in earlier:
@@ -759,7 +760,9 @@ class Run:
         temporary file and replacing it (`SIGKILL`, or a handler that restores the default
         disposition and kills its own process) leaves a `status.json.<unique>.tmp` in the run
         directory. Nothing reads it, `list` and the store operations do not look at a run
-        directory's other files, and nothing removes it.
+        directory's other files, and nothing removes it. At Python 3.14, a handler that raises just
+        after the lock is taken, at the `with` statement's entry, leaves it held, as it would any
+        lock taken by a `with` on that version.
         """
         return _write_status(self.status_path, fields)
 

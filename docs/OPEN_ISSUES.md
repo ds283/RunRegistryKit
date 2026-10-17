@@ -29,18 +29,19 @@ two found here reading it, read at `79015a7`. The five that bear on a long job w
 | `[01-cross-filesystem-move-advice-says-delete-by-hand]` | none | `store move` relays DatastoreKit's "delete the source by hand" for a registered store, which is retired instead |
 | `[06-runregistrykit-list-into-a-closed-pipe-ends-in-a-traceback]` | none | `list \| head` can end in a `BrokenPipeError` traceback; cosmetic, nothing lost |
 
-### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01, 02 and 02b landed
+### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01, 02, 02b and 02c landed
 
 Assigned from the `inherited-issues` board on 2026-10-16: the five that bear on a long job that
 may be interrupted, taken in this order, one prompt each (the campaign's README §2). The first,
 `[04-runs-do-not-say-which-machine-produced-them]`, was closed by 01 on 2026-10-16, and the second,
 `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, by 02 on 2026-10-17. Two more were opened by 02's review on 2026-10-17, on the bookkeeping of the
 `status.json` writer, and closed by 02b the same day. One was opened by 02b's review, the same day,
-and assigned to 02c.
+and assigned to 02c, which fixed it at Python 3.12 and 3.13 and narrowed it to its 3.14 `with`
+point, now with no owner.
 
 | Issue | Owner | Hook |
 |---|---|---|
 | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | 03 | A torn or missing `status.json` drops a live run from the in-use check; measured, `retire` deleted a live run's store |
 | `[a3-v2-a-hard-killed-run-blocks-its-store]` | 04 | A `SIGKILL`'d run stays `running`, and the store operations count a stale run as in use, so fingerprint, copy, move, retire, amend and a resumed run's fingerprint are refused; the named remedy, `Run.finish`, has no command and checks no pid |
 | `[00-begin-does-not-refuse-a-second-writer]` | 05 | `begin` does not look for a `running` run on its results store, so a second writer on a live run's store is begun silently |
-| `[02b-a-raising-handler-can-leave-the-status-lock-held]` | 02c | At 3.13 a raising handler at an inlined comprehension's jump leaves the writer's lock held; a second writer thread then hangs the process |
+| `[02b-a-raising-handler-can-leave-the-status-lock-held]` | none | At Python 3.14 only, a handler raising just after `with` takes the writer's lock leaves it held, as at any `with` on that version; no client or CI runs 3.14 |
