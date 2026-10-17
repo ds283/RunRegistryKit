@@ -4,7 +4,7 @@
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
 (run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
 `39060913296`), closing the two issues 02's
-review opened; 02c landed (`35ce264`) and reviewed, CI pending a push, narrowing the one 02b's review opened
+review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`), narrowing the one 02b's review opened
 to its Python 3.14 `with` point. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended (README §6.2).** Holds the five issues that bear on a
@@ -50,7 +50,7 @@ tag's.
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
-| 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI pending a push; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
+| 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -503,6 +503,15 @@ only worktree; `git diff --stat 2959b78 HEAD -- runregistrykit pyproject.toml .g
 
 **Verdict:** 02c is accepted, **pending CI**: all three jobs green, the core job's count 87, read
 from the run's log after the user pushes `main`.
+
+*CI (2026-10-17).* The user said yes, and `main` was pushed, `c18ec34..31933c4`. Run
+`39072902589` (`tests`, on the push of `31933c4`) passed all three jobs, each on `ubuntu-24.04`:
+`core (no store layer)`, on 3.12.15, with `datastorekit`, `ray` and `sqlalchemy` absent, `Ran 87
+tests in 13.835s`, `OK (skipped=1)`; `suite (low)`, on 3.12.15, `Ran 329 tests in 53.651s`, and
+`suite (high)`, on 3.13.16, `Ran 329 tests in 60.022s`, each `OK (skipped=1)`; `black` 31 files
+unchanged. The one skip in each is `test_host`'s macOS readers, so
+`TestARaisingHandlerAtEveryJump` ran and passed on Linux at 3.12 and at 3.13. **02c's review is
+complete; check 9 holds.**
 
 ### 1.1 Items
 
