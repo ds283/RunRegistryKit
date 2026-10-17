@@ -3,7 +3,7 @@
 One line per open issue, pointing at the board that holds it. The board is right if the two
 disagree. See `CLAUDE.md` for the maintenance rule.
 
-**Last updated:** 2026-10-16 · **9 open**: 2 on the `extraction` board (§1.1), 3 on the
+**Last updated:** 2026-10-17 · **9 open**: 2 on the `extraction` board (§1.1), 3 on the
 `inherited-issues` board (§1.2) and 4 on the `interrupted-runs` board (§1.3).
 
 ## 1. By campaign
@@ -29,7 +29,7 @@ two found here reading it, read at `79015a7`. The five that bear on a long job w
 | `[01-cross-filesystem-move-advice-says-delete-by-hand]` | none | `store move` relays DatastoreKit's "delete the source by hand" for a registered store, which is retired instead |
 | `[06-runregistrykit-list-into-a-closed-pipe-ends-in-a-traceback]` | none | `list \| head` can end in a `BrokenPipeError` traceback; cosmetic, nothing lost |
 
-### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01 landed
+### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01 landed, 02 written
 
 Assigned from the `inherited-issues` board on 2026-10-16: the five that bear on a long job that
 may be interrupted, taken in this order, one prompt each (the campaign's README §2). The first,

@@ -1,8 +1,8 @@
 # interrupted-runs campaign — implementation state
 
-**Last updated:** 2026-10-16 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
-(run `38911075984`); 02 not written. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended (README
-§6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
+**Last updated:** 2026-10-17 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
+(run `38911075984`); 02 written, not run. L1–L4 (the machine decision) taken by the user on
+2026-10-16, as recommended; L5 taken 2026-10-17, refined (README §6.2).** Holds the five issues that bear on a long job that may be interrupted, assigned here from
 the `inherited-issues` board on 2026-10-16: four open (§3), one resolved by 01 (§4).
 
 **Campaign:** [`README.md`](README.md) ·
@@ -27,7 +27,7 @@ tag's.
 | **L2** where the host is recorded | 01 | **taken** 2026-10-16: (a) |
 | **L3** what identifies a boot | 01 | **taken** 2026-10-16: (a) |
 | **L4** what `liveness` and `list` say | 01 | **taken** 2026-10-16: (a) |
-| **L5** how `status.json` is written | 02 | put, recommended (a) |
+| **L5** how `status.json` is written | 02 | **taken** 2026-10-17: (a), refined: superseded per `status.json` in the process, not per `Run`; the later write keeps an in-flight write's fields; an `RLock` |
 | **L6** an unreadable status in the in-use check | 03 | put, recommended (a) |
 | **L7** what `end` writes | 04 | put, recommended (a) |
 | **L8** what `end` checks | 04 | put, recommended (a) |
@@ -39,7 +39,7 @@ tag's.
 | # | Prompt | Model | Status | Commit | Suite |
 |---|---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
-| 02 | `02-status-writes.md` | Opus | not written | — | |
+| 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | written 2026-10-17, not run | — | |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -279,6 +279,27 @@ made from inside a heartbeat's `json.dump` lands first; if the handler then retu
 again. Read, not measured. The fix is the unique name **and** a rule that a write superseded by a
 later write from the same `Run` is discarded, not replaced (that README's L5). The reproduction's
 returning case is the one that tells the two apart.
+
+*Measured at writing 02 (2026-10-17, at `c2911d3`).* Measured, no longer only read, by a planner's
+probe (scratch, not committed; 02's "At writing" gives its table). A child process began a run,
+installed a `SIGTERM` handler calling `run.finish("killed", exit_code=143)`, and sent itself
+`SIGTERM` from inside a heartbeat's `json.dump` (`units_done=7`), with half the payload or all of it
+written to the handle. With today's fixed name:
+- **a handler that raises** (`SystemExit`, as SGK's `make_killed_handler` does) left the file
+  parseable both times. With half written it said `killed` with `exit_code` `null`, a mixture of the
+  two payloads. With all written it said **`running`**: the terminal state was lost though the
+  handler raised, which the entry above did not expect;
+- **a handler that returns** left **`running`** both times, and `heartbeat` raised
+  `FileNotFoundError` into its caller;
+- **a handler that ends the process**, as SGK's two `terminal` handlers do (`SIG_DFL`, then `os.kill`
+  itself), left `killed` and 143 both times. The heartbeat's buffered bytes died with the process.
+
+With a `mkstemp`-named write and nothing else (L5 (b)), raising and ending the process kept `killed`
+and 143, and returning left `running` both times, which confirms the correction above. Ending the
+process left one `status.json.<x>.tmp` behind. In every case that kept `killed`, `units_done` was 0,
+not 7: the `finish` read the file before the heartbeat landed. Two more points bear on the fix (02's
+§2.3). `Run(path)` is public, and SGK's manual remedy goes through it. SGK's pipeline heartbeats from
+its `sys.stdout` stream, so on whichever thread prints.
 
 *Package lines (01, `387c58f`).* 01 moved these lines of `runregistrykit/__init__.py` and
 `runregistrykit/stores.py`; nothing above is otherwise changed by it. `write_json_atomic` `:242-251`

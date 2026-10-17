@@ -5,8 +5,10 @@
 may be interrupted, and from measurements made the same day (§0.2). SGK's stale-run brief
 (`prompts/handover/runregistrykit-stale-run-brief.md`, committed in SGK `79434bf`) is evidence, not
 a specification. The board holds each issue in full; this plan does not repeat them. The user took
-the machine decision, L1–L4, on 2026-10-16, as recommended (§6.2). **Prompt 01 is written**
-([`01-the-host.md`](01-the-host.md)), and the others are written one at a time after it (§2.1).
+the machine decision, L1–L4, on 2026-10-16, as recommended (§6.2). **Prompt 01 has landed and
+been reviewed** ([`01-the-host.md`](01-the-host.md), `387c58f`). The user took L5 on 2026-10-17,
+refined (§6.2), and **prompt 02 is written** ([`02-status-writes.md`](02-status-writes.md)). The
+others are written one at a time after it (§2.1).
 
 ## 0. Why this campaign exists
 
@@ -134,7 +136,7 @@ run is the user's to say (L1).
 | # | Prompt | Covers | Model | Status |
 |---|---|---|---|---|
 | 01 | [`01-the-host.md`](01-the-host.md) | `[04-runs-do-not-say-which-machine-produced-them]`, under L1–L4: a host identity and a boot identity read from the standard library, recorded in the manifest and `status.json` by `begin`, kept by every later write. `liveness` answers for a run on another machine without testing its pid, and calls a run on this machine `stale` when its boot is not this one; `list` shows both, and counts records with no host. The store operations' refusal names a run on another machine as such. Tests: a record from another host, from an earlier boot, and with no host; the identity functions on this platform, and their absence handled. **Acceptance:** every existing test passes unchanged in what it asserts; a record from another host is never judged by `kill -0`; a record with no `host` is judged as today and counted. | Opus | landed and reviewed 2026-10-16, `387c58f`; CI green (run `38911075984`) |
-| 02 | `02-status-writes.md` | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, under L5: `status.json` written through a temporary name of its own, with the mode the fixed name gave, and a write superseded by a later write from the same `Run` discarded, so a terminal state is never replaced by the payload a heartbeat read before it. Sidecar writes keep `<path>.tmp` and their leftover checks. **Acceptance:** the reproduction the board names, a heartbeat whose `json.dump` makes a `finish` from inside it, run once raising and once returning, leaves a parseable `status.json` with the terminal state both times. | Opus | not written |
+| 02 | [`02-status-writes.md`](02-status-writes.md) | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, under L5 as refined: `status.json` written through a temporary name of its own, with the mode the fixed name gave, and a write superseded by a later write to the same `status.json` from the same process discarded, whichever `Run` made it, the later write keeping the earlier one's fields, so a terminal state is never replaced by the payload a heartbeat read before it. Sidecar writes keep `<path>.tmp` and their leftover checks. **Acceptance:** the reproduction the board names, a heartbeat whose `json.dump` makes a `finish` from inside it, run once raising and once returning, leaves a parseable `status.json` with the terminal state both times. *At writing (2026-10-17, `c2911d3`), measured by a probe with a real signal: today a raising handler can leave `running`, or `killed` with `exit_code` `null`; a returning one leaves `running` and a `FileNotFoundError` in the caller; one that ends the process survives. A unique name alone still loses the state when the handler returns.* | Opus | written 2026-10-17 |
 | 03 | `03-an-unreadable-status-is-in-use.md` | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, under L6: a run with a manifest that names the store and a `status.json` that cannot be read is counted as in use by copy, move, fingerprint, retire and amend, and refused in words that say the registry cannot tell whether it is alive; `list` flags such a run. **Acceptance:** the planner's probe as a test: each operation refuses, and the store is untouched. | Sonnet | not written |
 | 04 | `04-end-a-run.md` | `[a3-v2-a-hard-killed-run-blocks-its-store]`, under L7 and L8: `python -m runregistrykit end RUN_ID --reason TEXT`, which records a `running` run as ended when the evidence on this machine says it is over, and refuses otherwise; what it writes; the store operations' refusals name it. `Run.finish` unchanged. **Acceptance:** a child process begun and sent `SIGKILL`, then `end`, then every store operation and a resumed run's fingerprint succeeding; `end` refused for a live pid, for a run on another host, and for a run already terminal. | Opus | not written |
 | 05 | `05-begin-refuses-a-second-writer.md` | `[00-begin-does-not-refuse-a-second-writer]`, under L9: `begin` refuses, before creating the run directory, when a `running` run names its `results` store, by path or `results_store_id`, and names `end` for a stale one. **Acceptance:** a second `begin` on a live run's store, a stale run's store, and a store named by an unreadable status, each refused with no run directory left; a store whose runs are all terminal accepted. | Sonnet | not written |
@@ -282,7 +284,12 @@ the decision. The others are put when the prompt that needs them is written.
   the same `Run` landed while it was writing removes its temporary file instead of replacing.
   `write_json_atomic` keeps `<path>.tmp` for every other caller, sidecars included. (b) The unique
   name alone, the board's recorded next step. It does not keep a terminal state when the handler
-  returns (§0.2). *Recommended:* (a).
+  returns (§0.2). *Recommended:* (a). *Taken 2026-10-17: (a), refined, as 02's file states it. The
+  supersession is kept per `status.json` within the process, keyed by its real path, so a second
+  `Run(path)` object is covered. The later write merges the fields of an earlier one still in
+  flight, so a discarded heartbeat loses nothing. Two threads are serialised by an `RLock`, which
+  a handler re-entering on its own thread does not wait on. 02's planner probe measured the race
+  first, with a real signal (02's "At writing").*
 - **L6: an unreadable status in the in-use check** *(for 03)*.
   (a) **Counted as in use**, and refused in words saying the status cannot be read, so whether the
   run is alive cannot be told, with `end` (after 04) or a person's repair as the remedy. `list`
