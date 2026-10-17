@@ -4,11 +4,12 @@
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
 (run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
 `39060913296`), closing the two issues 02's
-review opened. L1–L4 (the machine decision) taken by the user on 2026-10-16, as recommended; L5 taken
-2026-10-17, refined, and amended the same day (README §6.2).** Holds the five issues that bear on a
+review opened; 02c written, not run, for the one 02b's review opened. L1–L4 (the machine decision)
+taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
+day; L11 put for 02c (README §6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
-02b (§4). One, found by 02b's review, is open in §3.
+02b (§4). One, found by 02b's review, is open in §3, assigned to 02c.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -38,6 +39,7 @@ tag's.
 | **L8** what `end` checks | 04 | put, recommended (a) |
 | **L9** what `begin` refuses | 05 | put, recommended (a) |
 | **L10** the release | 06 | put, recommended (a) |
+| **L11** the `with` point at Python 3.14 | 02c | put 2026-10-17, recommended (a) |
 
 ## 1. Prompts
 
@@ -46,6 +48,7 @@ tag's.
 | 01 | [`01-the-host.md`](01-the-host.md) | Opus | **landed and reviewed** 2026-10-16 ([log](logs/01-the-host.md)); CI green, run `38911075984` | `387c58f` | 276 → 307 |
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
+| 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | written 2026-10-17, not run; waits on L11 | — | |
 | 03 | `03-an-unreadable-status-is-in-use.md` | Sonnet | not written | — | |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
@@ -425,6 +428,7 @@ it. **02b's review is complete; check 9 holds.**
 | **H1** | 01 | the host's identity and boot, in the manifest and `status.json`; `foreign`; a run from an earlier boot `stale`; `list` | `[04-runs-do-not-say-which-machine-produced-them]` | ✅ `387c58f` |
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ `2bf9c72` |
 | **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ✅ `2959b78` |
+| **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ⬜ |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
@@ -445,7 +449,8 @@ it. **02b's review is complete; check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Four: three of the five assigned here, and one found by 02b's review, at the end of this section.
+Four: three of the five assigned here, and one found by 02b's review, at the end of this section,
+assigned to 02c.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
@@ -691,6 +696,12 @@ tombstone check `:1015-1027` → `:1056-1068`, the refusal `:1021` → `:1062`; 
 **Opened:** 2026-10-17 by the orchestrator's review of 02b, from the log's observation 1 and the
 review's check 6; measured. **Owner:** none.
 
+**Assigned (2026-10-17):** to prompt 02c of this campaign, which follows 02b at once, ahead of 03,
+as 02b followed 02: it fixes the writer while it is the last thing changed. 02c makes the two
+filters generator expressions, and pins them with a sweep at every `JUMP_BACKWARD`. The `with`
+point at 3.14 is put to the user as L11 (README §6.2), recommended (a): recorded in `_update`'s
+docstring, and this entry narrowed to it, not fixed.
+
 *The defect.* `_write_status` (`runregistrykit/__init__.py:352`) holds `_STATUS_LOCK` in a `with`
 (`:355`) and removes its in-flight entry in a `finally`. At 3.13.16 the exception table of its
 code leaves offsets 278–286 uncovered: the filter of the comprehension `earlier = [n for n in
@@ -727,6 +738,24 @@ and 3.13 (a generator expression, as 02 had, or a loop), and measure them as abo
 real-signal bombardment, bounded in time, in a child, asserting the lock not owned and no in-flight
 entry after each interrupted write; or the sweep restricted to the instructions that check the eval
 breaker, with the same assertions. The `with` point at 3.14 is for the same prompt to decide.
+
+*Measured at writing 02c (2026-10-17, at `9d26357`).* 02c's "At writing" holds the tables. In
+short:
+- **3.12 inlines the comprehension too.** Its table has the same gap (offsets 278 and 398), and a
+  real signal did not leave the lock held there. At 3.13 and 3.14 the handler runs at the
+  `JUMP_BACKWARD` itself.
+- **A `for` loop with an `if`, the next step's other form, has the same gap** at 3.12, 3.13 and
+  3.14, and a real signal left the lock held 4 times at 3.13.16 in 45 s.
+- **Generator expressions close it.** 0 at 3.12.15 and 3.13.16 in 45 s, and 0 in 232 531
+  interruptions at 3.13.16 over 3 × 120 s, against 5 for `2959b78` in 45 s.
+- **The `with` point at 3.14** remains after the change, 15 in 45 s. A bare `with` over an `RLock`,
+  with no registry code, left it held after 5 228 of 34 704 interruptions at 3.14.8, and never at
+  3.12 or 3.13. A hand-written acquire and release instead leaks at its `finally` at every version
+  (10, 11 and 6).
+- **The sweep restricted to `JUMP_BACKWARD`**, a plain, a re-entered and a twice re-entered
+  heartbeat (3, 7 and 12 attempts), catches `2959b78` at 3.12 as well as at 3.13: 1, 2 and 4
+  attempts leave the lock held and the in-flight entry. `:372` is reached only by the twice
+  re-entered write. The generator expressions: 0 at every version.
 
 ---
 

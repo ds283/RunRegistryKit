@@ -35,11 +35,12 @@ Assigned from the `inherited-issues` board on 2026-10-16: the five that bear on 
 may be interrupted, taken in this order, one prompt each (the campaign's README §2). The first,
 `[04-runs-do-not-say-which-machine-produced-them]`, was closed by 01 on 2026-10-16, and the second,
 `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, by 02 on 2026-10-17. Two more were opened by 02's review on 2026-10-17, on the bookkeeping of the
-`status.json` writer, and closed by 02b the same day. One was opened by 02b's review, the same day.
+`status.json` writer, and closed by 02b the same day. One was opened by 02b's review, the same day,
+and assigned to 02c.
 
 | Issue | Owner | Hook |
 |---|---|---|
 | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | 03 | A torn or missing `status.json` drops a live run from the in-use check; measured, `retire` deleted a live run's store |
 | `[a3-v2-a-hard-killed-run-blocks-its-store]` | 04 | A `SIGKILL`'d run stays `running`, and the store operations count a stale run as in use, so fingerprint, copy, move, retire, amend and a resumed run's fingerprint are refused; the named remedy, `Run.finish`, has no command and checks no pid |
 | `[00-begin-does-not-refuse-a-second-writer]` | 05 | `begin` does not look for a `running` run on its results store, so a second writer on a live run's store is begun silently |
-| `[02b-a-raising-handler-can-leave-the-status-lock-held]` | none | At 3.13 a raising handler at an inlined comprehension's jump leaves the writer's lock held; a second writer thread then hangs the process |
+| `[02b-a-raising-handler-can-leave-the-status-lock-held]` | 02c | At 3.13 a raising handler at an inlined comprehension's jump leaves the writer's lock held; a second writer thread then hangs the process |
