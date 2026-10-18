@@ -7,15 +7,15 @@
 review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`), narrowing the one 02b's review opened
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
-day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined (README
-§6.2).** Holds the five issues that bear on a
+day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, not run (README §6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
 to its 3.14 `with` point, under L11 (a), with no owner. One, found at the writing of 03, is open in
 §3 with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
 (§4), and its work found one more, open in §3 with no owner; its review found another, open in
-§3 with no owner.
+§3 with no owner. One, found at the writing of 04, is open in §3 with no owner.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -41,8 +41,8 @@ tag's.
 | **L4** what `liveness` and `list` say | 01 | **taken** 2026-10-16: (a) |
 | **L5** how `status.json` is written | 02, 02b | **taken** 2026-10-17: (a), refined: superseded per `status.json` in the process, not per `Run`; the later write keeps an in-flight write's fields; an `RLock`. **Amended** 2026-10-17 after 02's review: only in-flight writes newer than the landed base are re-applied, and the record of what landed is never lowered (02b) |
 | **L6** an unreadable status in the in-use check | 03 | **taken** 2026-10-18: (a), refined: in use unless the status says a terminal state; a non-object status or manifest read as unreadable |
-| **L7** what `end` writes | 04 | put, recommended (a) |
-| **L8** what `end` checks | 04 | put, recommended (a) |
+| **L7** what `end` writes | 04 | **taken** 2026-10-18: (a); `lost`, exit code `null`, an `ended` record whose keys 04's file fixes |
+| **L8** what `end` checks | 04 | **taken** 2026-10-18: (a); a live pid here refused with no override, another host or a status that does not say only with `--unverified` |
 | **L9** what `begin` refuses | 05 | put, recommended (a) |
 | **L10** the release | 06 | put, recommended (a) |
 | **L11** the `with` point at Python 3.14 | 02c | **taken** 2026-10-17: (a); the window recorded in `_update`'s docstring, the issue narrowed to it, not fixed |
@@ -56,7 +56,7 @@ tag's.
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
 | 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
-| 04 | `04-end-a-run.md` | Opus | not written | — | |
+| 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | written 2026-10-18, not run | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
@@ -651,10 +651,10 @@ at 3.12 and at 3.13. **03's review is complete; check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Six: two of the five assigned here, for 04 and 05; one found by 02b's review, narrowed by 02c
+Seven: two of the five assigned here, for 04 and 05; one found by 02b's review, narrowed by 02c
 (`35ce264`) to its Python 3.14 `with` point, with no owner; two opened by 03, with no owner: one
-at its writing and one by its work; and one opened by 03's review (`ab0cad9`), with no owner. The
-last four are at the end of this section.
+at its writing and one by its work; one opened by 03's review (`ab0cad9`), with no owner; and one
+opened at the writing of 04, with no owner. The last five are at the end of this section.
 `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, which 03 closed, is in §4.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
@@ -806,6 +806,17 @@ the boundary sentence `:1043-1044` → `:1076-1078`. `runregistrykit/__main__.py
 `:419`, `list` `:423` → `:429`, the store subcommands `:438-527` → `:444-533`. 03 does not touch
 this entry's defect: a run `SIGKILL`'d stays `running`, and `Run.finish` is still its only remedy,
 with no command (04).
+
+*Measured at writing 04 (2026-10-18, at `9e38581`).* By a scratch probe on `RetireTestCase`, a
+child begun on a full four-shard store, heartbeating, then sent `SIGKILL`. Reaped (return code
+−9), its `status.json` was byte-identical to before the kill, `running`, `stale`; copy, move,
+fingerprint, fingerprint `--write`, retire's dry run and amend each refused, naming "A stale run is
+ended by a person, with Run.finish"; a resumed run's `finish(fingerprint=True)` wrote no
+fingerprint and a `fingerprint_error`; `python -m runregistrykit end` is an argparse error.
+`Run(path).finish("killed")` ended the record of a run alive in the probe's own process as readily
+as the dead one's, after which the operations proceeded. Before the reap, the killed child answered
+`kill -0` and was `alive`: `[04-a-killed-process-not-yet-reaped-answers-kill-0]`, opened with 04.
+04's file states the command the user took (L7 and L8 (a), 2026-10-18).
 
 ### `[00-begin-does-not-refuse-a-second-writer]`
 
@@ -1064,6 +1075,29 @@ and a run begun on it in the probe's process, its status's `state` then replaced
 
 *Next step.* Format the state with `str(...)` as `list` does, and a test of the two forms. It is one
 line, and belongs with whichever prompt next touches `store show`.
+
+### `[04-a-killed-process-not-yet-reaped-answers-kill-0]`
+
+**Opened:** 2026-10-18 at the writing of 04; measured. **Owner:** none.
+
+*The defect.* `pid_alive` (`runregistrykit/__init__.py:398`) asks `os.kill(pid, 0)`, which succeeds
+for a process that has exited and not been reaped by its parent, a zombie. So `liveness` (`:603`)
+calls a killed run `alive` until its parent waits for it or exits, `list` shows it unmarked, and
+04's `end` will refuse it as a live pid.
+
+*Measured* at `9e38581`, 2026-10-18, by 04's planner's probe (scratch, not committed): a child that
+had begun a run was sent `SIGKILL`; before the probe called `wait()`, `pid_alive` gave true and
+`list_runs` liveness `alive`; after it, false and `stale`. On macOS; Linux's `kill(2)` documents the
+same.
+
+*Impact.* Low for the known clients: a driver that calls `begin` in its own process is reaped by its
+shell when it dies. It bites a launcher that starts a detached child, passes the child's pid with
+`heartbeat(pid=…)`, and then neither waits nor exits: a killed child stays `alive` in `list`, and
+`end` refuses it. The registry errs towards in use, which loses nothing.
+
+*Next step.* Leave it, with `end`'s refusal saying why (04). Telling a zombie from a live process
+needs `ps -o stat=` on macOS, a subprocess per pid, or `/proc/<pid>/stat` on Linux; a later unit,
+beside L3 (b)'s process start time (README §8), if a client meets it.
 
 ---
 
