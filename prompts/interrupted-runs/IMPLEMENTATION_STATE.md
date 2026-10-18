@@ -5,7 +5,7 @@
 (run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
 `39060913296`), closing the two issues 02's
 review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`), narrowing the one 02b's review opened
-to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI pending a push, closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
+to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined (README
 §6.2).** Holds the five issues that bear on a
@@ -55,7 +55,7 @@ tag's.
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
-| 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI pending a push; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
+| 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
@@ -613,6 +613,15 @@ only worktree; `git diff --stat 35ce264 HEAD -- runregistrykit pyproject.toml .g
 
 **Verdict:** 03 is accepted, **pending CI**: all three jobs green, the core job's count 98, read
 from the run's log after the user pushes `main`.
+
+*CI (2026-10-18).* The user said yes, and `main` was pushed, `31933c4..4b55750`. Run
+`39083674030` (`tests`, on the push of `4b55750`) passed all three jobs, each on `ubuntu-24.04`:
+`core (no store layer)`, on 3.12.15, with `datastorekit`, `ray` and `sqlalchemy` absent, its line
+naming the five core modules, `Ran 98 tests in 16.109s`, `OK (skipped=1)`; `suite (low)`, on
+3.12.15, `Ran 347 tests in 54.799s`, and `suite (high)`, on 3.13.16, `Ran 347 tests in 49.833s`,
+each `OK (skipped=1)`; `black` 33 files unchanged. The one skip in each is `test_host`'s macOS
+readers, so `test_unreadable_status` and `test_unreadable_status_stores` ran and passed on Linux
+at 3.12 and at 3.13. **03's review is complete; check 9 holds.**
 
 ### 1.1 Items
 
