@@ -7,6 +7,7 @@ a runs root inside the same directory, so that one `tree_state` covers both. No 
 initialised, the `ShardedPool` constructor is never called, and nothing under `var/` is opened.
 """
 
+import contextlib
 import json
 import os
 import tempfile
@@ -151,6 +152,33 @@ class StoreTestCase(RegistryTestCase):
         run = self.begin(slug, results=str(results))
         run.heartbeat(pid=dead)
         return run
+
+    @contextlib.contextmanager
+    def set_aside(self, *runs):
+        """Move each of ``runs``' directories out of the runs root for the duration of the body, to
+        a directory beside it in the test's temporary directory, and move each back after, byte
+        for byte (`os.rename` moves the directory itself), whatever the body raises. A run begun
+        in the body does not see the runs set aside. It writes no record and changes no field.
+
+        It exists because `begin` no longer makes two runs that have not finished on one store,
+        and some tests need the state a run begun before that, under another runs root, or on
+        another machine and copied in, leaves: the store operations and `finish(fingerprint=True)`
+        must still refuse it.
+        """
+        holding = tempfile.mkdtemp(dir=self.top, prefix="set-aside-")
+        moved = []
+        try:
+            for run in runs:
+                aside = os.path.join(holding, str(len(moved)))
+                os.rename(run.path, aside)
+                moved.append((aside, run.path))
+            yield
+        finally:
+            for aside, path in reversed(moved):
+                if os.path.exists(path):
+                    raise FileExistsError(f"cannot move {aside} back: {path} exists")
+                os.rename(aside, path)
+            os.rmdir(holding)
 
     # --- assertions
 

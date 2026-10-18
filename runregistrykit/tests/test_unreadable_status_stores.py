@@ -121,7 +121,8 @@ class TestAnUnreadableStatusIsInUse(test_store_retire.RetireTestCase):
         primary = self.a_full_store()
         predecessor = self.a_running_run("predecessor", primary)
         give_status_the_form(predecessor, TORN)
-        run = self.begin("resumed", results=str(primary))
+        with self.set_aside(predecessor):
+            run = self.begin("resumed", results=str(primary))
         status = run.finish("done", exit_code=0, fingerprint=True)
         self.assertEqual((status["state"], status["exit_code"]), ("done", 0))
         self.assertNotIn("fingerprint", status)
@@ -149,9 +150,11 @@ class TestAnUnreadableStatusIsInUse(test_store_retire.RetireTestCase):
     def test_the_stale_remedy_is_kept_and_the_new_sentence_is_added_once(self):
         primary = self.a_full_store()
         stale = self.a_stale_run("stale", primary)
-        torn = self.a_running_run("torn-too", primary)
+        with self.set_aside(stale):
+            torn = self.a_running_run("torn-too", primary)
         give_status_the_form(torn, TORN)
-        unnamed = self.a_running_run("no-state", primary)
+        with self.set_aside(stale, torn):
+            unnamed = self.a_running_run("no-state", primary)
         give_status_the_form(
             unnamed, dict((n, m) for n, m, _, _ in FORMS)["empty object"]
         )
@@ -173,8 +176,9 @@ class TestAnUnreadableStatusIsInUse(test_store_retire.RetireTestCase):
 
     def test_a_refusal_for_running_runs_alone_has_no_new_sentence(self):
         primary = self.a_full_store()
-        self.a_running_run("alive", primary)
-        self.a_stale_run("stale", primary)
+        alive = self.a_running_run("alive", primary)
+        with self.set_aside(alive):
+            self.a_stale_run("stale", primary)
         for operation, call in self.refusals(primary, 0).items():
             with self.subTest(operation):
                 with self.assertRaises(RuntimeError) as caught:

@@ -407,16 +407,20 @@ def pid_alive(pid) -> bool:
     also matches the *polling shell's own* command line, so "wait until no process matches" can
     never be satisfied; that mistake left nineteen immortal poll loops, fifteen of them waiting on
     a job that was already dead (the README's rule on liveness).
+
+    A pid outside the platform's range names no process, and is false: it does not raise.
     """
     try:
         pid = int(pid)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return False
     if pid <= 0:
         return False
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
+        return False
+    except OverflowError:  # outside a C int or long: no process has such a pid
         return False
     except PermissionError:  # exists, owned by somebody else
         return True
@@ -1030,6 +1034,16 @@ def begin(
     tombstone (`runregistrykit.stores.retire_store`) is refused before the run directory is created,
     because a retired name is never reused.
 
+    A `results` that a run which has not finished already names is refused too, before the run
+    directory is created: any run under the runs root this run is created in whose state is not
+    terminal, which is `running` (alive, stale or on another host) or a status that does not say,
+    and which names the store by its `results` or its `results_store_id`
+    (`runregistrykit.stores`, the check the store operations make). There is no override. A stale
+    run is ended by a person, with `python -m runregistrykit end`, and then `begin` is called
+    again; the registry does not decide that a run is dead. It is a check and not a lock: a run
+    begun at the same moment is not seen. Only the runs root this run is created in is read, and
+    a runs root that does not exist yet holds no run.
+
     The second is `packages`, which is `package_provenance()` of `runregistrykit` and of the client
     config's `distributions`: what was installed of each when the run began. It exists so that a
     run says which package release it ran, instead of that being implied by `requirements.txt` at
@@ -1074,7 +1088,14 @@ def begin(
     results_store_id = None
     if results:
         # here, because `stores` imports this module
-        from .stores import _tombstone_text, read_sidecar
+        from .stores import (
+            _describe_running,
+            _foreign_remedy,
+            _running_runs_naming,
+            _tombstone_text,
+            _unsure_remedy,
+            read_sidecar,
+        )
 
         reading = read_sidecar(results, client_root=client)
         if reading.retired:
@@ -1084,6 +1105,25 @@ def begin(
                 f"directory was created"
             )
         results_store_id = reading.store_id
+        # a store a run that has not finished names is refused, as the store operations refuse
+        # it: the registry takes no lock, and does not decide that a stale run is dead
+        runs_root = root or client.runs_root
+        if os.path.isdir(runs_root):
+            running = _running_runs_naming(
+                "begin", [os.path.abspath(results)], results_store_id, runs_root, client
+            )
+            if running:
+                described = _describe_running(running)
+                foreign = _foreign_remedy(running)
+                unsure = _unsure_remedy(running)
+                raise RuntimeError(
+                    f'Cannot begin run {identifier} with results "{results}": {described}. '
+                    f"A stale run is ended by a person, with `{_END}`, before another run is "
+                    f"begun on its store; the registry does not decide that a run is dead. "
+                    f"{foreign + '. ' if foreign else ''}"
+                    f"{unsure + '. ' if unsure else ''}"
+                    f"No run directory was created"
+                )
     # the machine and the boot this run's pid belongs to, read once, before anything is created
     host = this_host()
     os.makedirs(path, exist_ok=True)

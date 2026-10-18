@@ -86,7 +86,7 @@ jobs:
           EOF
 
       - name: The core's tests, by name (the others need the store layer's dependencies)
-        run: python -m unittest runregistrykit.tests.test_run_registry runregistrykit.tests.test_public_names runregistrykit.tests.test_host runregistrykit.tests.test_status_writes runregistrykit.tests.test_unreadable_status runregistrykit.tests.test_end
+        run: python -m unittest runregistrykit.tests.test_run_registry runregistrykit.tests.test_public_names runregistrykit.tests.test_host runregistrykit.tests.test_status_writes runregistrykit.tests.test_unreadable_status runregistrykit.tests.test_end runregistrykit.tests.test_second_writer
 
       - name: The smoke, in a new temporary directory
         run: |

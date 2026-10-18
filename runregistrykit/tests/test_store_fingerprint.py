@@ -737,7 +737,8 @@ class TestFinish(_FullStoreCase):
     def test_another_running_run_is_recorded_and_the_run_still_ends(self):
         primary = self.a_full_store()
         other = self.a_running_run("other", primary)
-        run = self.begin("second", results=str(primary))
+        with self.set_aside(other):
+            run = self.begin("second", results=str(primary))
         status = run.finish("failed", exit_code=2, fingerprint=True)
         self.assertEqual((status["state"], status["exit_code"]), ("failed", 2))
         self.assertIn(other.id, status["fingerprint_error"])

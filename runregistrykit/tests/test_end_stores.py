@@ -147,7 +147,8 @@ class TestTheWords(EndStoresTestCase):
                 "boot": "a-boot",
             },
         )
-        stale = self.a_stale_run("stale", primary)
+        with self.set_aside(run):
+            stale = self.a_stale_run("stale", primary)
         for operation, message in self.refusals(primary).items():
             with self.subTest(operation):
                 self.assertIn(f"run {run.id} is running on another host", message)
@@ -169,8 +170,9 @@ class TestTheWords(EndStoresTestCase):
 
     def test_alive_and_stale_here_give_the_old_text_with_the_command(self):
         primary = self.a_full_store()
-        self.a_running_run("alive", primary)
-        self.a_stale_run("stale", primary)
+        alive = self.a_running_run("alive", primary)
+        with self.set_aside(alive):
+            self.a_stale_run("stale", primary)
         client = runregistrykit.find_client_root(client_root=self.client)
         store_id = stores.read_sidecar(primary).store_id
         elsewhere = self.top / "C-refused"

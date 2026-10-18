@@ -8,7 +8,7 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, and 05 written, not run, with 04's work's issue assigned to it at the user's request (README §6.2).** Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed 2026-10-18 (this commit), not yet reviewed, closing both of its issues.** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
@@ -16,8 +16,9 @@ to its 3.14 `with` point, under L11 (a), with no owner. One, found at the writin
 §3 with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
 (§4), and its work found one more, open in §3 with no owner; its review found another, open in
 §3 with no owner. One, found at the writing of 04, is open in §3 with no owner. 04 closed
-`[a3-v2-a-hard-killed-run-blocks-its-store]` (§4), and its work found one more, open in §3 with no
-owner.
+`[a3-v2-a-hard-killed-run-blocks-its-store]` (§4), and its work found one more, which was assigned
+to 05. 05 closed that one and `[00-begin-does-not-refuse-a-second-writer]` (§4); five are open in §3,
+none with an owner.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -59,13 +60,13 @@ tag's.
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
 | 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
 | 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
-| 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | written 2026-10-18, not run | — | |
+| 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | **landed, not yet reviewed** 2026-10-18 ([log](logs/05-begin-refuses-a-second-writer.md)); two issues closed, none opened | this commit | 378 → 410 |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
-from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, 347 after 03, and
-378 after 04.
+from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, 347 after 03,
+378 after 04, and 410 after 05.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
@@ -759,7 +760,7 @@ hard-killed child among them. **04's review is complete; check 9 holds.**
 | **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ✅ `35ce264` |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ✅ `ab0cad9` |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ✅ `5e20772` |
-| **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
+| **B1** | 05 | `begin` refuses a store a run that has not finished names; `pid_alive` false out of range | `[00-begin-does-not-refuse-a-second-writer]`, `[04-a-pid-out-of-range-makes-pid-alive-raise]` | ✅ this commit |
 | **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ⬜ |
 | **Z1** | 07 | the verification document; the close | — | ⬜ |
 
@@ -777,13 +778,13 @@ hard-killed child among them. **04's review is complete; check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Seven: one of the five assigned here, for 05; one found by 02b's review, narrowed by 02c
-(`35ce264`) to its Python 3.14 `with` point, with no owner; two opened by 03, with no owner: one
-at its writing and one by its work; one opened by 03's review (`ab0cad9`), with no owner; one
-opened at the writing of 04, with no owner; and one opened by 04's work (`5e20772`), assigned
-to 05 on 2026-10-18. The last six are at the end of this section.
-`[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, which 03 closed, and
-`[a3-v2-a-hard-killed-run-blocks-its-store]`, which 04 closed, are in §4.
+Five, none with an owner: one found by 02b's review, narrowed by 02c (`35ce264`) to its Python
+3.14 `with` point; two opened by 03, one at its writing and one by its work; one opened by 03's
+review (`ab0cad9`); and one opened at the writing of 04.
+`[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, which 03 closed,
+`[a3-v2-a-hard-killed-run-blocks-its-store]`, which 04 closed, and
+`[00-begin-does-not-refuse-a-second-writer]` and `[04-a-pid-out-of-range-makes-pid-alive-raise]`,
+which 05 closed, are in §4.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
@@ -791,89 +792,6 @@ does not keep a terminal state when the handler returns (README §0.2), so its e
 **Corrected at planning** paragraph. `[04-runs-do-not-say-which-machine-produced-them]` was closed
 by 01 (`387c58f`), and `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
 by 02 (`2bf9c72`); both are in §4. In the README's order:
-
-### `[00-begin-does-not-refuse-a-second-writer]`
-
-**Opened:** 2026-10-16, split on hand-over from SGK's `[a3-v2-a-hard-killed-run-blocks-its-store]`
-(its brief §1, "*`begin` does not look*"), and measured here for a live first run. **Owner:**
-none.
-
-**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 05: `begin`'s refusal, under
-L9 (its README §2). Moved here from the `inherited-issues` board the same day, unchanged above and
-below but for this line. It is one of the five that bear on a long job that may be interrupted, and
-the campaign takes them together.
-
-*The defect.* `begin` (`runregistrykit/__init__.py:604`) reads the results store's sidecar only to
-refuse a tombstone (`:686-698`, the refusal at `:692`). It does not ask whether a `running` run,
-alive or stale, already names that store, so a second run on a store that a live run is writing is
-begun without a word. The store operations make that check (`_running_runs_naming`,
-`runregistrykit/stores.py:998`), and the module docstring calls it "a check and not a lock: a run
-begun after it is not seen" (`:106-107`); `begin` does not make it at all.
-
-*Measured* here at `79015a7`, 2026-10-16, by the scratch probe of
-`[a3-v2-a-hard-killed-run-blocks-its-store]`: with a run begun in the probe's own process on a
-registered store (liveness `alive`), a second `begin` with the same `results` returned a run, and
-the two manifests carry the same `results_store_id`. SGK measured the stale case (brief §1, step
-4).
-
-*Impact.* The registry does not schedule or lock, so nothing here can stop two writers; but a
-resume after an interruption is when a person begins a second run on a store, and the case that
-does harm is the one where the first run is not dead: a detached child still working, a `SIGTERM`
-not yet acted on, or a run on another machine whose pid this machine cannot test
-(`[04-runs-do-not-say-which-machine-produced-them]`). Then two jobs write one SQLite store, and
-nothing records that they did.
-
-*Next step.* `begin` names the `running` runs whose manifest names its `results`, by path or by
-`results_store_id` as `runs_naming` matches them (`stores.py:957`), and refuses, before the run
-directory is created, if any is alive. What a stale one gets is the decision of
-`[a3-v2-a-hard-killed-run-blocks-its-store]`: refusing it too is the reading consistent with "the
-registry does not decide that a run is dead", and leaves a person to end it first by that entry's
-route. A refusal writes nothing new, so it is not a change to what the registry writes. The test:
-begin a run, begin a second on its store, and assert that the refusal names the first and that no
-second run directory exists.
-
-*Package lines (01, `387c58f`).* `begin` `runregistrykit/__init__.py:604` → `:801`; its tombstone
-check `:686-698` → `:892-904`, the refusal `:692` → `:898`; it now reads `this_host()` at `:906`,
-after that check and before the run directory is made. `_running_runs_naming` `stores.py:998`, the
-module docstring `:106-107` and `runs_naming` `:957` are unmoved.
-
-*Package lines (02, `2bf9c72`).* `begin` `runregistrykit/__init__.py:801` → `:924`; its tombstone
-check `:892-904` → `:1015-1027`, the refusal `:898` → `:1021`; `this_host()` `:906` → `:1029`.
-`stores.py` is not touched by 02, so its lines above stand.
-
-*Package lines (02b, `2959b78`).* `begin` `runregistrykit/__init__.py:924` → `:965`; its
-tombstone check `:1015-1027` → `:1056-1068`, the refusal `:1021` → `:1062`; `this_host()` `:1029` →
-`:1070`. `stores.py` is not touched by 02b, so its lines above stand.
-
-*Package lines (02c, `35ce264`).* `begin` `runregistrykit/__init__.py:965` → `:968`; its
-tombstone check `:1056-1068` → `:1059-1071`, the refusal `:1062` → `:1065`; `this_host()` `:1070` →
-`:1073`. `stores.py` is not touched by 02c, so its lines above stand.
-
-*Package lines (03, `ab0cad9`).* `begin` `runregistrykit/__init__.py:968` → `:976`; its
-tombstone check `:1059-1071` → `:1067-1079`, the refusal `:1065` → `:1073`; `this_host()` `:1073` →
-`:1081`. In `stores.py`: `_running_runs_naming` `:998` → `:1001`, now counting every run not in
-`TERMINAL_STATES`, so that what 05's refusal asks (L9) can use it as it is; `runs_naming` `:957` →
-`:960`; the module docstring's `:106-107` → `:108-109`.
-
-*Package lines (04, `5e20772`).* `begin` `runregistrykit/__init__.py:976` → `:983`; its
-tombstone check `:1067-1079` → `:1074-1086`, the refusal `:1073` → `:1080`; `this_host()` `:1081` →
-`:1088`. In `stores.py`: `_running_runs_naming` `:1001` → `:1002`; `runs_naming` `:960` → `:961`;
-the module docstring's `:108-109` is unmoved. A `lost` run is terminal, so `_running_runs_naming`
-does not return it, and the refusal 05 adds can name `end` from `_END` (`__init__.py:109`), with
-`stores._foreign_remedy` (`:1075`) and `_unsure_remedy` (`:1064`) as the store refusals do.
-
-*Measured at writing 05 (2026-10-18, at `d8f8de4`).* By a scratch probe on `RetireTestCase`, a second
-`begin` on a full store that an earlier run names, today and against a candidate of the check
-(`_running_runs_naming`, made only when the runs root exists, after the tombstone check). Today
-the second run is begun whatever the earlier one is: alive, stale, `foreign`, a torn status, a
-state `"paused"`. The candidate refuses each, leaving no run directory, and begins on a store
-whose runs are all terminal, `lost` included, on a store no run names, and under a runs root
-that does not exist yet. The suite against the candidate: six errors, each an existing test that
-builds two unfinished runs on one store through `begin` to test a store refusal's words or a
-resumed run's fingerprint; none tests `begin`. The check costs `begin` about 250 ms with 1000
-runs under the root (SGK's holds 83). SGK, read at `79434bf`, begins at most one run on a store
-per process. Its `--build --resume` after a `SIGTERM` finds `killed` and is accepted, and after a
-hard kill is refused until `end`. 05's file states the change the user took (L9 (a), 2026-10-18).
 
 ### `[02b-a-raising-handler-can-leave-the-status-lock-held]`
 
@@ -998,6 +916,12 @@ and the `_END` constant above it): `_write_status` `:360` → `:365`, its `with`
 "Not covered" paragraph `:765-773` → `:770-778`. 02b's and 02c's sweeps pass unchanged (04's log
 §2).
 
+*Package lines (05, this commit).* 05 does not touch the writer, which is above `pid_alive`; the
+lines from `pid_alive` down move by four (its docstring sentence and the `OverflowError` clause):
+`_update`'s docstring `:739-779` → `:743-783`, its "Not covered" paragraph `:770-778` → `:774-782`.
+`_write_status` `:365` and the lines before it are unmoved. 02b's and 02c's sweeps pass unchanged
+(05's log §2).
+
 ### `[03-a-run-whose-manifest-cannot-be-read-names-no-store]`
 
 **Opened:** 2026-10-18 at the writing of prompt 03, by its planner's probe; measured. **Owner:**
@@ -1035,6 +959,11 @@ stands.
 `:976` → `:977`; `Run.__init__`'s manifest read `runregistrykit/__init__.py:675` → `:680`;
 `list_runs`' reads `:1172-1173` → `:1179-1180`, `has_manifest` `:1182` → `:1189`.
 
+*Package lines (05, this commit).* `Run.__init__`'s manifest read `runregistrykit/__init__.py:680` →
+`:684`; `list_runs`' reads `:1179-1180` → `:1219-1220`, `has_manifest` `:1189` → `:1229`
+(`begin` grew by forty lines above them). `stores.py` is not touched by 05. `begin` does not see such
+a run, as the store operations do not (05's file).
+
 ### `[03-a-run-on-a-manifest-that-is-not-an-object-raises-where-it-is-used]`
 
 **Opened:** 2026-10-18 by 03, from the orchestrator's correction 16; measured. **Owner:** none.
@@ -1065,6 +994,10 @@ the three forms. It is one line, and belongs with whichever prompt next touches 
 `:878` → `:885`, `:895-897` → `:902-904` and `:939` → `:946`; `_json_object` `:247` → `:252`. 04's
 `_end_run` constructs a `Run` only to write its status, and nothing on that path reads
 `Run.manifest`.
+
+*Package lines (05, this commit).* `Run.__init__`'s manifest read `runregistrykit/__init__.py:680` →
+`:684`; `checkpoint_path`'s read `:720` → `:724`, `results_path`'s `:730` → `:734`; the reads at
+`:885` → `:889`, `:902-904` → `:906-908` and `:946` → `:950`; `_json_object` `:252` is unmoved.
 
 ### `[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]`
 
@@ -1119,38 +1052,11 @@ beside L3 (b)'s process start time (README §8), if a client meets it.
 answers `kill -0` until its parent waits for it or exits. 04's planner's probe, re-run by 04 (its
 log §3), shows it on the killed child before its reap.
 
-### `[04-a-pid-out-of-range-makes-pid-alive-raise]`
+*Package lines (05, this commit).* `pid_alive` `runregistrykit/__init__.py:403` is unmoved (its
+`OverflowError` clauses are `:415` and `:423`); `liveness` `:608` → `:612`; `_end_run`'s live-pid
+refusal `:1309-1316` → `:1349-1356`. `begin` now refuses a killed child's store until the child is
+reaped, as the store operations do (05's log, observation 7); the issue is unchanged.
 
-**Opened:** 2026-10-18 by 04 (`5e20772`), from its work; measured. **Owner:** none.
-
-**Assigned (2026-10-18):** to prompt 05 of this campaign, at the user's request when L9 was put. With
-05's check in `begin`, one such record anywhere under a runs root makes every `begin` that names a
-results store raise `OverflowError` too (05's "At writing", measured on a candidate), so the one
-line is fixed where its reach would grow: `pid_alive` returns false for a pid outside the
-platform's range, and `float("inf")`, which `json` parses from `Infinity`, with it.
-
-*The defect.* `pid_alive` (`runregistrykit/__init__.py:403`) coerces the pid with `int()` and
-asks `os.kill(pid, 0)`, catching `ProcessLookupError`, `PermissionError` and `OSError`. A pid
-outside a C `int`, `2**31` or more, makes `os.kill` raise `OverflowError` ("signed integer is
-greater than maximum"), which is none of them. So `liveness` (`:608`) raises on a `running` status
-that holds one, and with it `list_runs` (`:1144`), `list`, every store operation under the runs
-root (read, not run: `runs_naming` calls `list_runs`), and `end` (`_end_run`, `:1219`, at the pid test), which the command
-does not catch.
-
-*Measured* at 04's tree and `ab0cad9`, 2026-10-18 (scratch, not committed): `pid_alive(2**31)` and
-`pid_alive(2**40)` raise `OverflowError` at both; `pid_alive(-1)`, `'x'` and `None` give false. A
-run begun in a `tempfile` directory, its status's `pid` set to `2**31` by hand: `list_runs` and
-`_end_run` raise `OverflowError`; `python -m runregistrykit list` and `… end` each exit 1 with a
-traceback; `status.json` unchanged.
-
-*Impact.* Low. No writer of the registry records such a pid (`begin` records `os.getpid()`, a
-launcher a child's pid); a hand edit or a corrupted file would. But one such record makes `list`
-and every store operation under its runs root raise, as the non-object status did before 03.
-
-*Next step.* Catch `OverflowError` (or `(OverflowError, ValueError)`) in `pid_alive` with the other
-`OSError`s, returning false: no process has such a pid. A test of `2**31`, `2**63` and `-2**31 - 1`
-through `liveness` and `list_runs`. It is one line, and belongs with whichever prompt next touches
-`pid_alive`.
 
 ---
 
@@ -1893,3 +1799,164 @@ byte; the foreign sentence once; 03's sentence with `--unverified`), and in the 
 of the check, the record, the state, the words and the command each fail one or more of them (the
 log's §5). `[04-a-killed-process-not-yet-reaped-answers-kill-0]` is not resolved: `end` refuses
 such a run and its refusal says why.
+
+### `[00-begin-does-not-refuse-a-second-writer]`
+
+**Opened:** 2026-10-16, split on hand-over from SGK's `[a3-v2-a-hard-killed-run-blocks-its-store]`
+(its brief §1, "*`begin` does not look*"), and measured here for a live first run. **Owner:**
+none.
+
+**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 05: `begin`'s refusal, under
+L9 (its README §2). Moved here from the `inherited-issues` board the same day, unchanged above and
+below but for this line. It is one of the five that bear on a long job that may be interrupted, and
+the campaign takes them together.
+
+*The defect.* `begin` (`runregistrykit/__init__.py:604`) reads the results store's sidecar only to
+refuse a tombstone (`:686-698`, the refusal at `:692`). It does not ask whether a `running` run,
+alive or stale, already names that store, so a second run on a store that a live run is writing is
+begun without a word. The store operations make that check (`_running_runs_naming`,
+`runregistrykit/stores.py:998`), and the module docstring calls it "a check and not a lock: a run
+begun after it is not seen" (`:106-107`); `begin` does not make it at all.
+
+*Measured* here at `79015a7`, 2026-10-16, by the scratch probe of
+`[a3-v2-a-hard-killed-run-blocks-its-store]`: with a run begun in the probe's own process on a
+registered store (liveness `alive`), a second `begin` with the same `results` returned a run, and
+the two manifests carry the same `results_store_id`. SGK measured the stale case (brief §1, step
+4).
+
+*Impact.* The registry does not schedule or lock, so nothing here can stop two writers; but a
+resume after an interruption is when a person begins a second run on a store, and the case that
+does harm is the one where the first run is not dead: a detached child still working, a `SIGTERM`
+not yet acted on, or a run on another machine whose pid this machine cannot test
+(`[04-runs-do-not-say-which-machine-produced-them]`). Then two jobs write one SQLite store, and
+nothing records that they did.
+
+*Next step.* `begin` names the `running` runs whose manifest names its `results`, by path or by
+`results_store_id` as `runs_naming` matches them (`stores.py:957`), and refuses, before the run
+directory is created, if any is alive. What a stale one gets is the decision of
+`[a3-v2-a-hard-killed-run-blocks-its-store]`: refusing it too is the reading consistent with "the
+registry does not decide that a run is dead", and leaves a person to end it first by that entry's
+route. A refusal writes nothing new, so it is not a change to what the registry writes. The test:
+begin a run, begin a second on its store, and assert that the refusal names the first and that no
+second run directory exists.
+
+*Package lines (01, `387c58f`).* `begin` `runregistrykit/__init__.py:604` → `:801`; its tombstone
+check `:686-698` → `:892-904`, the refusal `:692` → `:898`; it now reads `this_host()` at `:906`,
+after that check and before the run directory is made. `_running_runs_naming` `stores.py:998`, the
+module docstring `:106-107` and `runs_naming` `:957` are unmoved.
+
+*Package lines (02, `2bf9c72`).* `begin` `runregistrykit/__init__.py:801` → `:924`; its tombstone
+check `:892-904` → `:1015-1027`, the refusal `:898` → `:1021`; `this_host()` `:906` → `:1029`.
+`stores.py` is not touched by 02, so its lines above stand.
+
+*Package lines (02b, `2959b78`).* `begin` `runregistrykit/__init__.py:924` → `:965`; its
+tombstone check `:1015-1027` → `:1056-1068`, the refusal `:1021` → `:1062`; `this_host()` `:1029` →
+`:1070`. `stores.py` is not touched by 02b, so its lines above stand.
+
+*Package lines (02c, `35ce264`).* `begin` `runregistrykit/__init__.py:965` → `:968`; its
+tombstone check `:1056-1068` → `:1059-1071`, the refusal `:1062` → `:1065`; `this_host()` `:1070` →
+`:1073`. `stores.py` is not touched by 02c, so its lines above stand.
+
+*Package lines (03, `ab0cad9`).* `begin` `runregistrykit/__init__.py:968` → `:976`; its
+tombstone check `:1059-1071` → `:1067-1079`, the refusal `:1065` → `:1073`; `this_host()` `:1073` →
+`:1081`. In `stores.py`: `_running_runs_naming` `:998` → `:1001`, now counting every run not in
+`TERMINAL_STATES`, so that what 05's refusal asks (L9) can use it as it is; `runs_naming` `:957` →
+`:960`; the module docstring's `:106-107` → `:108-109`.
+
+*Package lines (04, `5e20772`).* `begin` `runregistrykit/__init__.py:976` → `:983`; its
+tombstone check `:1067-1079` → `:1074-1086`, the refusal `:1073` → `:1080`; `this_host()` `:1081` →
+`:1088`. In `stores.py`: `_running_runs_naming` `:1001` → `:1002`; `runs_naming` `:960` → `:961`;
+the module docstring's `:108-109` is unmoved. A `lost` run is terminal, so `_running_runs_naming`
+does not return it, and the refusal 05 adds can name `end` from `_END` (`__init__.py:109`), with
+`stores._foreign_remedy` (`:1075`) and `_unsure_remedy` (`:1064`) as the store refusals do.
+
+*Measured at writing 05 (2026-10-18, at `d8f8de4`).* By a scratch probe on `RetireTestCase`, a second
+`begin` on a full store that an earlier run names, today and against a candidate of the check
+(`_running_runs_naming`, made only when the runs root exists, after the tombstone check). Today
+the second run is begun whatever the earlier one is: alive, stale, `foreign`, a torn status, a
+state `"paused"`. The candidate refuses each, leaving no run directory, and begins on a store
+whose runs are all terminal, `lost` included, on a store no run names, and under a runs root
+that does not exist yet. The suite against the candidate: six errors, each an existing test that
+builds two unfinished runs on one store through `begin` to test a store refusal's words or a
+resumed run's fingerprint; none tests `begin`. The check costs `begin` about 250 ms with 1000
+runs under the root (SGK's holds 83). SGK, read at `79434bf`, begins at most one run on a store
+per process. Its `--build --resume` after a `SIGTERM` finds `killed` and is accepted, and after a
+hard kill is refused until `end`. 05's file states the change the user took (L9 (a), 2026-10-18).
+
+*Package lines (05, this commit).* `begin` `runregistrykit/__init__.py:983` → `:987`; the lazy import
+from `.stores` `:1077` → `:1091-1098` (four names added); the tombstone check `:1074-1086` →
+`:1100-1106` (`reading = read_sidecar(…)` `:1100`, the refusal `:1101-1106`); `results_store_id =
+reading.store_id` `:1107`; the new check and its refusal `:1108-1126`; `this_host()` `:1088` →
+`:1128`; `os.makedirs` `:1129`. `begin`'s docstring paragraph is `:1037-1045`. `stores.py` is not
+touched by 05, so its lines above stand.
+
+**Resolved (2026-10-18, by 05, this commit).** Under L9 (a) (README §6.2), as 05's §2 states it.
+`begin`, with `results`, after the tombstone check and before the run directory is created, calls
+`_running_runs_naming("begin", [os.path.abspath(results)], results_store_id, runs_root, client)`
+(`runregistrykit/__init__.py:1108-1126`), where `runs_root` is the root the run is created in, and
+refuses with a `RuntimeError` if any run that has not finished names the store: `running` (alive,
+stale or `foreign`) or a status that does not say, by the manifest's `results` or its
+`results_store_id`. The check is made only when the runs root is a directory. There is no
+override, and it is a check and not a lock. The words are 04's helpers' (`_describe_running`, the
+stale remedy naming `_END`, `_foreign_remedy`, `_unsure_remedy`), then `No run directory was
+created`. A store whose runs have all finished, a store no run names, a `begin` with no `results`
+and a runs root that does not exist yet are accepted as before. Nothing the registry writes
+changes. The log is [`logs/05-begin-refuses-a-second-writer.md`](logs/05-begin-refuses-a-second-writer.md).
+Pinned by `test_second_writer_stores.TestTheAcceptance.test_a_hard_killed_run_blocks_begin_until_it_is_ended`
+(a child begun on a full store, `SIGKILL`'d and reaped; a second `begin` refused with the tree
+unchanged; `end` by the command; `begin` accepted and its fingerprint recorded),
+`test_alive_stale_foreign_and_unreadable_are_refused_each_with_no_directory`,
+`test_a_store_whose_runs_have_all_finished_is_accepted`, `TestMatching`, `TestOneRule` and
+`TestTheOrder`, and in the core by `test_second_writer.TestEveryRefusal`, `TestTheWords`,
+`TestEveryAcceptance` and `TestTheRemedy`. Ten mutations of the check, its order, the store id, the
+runs root, the guard and the words each fail one or more of them (the log's §5).
+
+### `[04-a-pid-out-of-range-makes-pid-alive-raise]`
+
+**Opened:** 2026-10-18 by 04 (`5e20772`), from its work; measured. **Owner:** none.
+
+**Assigned (2026-10-18):** to prompt 05 of this campaign, at the user's request when L9 was put. With
+05's check in `begin`, one such record anywhere under a runs root makes every `begin` that names a
+results store raise `OverflowError` too (05's "At writing", measured on a candidate), so the one
+line is fixed where its reach would grow: `pid_alive` returns false for a pid outside the
+platform's range, and `float("inf")`, which `json` parses from `Infinity`, with it.
+
+*The defect.* `pid_alive` (`runregistrykit/__init__.py:403`) coerces the pid with `int()` and
+asks `os.kill(pid, 0)`, catching `ProcessLookupError`, `PermissionError` and `OSError`. A pid
+outside a C `int`, `2**31` or more, makes `os.kill` raise `OverflowError` ("signed integer is
+greater than maximum"), which is none of them. So `liveness` (`:608`) raises on a `running` status
+that holds one, and with it `list_runs` (`:1144`), `list`, every store operation under the runs
+root (read, not run: `runs_naming` calls `list_runs`), and `end` (`_end_run`, `:1219`, at the pid test), which the command
+does not catch.
+
+*Measured* at 04's tree and `ab0cad9`, 2026-10-18 (scratch, not committed): `pid_alive(2**31)` and
+`pid_alive(2**40)` raise `OverflowError` at both; `pid_alive(-1)`, `'x'` and `None` give false. A
+run begun in a `tempfile` directory, its status's `pid` set to `2**31` by hand: `list_runs` and
+`_end_run` raise `OverflowError`; `python -m runregistrykit list` and `… end` each exit 1 with a
+traceback; `status.json` unchanged.
+
+*Impact.* Low. No writer of the registry records such a pid (`begin` records `os.getpid()`, a
+launcher a child's pid); a hand edit or a corrupted file would. But one such record makes `list`
+and every store operation under its runs root raise, as the non-object status did before 03.
+
+*Next step.* Catch `OverflowError` (or `(OverflowError, ValueError)`) in `pid_alive` with the other
+`OSError`s, returning false: no process has such a pid. A test of `2**31`, `2**63` and `-2**31 - 1`
+through `liveness` and `list_runs`. It is one line, and belongs with whichever prompt next touches
+`pid_alive`.
+
+*Package lines (05, this commit).* `pid_alive` `runregistrykit/__init__.py:403` is unmoved; its
+docstring sentence `:411`, the `int()` clause `:415` and the `os.kill` clause `:423`. `liveness`
+`:608` → `:612`; `list_runs` `:1144` → `:1184`; `_end_run` `:1219` → `:1259` (its pid test
+`:1363`, `:1396`).
+
+**Resolved (2026-10-18, by 05, this commit).** At the user's request (2026-10-18). `pid_alive`
+returns false for a pid outside the platform's range: `OverflowError` is caught beside the existing
+exceptions at `int()` (`float("inf")`, which `json` parses from `Infinity`) and at `os.kill` (`2**31`
+and above), nothing broader, and a pid `<= 0`, `None`, `"x"` and a live or dead pid give what they
+gave. Its value for such a pid goes from raising to `False` (06's release notes say so). `liveness`,
+`list_runs`, `list`, `end` and the store operations are unchanged; they stop raising because
+`pid_alive` does. Pinned by `test_second_writer.TestPidAlive` (the function; `list_runs`, `python -m
+runregistrykit list` and `_end_run` on a `2**31` and on a JSON `Infinity` status; a `begin` on
+another store accepted and on its own store refused as stale) and
+`test_second_writer_stores.TestPidAliveThroughTheStoreOperations` (`fingerprint_store` on another
+store proceeds, on its own refuses the run as stale). (m6) and (m8) each fail them (the log's §5).
