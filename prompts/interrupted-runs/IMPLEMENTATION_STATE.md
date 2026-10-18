@@ -8,7 +8,7 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, pending CI, closing the issue it was written for; its work opened one more (README §6.2).** Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more (README §6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
@@ -58,7 +58,7 @@ tag's.
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
 | 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
-| 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI pending a push; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
+| 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
@@ -738,6 +738,16 @@ only worktree; `git diff --stat ab0cad9 HEAD -- runregistrykit pyproject.toml .g
 **Verdict:** 04 is accepted, **pending CI**: all three jobs green, the core job's count 125 with
 `test_end` on its line, and one skip in each, read from the run's log after the user pushes
 `main`.
+
+*CI (2026-10-18).* The user said yes, and `main` was pushed, `4b55750..46e29b9`. Run
+`39122974980` (`tests`, on the push of `46e29b9`) passed all three jobs, each on `ubuntu-24.04`:
+`core (no store layer)`, on 3.12.15, with `datastorekit`, `ray` and `sqlalchemy` absent, its line
+naming the six core modules, `test_end` among them, `Ran 125 tests in 19.520s`, `OK (skipped=1)`;
+`suite (low)`, on 3.12.15, `Ran 378 tests in 51.508s`, and `suite (high)`, on 3.13.16, `Ran 378
+tests in 49.718s`, each `OK (skipped=1)`; `black` 35 files unchanged. The one skip in each is the
+one there was before 04, so `test_end`'s two identity skips did not run: Linux gave an id and a
+boot, and `test_end` and `test_end_stores` ran and passed on Linux at 3.12 and at 3.13, the
+hard-killed child among them. **04's review is complete; check 9 holds.**
 
 ### 1.1 Items
 
