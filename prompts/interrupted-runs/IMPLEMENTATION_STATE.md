@@ -8,7 +8,7 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed 2026-10-18 (this commit), not yet reviewed, closing both of its issues.** Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, closing both of its issues; CI pending a push.** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
@@ -60,7 +60,7 @@ tag's.
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
 | 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
 | 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
-| 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | **landed, not yet reviewed** 2026-10-18 ([log](logs/05-begin-refuses-a-second-writer.md)); two issues closed, none opened | this commit | 378 → 410 |
+| 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/05-begin-refuses-a-second-writer.md)); CI pending a push; two issues closed, none opened | `eb68583` | 378 → 410 |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
@@ -72,7 +72,8 @@ from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, 3
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
 [`orchestrator/prompt-02b.md`](orchestrator/prompt-02b.md) (`201e507`), used for 02b;
 [`orchestrator/prompt-02c.md`](orchestrator/prompt-02c.md) (`e4a2b6c`), used for 02c; [`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`75eab12`), used for 03;
-[`orchestrator/prompt-04.md`](orchestrator/prompt-04.md) (`5d8a97b`), used for 04.
+[`orchestrator/prompt-04.md`](orchestrator/prompt-04.md) (`5d8a97b`), used for 04;
+[`orchestrator/prompt-05.md`](orchestrator/prompt-05.md) (`5d0fa78`), used for 05.
 
 **Orchestrator review of prompt 01 (2026-10-16).** Dispatched from `8023e14` to one Opus subagent,
 with the note's §0 as a copy in the session scratchpad: its facts, its eight corrections and
@@ -750,6 +751,119 @@ one there was before 04, so `test_end`'s two identity skips did not run: Linux g
 boot, and `test_end` and `test_end_stores` ran and passed on Linux at 3.12 and at 3.13, the
 hard-killed child among them. **04's review is complete; check 9 holds.**
 
+**Orchestrator review of prompt 05 (2026-10-18).** Dispatched from `5d0fa78` to one Sonnet
+subagent, with the note's §0 as a copy in the session scratchpad (its facts, its eighteen
+corrections and readings of the prompt, and its conventions) and the planner's probe and cost
+script. Reviewed against its commit `eb68583`, with nothing landed after it. No stop condition
+fired. **Every check of the note's §3 passed**, and acceptance 1–4 are met; the CI half of check 9
+waits for a push. The review opens no issue; it records one test gap.
+
+*At dispatch.* The note's gate held at `f3cc239`: `main`, clean, nothing staged, this checkout the
+only worktree; `git diff --stat 5e20772 HEAD -- runregistrykit pyproject.toml .github` empty; `Ran
+378 tests in 139.779s`, `OK (skipped=1)`, with `TMPDIR` in the scratchpad; no Ray process,
+`RAY_ADDRESS` unset; the index at 12. The planner's probe at `git archive 5e20772`: every row
+`BEGUN`, the prompt's "Today" column.
+
+*The checks.*
+1. **Scope (K1).** `eb68583` touches §0's thirteen files and no others; the diff from `5d0fa78` of
+   `stores.py`, `__main__.py`, `client.py`, `fingerprint.py`, `pyproject.toml`, `README.md`,
+   `PROVENANCE.md`, `CLAUDE.md`, the prompt and `orchestrator/` is empty, and under `docs/` only
+   the index moves. `git diff -w 5e20772 eb68583 -- runregistrykit/tests` adds the two new modules
+   (483 and 245 lines) and shows, in the three existing modules, the seven `with self.set_aside(…)`
+   lines and the two bindings of correction 6, and in `store_fixtures.py` the fixture and its
+   import, and nothing else. The workflow's diff is its core line, now naming seven modules; the
+   campaign README's diff is 05's row. `git diff -U0` of `__init__.py` has hunks only in
+   `pid_alive` and `begin`. By `inspect.getsource` at `git archive 5e20772` and `git archive
+   eb68583`, **every** function and class of `runregistrykit` and `runregistrykit.stores` is
+   identical but `begin` and `pid_alive`, and `__all__` is unchanged.
+2. **The suite (K5).** `Ran 410 tests in 156.188s`, `OK (skipped=1)`, in `venv/` at `eb68583`; per
+   module by the loader, `test_second_writer` 23 and `test_second_writer_stores` 9, every other
+   module as at `5e20772`. `black --check runregistrykit docs`: 37 files. The core run in the
+   orchestrator's own scratch venv (`uv`, offline, editable, no `[stores]`), **installed from a
+   clone of `eb68583`, not from this checkout**: the three absent, the seven core modules `Ran 148
+   tests in 53.973s`, `OK (skipped=1)`; the venv removed. At 3.13.16 and 3.14.8,
+   `test_second_writer` and `test_status_writes` with `PYTHONPATH` on the clone: `Ran 45 tests`,
+   `OK`, each. No Ray process; `git status --short --ignored` and `var/ledger.jsonl` (`93589747…`)
+   the same before and after.
+3. **The six and the fixture (K5).** The three modules taken from `5e20772` into a clone of
+   `eb68583`, so the six tests run without their `with`s: `Ran 40 tests`, `FAILED (errors=6)`,
+   exactly the six of the prompt's §2.4, each at a `begin` refused with the new words. With them,
+   they pass (check 2). The fixture renames each run's directory into a `set-aside-` directory
+   under the test's top and back in a `finally`, refuses to overwrite, and removes its directory;
+   `test_set_aside_puts_back_byte_for_byte_whatever_the_body_raises` pins it (a body that raises;
+   bytes, the tree and no `set-aside-` directory left). 02b's and 02c's sweeps pass at 3.13.16 and
+   3.14.8 (check 2).
+4. **The record (K2).** The orchestrator's `lifecycle.py` against `git archive 5e20772` and `git
+   archive eb68583`: **identical** shapes of `status.json`, the manifest, a ledger line, the
+   sidecar and the run directory's files. Every refusal of check 5 leaves `tree_state` of the
+   temporary top unchanged.
+5. **The probe and the check (K3).** The planner's probe, from the orchestrator's own copy,
+   against `eb68583`: alive, stale, `foreign`, torn and `"paused"` refused with no directory left;
+   all-terminal, none and the absent runs root begun; the `2**31` pid refused as stale on its store
+   and begun on another. The orchestrator's `check.py`, 44 rows at `eb68583` (and every row begun at
+   `5e20772` but the tombstone's): alive here; stale; an earlier boot with a live pid; `foreign`;
+   each of the thirteen forms; a `v0.1.0` status with a dead and a live pid; a legacy sidecar and
+   no sidecar, by path; the store id alone, its description saying `results_store_id`; the pid
+   `2**31` and `Infinity` on its store; two foreign, two unreadable, alive and stale, foreign and
+   unreadable; a stale run before `end` — **each refused, the tree unchanged, and naming exactly
+   the runs `fingerprint_store` names for the same store**. Accepted: all four terminal states;
+   no run; no `results` while a run names a store; the runs root absent, and created; an alive
+   run under another runs root (and a `begin` under that root refused); the store id against a
+   legacy-sidecar store; the out-of-range pids on another store; the stale run after `end`. The
+   tombstone with a stale run naming the store: refused by the tombstone's words alone.
+6. **The words (K4).** In each of check 5's refusals the message equals §2.3's text composed at
+   `eb68583` from `_describe_running`, `_foreign_remedy` and `_unsure_remedy` on
+   `_running_runs_naming`'s list, **byte for byte**; the foreign sentence once with one or two
+   foreign runs, 03's sentence once with one or two unreadable, both with both, the foreign first,
+   neither with an alive and a stale run. The command is spelled as a literal only in `_END`;
+   `begin`'s docstring names `python -m runregistrykit end` in prose, as `_refuse_if_in_use`'s
+   does. `git grep -n 'signal'` outside the tests: `finish`'s docstring, `:818`, alone. `begin`'s
+   new paragraph says the five things §2.2 lists.
+7. **The log (K7).** Every section of README §5.1 and the prompt's §4.4 additions; twenty-two
+   deviations, corrections 1–18 among them, classified (fourteen STRUCTURALLY REQUIRED, six
+   IMPLEMENTATION CHOICE, none UNINTENDED DRIFT), correction 6's bindings STRUCTURALLY REQUIRED;
+   the suite before (378) and after (410); the core and 3.13 runs; both probe tables; the record;
+   §3.5's diff; every mutation as a diff; both refusal texts as shipped. Its citations, and the
+   board's "Package lines (05, …)" sentences, checked by `grep -n` at `eb68583`: right. Deviation
+   20 (the core module's `an_earlier_run` moves every run directory aside by hand, into a
+   `tempfile` directory it cleans up, since `set_aside` is the store fixtures') is accepted.
+   **Residue fixed here:** "this commit" → `eb68583`.
+8. **The mutations (K6).** (m1)–(m10) extracted from the log by a script and replayed in a `git
+   clone` of `eb68583`, `PYTHONPATH` on the clone, the two new modules: each fails as the log says,
+   the clone clean after each ((m1) 22 failures and 14 errors, and (m2) 16 and 11, the log's totals
+   split differently between failures and errors; (m3) 20; (m4) 1, `test_by_store_id_alone`; (m5)
+   2 errors; (m6) 7; (m7) 30; (m8) 3; (m9) 22 and 14; (m10) 2). The orchestrator's own:
+   - (o1) `os.kill`'s `OverflowError` answered `True`: 6 failures, `TestPidAlive` and the store
+     operations' test;
+   - (o2) the check before the tombstone's: 1 failure,
+     `test_a_tombstone_is_refused_by_its_own_words_before_the_check`;
+   - (o3) the check made only when the store has a store id: 18 failures and 11 errors, every core
+     refusal (plain-file stores) and `test_by_path_alone_when_there_is_no_sidecar`;
+   - (o4) the foreign sentence and 03's swapped in order: **no test fails**. `check.py` catches it
+     (its "foreign sentence first" row). **A gap, recorded and not opened:** no test of `begin`
+     has a foreign and an unreadable run together;
+   - (o5) the fixture leaving its `set-aside-` directory: 1 failure, the fixture's own test;
+   - (o6) the fixture moving the runs back only when the body does not raise: 1 failure, the
+     fixture's own test (o5 and o6 also run the three wrapped modules: 72 tests, no other failure).
+9. **The records (K7).** The board's header, 05's row (378 → 410), B1, both issues moved from §3
+   to §4 with their *Resolved* paragraphs, the §3 count line (five, none with an owner), the
+   "Package lines (05, …)" sentences on the four §3 entries whose cited lines move and on the two
+   it closes, and `[04-a-killed-process-not-yet-reaped-answers-kill-0]` still in §3.
+   `docs/OPEN_ISSUES.md` counted 10 by its rows, §1.3 at 5, the two rows deleted, the date.
+   `prompts/INDEX.md`'s line and the README's 05 row updated. **CI is not read yet:** nothing is
+   pushed, and `test_second_writer` first runs on Linux.
+
+*An observation, not an issue.* The agent's core install (correction 3, `uv pip install -e` of this
+checkout) regenerated the checkout's ignored `runregistrykit.egg-info/`, which carries no
+`direct_url.json`, so a run begun with the checkout first on `sys.path` records
+`packages.runregistrykit.url` as `null` (its deviation 4, observation 6). Nothing tracked changed,
+and no test depends on it; earlier prompts' core installs did the same. The review installed from a
+clone instead, and later notes should say so.
+
+**Verdict:** 05 is accepted, **pending CI**: all three jobs green, the core job's count 148 with
+`test_second_writer` on its line, and one skip in each, read from the run's log after the user
+pushes `main`.
+
 ### 1.1 Items
 
 | Item | Prompt | What | Closes | State |
@@ -760,7 +874,7 @@ hard-killed child among them. **04's review is complete; check 9 holds.**
 | **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ✅ `35ce264` |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ✅ `ab0cad9` |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ✅ `5e20772` |
-| **B1** | 05 | `begin` refuses a store a run that has not finished names; `pid_alive` false out of range | `[00-begin-does-not-refuse-a-second-writer]`, `[04-a-pid-out-of-range-makes-pid-alive-raise]` | ✅ this commit |
+| **B1** | 05 | `begin` refuses a store a run that has not finished names; `pid_alive` false out of range | `[00-begin-does-not-refuse-a-second-writer]`, `[04-a-pid-out-of-range-makes-pid-alive-raise]` | ✅ `eb68583` |
 | **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ⬜ |
 | **Z1** | 07 | the verification document; the close | — | ⬜ |
 
@@ -916,7 +1030,7 @@ and the `_END` constant above it): `_write_status` `:360` → `:365`, its `with`
 "Not covered" paragraph `:765-773` → `:770-778`. 02b's and 02c's sweeps pass unchanged (04's log
 §2).
 
-*Package lines (05, this commit).* 05 does not touch the writer, which is above `pid_alive`; the
+*Package lines (05, `eb68583`).* 05 does not touch the writer, which is above `pid_alive`; the
 lines from `pid_alive` down move by four (its docstring sentence and the `OverflowError` clause):
 `_update`'s docstring `:739-779` → `:743-783`, its "Not covered" paragraph `:770-778` → `:774-782`.
 `_write_status` `:365` and the lines before it are unmoved. 02b's and 02c's sweeps pass unchanged
@@ -959,7 +1073,7 @@ stands.
 `:976` → `:977`; `Run.__init__`'s manifest read `runregistrykit/__init__.py:675` → `:680`;
 `list_runs`' reads `:1172-1173` → `:1179-1180`, `has_manifest` `:1182` → `:1189`.
 
-*Package lines (05, this commit).* `Run.__init__`'s manifest read `runregistrykit/__init__.py:680` →
+*Package lines (05, `eb68583`).* `Run.__init__`'s manifest read `runregistrykit/__init__.py:680` →
 `:684`; `list_runs`' reads `:1179-1180` → `:1219-1220`, `has_manifest` `:1189` → `:1229`
 (`begin` grew by forty lines above them). `stores.py` is not touched by 05. `begin` does not see such
 a run, as the store operations do not (05's file).
@@ -995,7 +1109,7 @@ the three forms. It is one line, and belongs with whichever prompt next touches 
 `_end_run` constructs a `Run` only to write its status, and nothing on that path reads
 `Run.manifest`.
 
-*Package lines (05, this commit).* `Run.__init__`'s manifest read `runregistrykit/__init__.py:680` →
+*Package lines (05, `eb68583`).* `Run.__init__`'s manifest read `runregistrykit/__init__.py:680` →
 `:684`; `checkpoint_path`'s read `:720` → `:724`, `results_path`'s `:730` → `:734`; the reads at
 `:885` → `:889`, `:902-904` → `:906-908` and `:946` → `:950`; `_json_object` `:252` is unmoved.
 
@@ -1052,7 +1166,7 @@ beside L3 (b)'s process start time (README §8), if a client meets it.
 answers `kill -0` until its parent waits for it or exits. 04's planner's probe, re-run by 04 (its
 log §3), shows it on the killed child before its reap.
 
-*Package lines (05, this commit).* `pid_alive` `runregistrykit/__init__.py:403` is unmoved (its
+*Package lines (05, `eb68583`).* `pid_alive` `runregistrykit/__init__.py:403` is unmoved (its
 `OverflowError` clauses are `:415` and `:423`); `liveness` `:608` → `:612`; `_end_run`'s live-pid
 refusal `:1309-1316` → `:1349-1356`. `begin` now refuses a killed child's store until the child is
 reaped, as the store operations do (05's log, observation 7); the issue is unchanged.
@@ -1883,14 +1997,14 @@ runs under the root (SGK's holds 83). SGK, read at `79434bf`, begins at most one
 per process. Its `--build --resume` after a `SIGTERM` finds `killed` and is accepted, and after a
 hard kill is refused until `end`. 05's file states the change the user took (L9 (a), 2026-10-18).
 
-*Package lines (05, this commit).* `begin` `runregistrykit/__init__.py:983` → `:987`; the lazy import
+*Package lines (05, `eb68583`).* `begin` `runregistrykit/__init__.py:983` → `:987`; the lazy import
 from `.stores` `:1077` → `:1091-1098` (four names added); the tombstone check `:1074-1086` →
 `:1100-1106` (`reading = read_sidecar(…)` `:1100`, the refusal `:1101-1106`); `results_store_id =
 reading.store_id` `:1107`; the new check and its refusal `:1108-1126`; `this_host()` `:1088` →
 `:1128`; `os.makedirs` `:1129`. `begin`'s docstring paragraph is `:1037-1045`. `stores.py` is not
 touched by 05, so its lines above stand.
 
-**Resolved (2026-10-18, by 05, this commit).** Under L9 (a) (README §6.2), as 05's §2 states it.
+**Resolved (2026-10-18, by 05, `eb68583`).** Under L9 (a) (README §6.2), as 05's §2 states it.
 `begin`, with `results`, after the tombstone check and before the run directory is created, calls
 `_running_runs_naming("begin", [os.path.abspath(results)], results_store_id, runs_root, client)`
 (`runregistrykit/__init__.py:1108-1126`), where `runs_root` is the root the run is created in, and
@@ -1944,12 +2058,12 @@ and every store operation under its runs root raise, as the non-object status di
 through `liveness` and `list_runs`. It is one line, and belongs with whichever prompt next touches
 `pid_alive`.
 
-*Package lines (05, this commit).* `pid_alive` `runregistrykit/__init__.py:403` is unmoved; its
+*Package lines (05, `eb68583`).* `pid_alive` `runregistrykit/__init__.py:403` is unmoved; its
 docstring sentence `:411`, the `int()` clause `:415` and the `os.kill` clause `:423`. `liveness`
 `:608` → `:612`; `list_runs` `:1144` → `:1184`; `_end_run` `:1219` → `:1259` (its pid test
 `:1363`, `:1396`).
 
-**Resolved (2026-10-18, by 05, this commit).** At the user's request (2026-10-18). `pid_alive`
+**Resolved (2026-10-18, by 05, `eb68583`).** At the user's request (2026-10-18). `pid_alive`
 returns false for a pid outside the platform's range: `OverflowError` is caught beside the existing
 exceptions at `int()` (`float("inf")`, which `json` parses from `Infinity`) and at `os.kill` (`2**31`
 and above), nothing broader, and a pid `<= 0`, `None`, `"x"` and a live or dead pid give what they

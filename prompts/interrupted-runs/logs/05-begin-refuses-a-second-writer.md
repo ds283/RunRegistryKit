@@ -1,7 +1,7 @@
 # Log — prompt 05: begin refuses a second writer
 
 **Subject:** Make begin refuse a store a run that has not finished names, and pid_alive false out of range
-**Commit:** this commit (on `main`, after `5d0fa78`)
+**Commit:** `eb68583` (on `main`, after `5d0fa78`)
 **Date:** 2026-10-18
 **Agent:** Claude Sonnet 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (corrections and readings 1–18). No stop condition fired.
