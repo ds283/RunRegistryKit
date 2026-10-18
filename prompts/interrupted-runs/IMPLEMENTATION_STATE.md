@@ -8,7 +8,7 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, landed (`0bae3a3`) and reviewed the same day, CI green (run `39143681701`), and **`v0.2.0` tagged on `0bae3a3`** (tag object `895e3c7`); its review opened one issue.** Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, landed (`0bae3a3`) and reviewed the same day, CI green (run `39143681701`), and **`v0.2.0` tagged on `0bae3a3`** (tag object `895e3c7`); its review opened one issue; 07 written 2026-10-18, not run.** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
@@ -62,7 +62,7 @@ tag's.
 | 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
 | 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/05-begin-refuses-a-second-writer.md)); CI green, run `39129061916`; two issues closed, none opened | `eb68583` | 378 → 410 |
 | 06 | [`06-release-v0.2.0.md`](06-release-v0.2.0.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/06-release-v0.2.0.md)); CI green, run `39143681701`; **`v0.2.0` tagged** (tag object `895e3c7`); one issue opened by the review | `0bae3a3` | 410 → 410 |
-| 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
+| 07 | [`07-verification-and-close-out.md`](07-verification-and-close-out.md) | Opus | written 2026-10-18, not run | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
 from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, 347 after 03,
