@@ -1,6 +1,8 @@
 # interrupted-runs campaign — implementation state
 
-**Last updated:** 2026-10-18 · **Status: OPEN — 01 landed (`387c58f`) and reviewed, CI green
+**Last updated:** 2026-10-18 · **Status: CLOSED — 2026-10-18, by prompt 07 (this commit): all nine
+prompts landed, the campaign verified in `docs/interrupted-runs-verification.md`, G1–G3 open and
+six issues open, none with an owner. Before it: 01 landed (`387c58f`) and reviewed, CI green
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
 (run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
 `39060913296`), closing the two issues 02's
@@ -8,7 +10,8 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, landed (`0bae3a3`) and reviewed the same day, CI green (run `39143681701`), and **`v0.2.0` tagged on `0bae3a3`** (tag object `895e3c7`); its review opened one issue; 07 written 2026-10-18, not run.** Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, landed (`0bae3a3`) and reviewed the same day, CI green (run `39143681701`), and **`v0.2.0` tagged on `0bae3a3`** (tag object `895e3c7`); its review opened one issue; 07 written 2026-10-18 and landed the same day (this commit), closing
+the campaign and opening nothing.** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
@@ -18,7 +21,8 @@ to its 3.14 `with` point, under L11 (a), with no owner. One, found at the writin
 §3 with no owner. One, found at the writing of 04, is open in §3 with no owner. 04 closed
 `[a3-v2-a-hard-killed-run-blocks-its-store]` (§4), and its work found one more, which was assigned
 to 05. 05 closed that one and `[00-begin-does-not-refuse-a-second-writer]` (§4). 06's review found one
-more, open in §3 with no owner; six are open in §3, none with an owner.
+more, open in §3 with no owner; six are open in §3, none with an owner. 07 verified the
+campaign and closed it on 2026-10-18, opening nothing; the six stay open at the close.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -62,11 +66,11 @@ tag's.
 | 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
 | 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/05-begin-refuses-a-second-writer.md)); CI green, run `39129061916`; two issues closed, none opened | `eb68583` | 378 → 410 |
 | 06 | [`06-release-v0.2.0.md`](06-release-v0.2.0.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/06-release-v0.2.0.md)); CI green, run `39143681701`; **`v0.2.0` tagged** (tag object `895e3c7`); one issue opened by the review | `0bae3a3` | 410 → 410 |
-| 07 | [`07-verification-and-close-out.md`](07-verification-and-close-out.md) | Opus | written 2026-10-18, not run | — | |
+| 07 | [`07-verification-and-close-out.md`](07-verification-and-close-out.md) | Opus | **landed** 2026-10-18, not yet reviewed ([log](logs/07-verification-and-close-out.md)); the verification document and the interrupted-run smoke run against the pin from GitHub; **the campaign closed**; nothing opened | this commit | 410 → 410 |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
 from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, 347 after 03,
-378 after 04, 410 after 05, and 410 after 06.
+378 after 04, 410 after 05, 410 after 06, and 410 after 07.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
@@ -1028,7 +1032,7 @@ DatastoreKit's `v0.4.0`, `ray==2.55.1` and `sqlalchemy==2.0.46`, in a fresh 3.13
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ✅ `5e20772` |
 | **B1** | 05 | `begin` refuses a store a run that has not finished names; `pid_alive` false out of range | `[00-begin-does-not-refuse-a-second-writer]`, `[04-a-pid-out-of-range-makes-pid-alive-raise]` | ✅ `eb68583` |
 | **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ✅ `0bae3a3` |
-| **Z1** | 07 | the verification document; the close | — | ⬜ |
+| **Z1** | 07 | the verification document; the close | — | ✅ this commit |
 
 **Legend.** ⬜ not yet · ✅ done.
 
@@ -1040,9 +1044,18 @@ DatastoreKit's `v0.4.0`, `ray==2.55.1` and `sqlalchemy==2.0.46`, in a fresh 3.13
 | **G2** | not yet (CPBH adopts) |
 | **G3** | not yet (SI adopts) |
 
+*2026-10-18, at the close (07, this commit):* none of G1–G3 has held. SGK is pinned at `v0.1.0`
+(`requirements.txt:81` at its newest commit, `79434bf`); ChamPBH and StochasticInstantons use
+nothing of the registry. The campaign closed without waiting for them (README §7). **After the
+close, a gate is recorded on this board when it holds, in a records commit of its own.**
+
 ---
 
 ## 3. Active and unresolved issues
+
+**At the close (2026-10-18, 07, this commit), all six stay open, none with an owner**; each entry
+below ends with a dated line saying so, and `docs/interrupted-runs-verification.md` §6 says why
+each stays open and what would take it up.
 
 Six, none with an owner: one opened by 06's review (`0bae3a3`), on the store layer's prose; one found by 02b's review, narrowed by 02c (`35ce264`) to its Python
 3.14 `with` point; two opened by 03, one at its writing and one by its work; one opened by 03's
@@ -1188,6 +1201,10 @@ lines from `pid_alive` down move by four (its docstring sentence and the `Overfl
 `_write_status` `:365` and the lines before it are unmoved. 02b's and 02c's sweeps pass unchanged
 (05's log §2).
 
+*At the close (2026-10-18, by 07, this commit):* open, owner none. 07 ran `test_status_writes` at
+3.14.8 (22 tests, OK, no skip), which says nothing about the `with` window (the verification
+document's §3, §10).
+
 ### `[03-a-run-whose-manifest-cannot-be-read-names-no-store]`
 
 **Opened:** 2026-10-18 at the writing of prompt 03, by its planner's probe; measured. **Owner:**
@@ -1230,6 +1247,8 @@ stands.
 (`begin` grew by forty lines above them). `stores.py` is not touched by 05. `begin` does not see such
 a run, as the store operations do not (05's file).
 
+*At the close (2026-10-18, by 07, this commit):* open, owner none.
+
 ### `[03-a-run-on-a-manifest-that-is-not-an-object-raises-where-it-is-used]`
 
 **Opened:** 2026-10-18 by 03, from the orchestrator's correction 16; measured. **Owner:** none.
@@ -1265,6 +1284,8 @@ the three forms. It is one line, and belongs with whichever prompt next touches 
 `:684`; `checkpoint_path`'s read `:720` → `:724`, `results_path`'s `:730` → `:734`; the reads at
 `:885` → `:889`, `:902-904` → `:906-908` and `:946` → `:950`; `_json_object` `:252` is unmoved.
 
+*At the close (2026-10-18, by 07, this commit):* open, owner none.
+
 ### `[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]`
 
 **Opened:** 2026-10-18 by the orchestrator's review of 03; measured. **Owner:** none.
@@ -1288,6 +1309,8 @@ line, and belongs with whichever prompt next touches `store show`.
 
 *Package lines (04, `5e20772`).* `store show`'s format `runregistrykit/__main__.py:204` → `:217`;
 `list`'s row `:573` → `:651`. Not otherwise touched by 04.
+
+*At the close (2026-10-18, by 07, this commit):* open, owner none.
 
 ### `[04-a-killed-process-not-yet-reaped-answers-kill-0]`
 
@@ -1323,6 +1346,10 @@ log §3), shows it on the killed child before its reap.
 refusal `:1309-1316` → `:1349-1356`. `begin` now refuses a killed child's store until the child is
 reaped, as the store operations do (05's log, observation 7); the issue is unchanged.
 
+*At the close (2026-10-18, by 07, this commit):* open, owner none. 07's breakage (b) measured it
+against the release installed from GitHub: before its reap, a `SIGKILL`'d child's run read
+`alive`, its `list` row unmarked, and `end` refused it as a live pid (the verification document's
+§4.3).
 
 ### `[06-three-store-docstrings-and-a-comment-state-the-old-in-use-rule]`
 
@@ -1349,6 +1376,8 @@ state the rule as the code applies it.
 *Next step.* A docstring-only change in a later release, made by a prompt that says so: each line
 brought into the module docstring's terms (`stores.py:102-109`), no behaviour changed. It is not
 needed before `v0.2.0` is tagged.
+
+*At the close (2026-10-18, by 07, this commit):* open, owner none.
 
 ---
 

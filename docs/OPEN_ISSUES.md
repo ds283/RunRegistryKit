@@ -29,7 +29,7 @@ two found here reading it, read at `79015a7`. The five that bear on a long job w
 | `[01-cross-filesystem-move-advice-says-delete-by-hand]` | none | `store move` relays DatastoreKit's "delete the source by hand" for a registered store, which is retired instead |
 | `[06-runregistrykit-list-into-a-closed-pipe-ends-in-a-traceback]` | none | `list \| head` can end in a `BrokenPipeError` traceback; cosmetic, nothing lost |
 
-### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01, 02, 02b, 02c, 03, 04, 05 and 06 landed
+### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): opened 2026-10-16, closed 2026-10-18, by 07
 
 Assigned from the `inherited-issues` board on 2026-10-16: the five that bear on a long job that
 may be interrupted, taken in this order, one prompt each (the campaign's README §2). The first,
@@ -37,7 +37,7 @@ may be interrupted, taken in this order, one prompt each (the campaign's README 
 `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, by 02 on 2026-10-17. Two more were opened by 02's review on 2026-10-17, on the bookkeeping of the
 `status.json` writer, and closed by 02b the same day. One was opened by 02b's review, the same day,
 and assigned to 02c, which fixed it at Python 3.12 and 3.13 and narrowed it to its 3.14 `with`
-point, now with no owner. One was opened at the writing of 03, on 2026-10-18, with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` the same day, and its work opened one more, with no owner; its review opened another, with no owner. One was opened at the writing of 04, the same day, with no owner. 04 closed `[a3-v2-a-hard-killed-run-blocks-its-store]` the same day, and its work opened one more, assigned to 05 on 2026-10-18 at the user's request. 05 closed both of its assigned issues the same day, `[00-begin-does-not-refuse-a-second-writer]` and `[04-a-pid-out-of-range-makes-pid-alive-raise]`. One was opened by 06's review, the same day, with no owner.
+point, now with no owner. One was opened at the writing of 03, on 2026-10-18, with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` the same day, and its work opened one more, with no owner; its review opened another, with no owner. One was opened at the writing of 04, the same day, with no owner. 04 closed `[a3-v2-a-hard-killed-run-blocks-its-store]` the same day, and its work opened one more, assigned to 05 on 2026-10-18 at the user's request. 05 closed both of its assigned issues the same day, `[00-begin-does-not-refuse-a-second-writer]` and `[04-a-pid-out-of-range-makes-pid-alive-raise]`. One was opened by 06's review, the same day, with no owner. 07 closed the campaign on 2026-10-18 and opened nothing; the six below stay open, none with an owner.
 
 | Issue | Owner | Hook |
 |---|---|---|
