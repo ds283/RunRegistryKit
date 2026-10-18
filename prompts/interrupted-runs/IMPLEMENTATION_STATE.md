@@ -8,7 +8,7 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, not run.** Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, and landed (this commit), not yet reviewed.** `v0.2.0` is ready to be tagged on 06's commit once CI has passed on that commit, all three jobs; no tag is made. Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
@@ -61,7 +61,7 @@ tag's.
 | 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
 | 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
 | 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/05-begin-refuses-a-second-writer.md)); CI green, run `39129061916`; two issues closed, none opened | `eb68583` | 378 → 410 |
-| 06 | [`06-release-v0.2.0.md`](06-release-v0.2.0.md) | Opus | written 2026-10-18, not run | — | |
+| 06 | [`06-release-v0.2.0.md`](06-release-v0.2.0.md) | Opus | **landed, not yet reviewed** 2026-10-18 ([log](logs/06-release-v0.2.0.md)); `v0.2.0` not tagged | this commit | 410 → 410 |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
@@ -886,7 +886,7 @@ check 9 holds.**
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ✅ `ab0cad9` |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ✅ `5e20772` |
 | **B1** | 05 | `begin` refuses a store a run that has not finished names; `pid_alive` false out of range | `[00-begin-does-not-refuse-a-second-writer]`, `[04-a-pid-out-of-range-makes-pid-alive-raise]` | ✅ `eb68583` |
-| **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ⬜ |
+| **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ✅ this commit |
 | **Z1** | 07 | the verification document; the close | — | ⬜ |
 
 **Legend.** ⬜ not yet · ✅ done.

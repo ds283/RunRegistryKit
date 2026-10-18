@@ -327,3 +327,12 @@ Each checklist has the same ten items, in this order:
 10. What goes stale in it
 
 and then the appendix, the script's output.
+
+---
+
+## `v0.2.0`
+
+The adoption notes for `v0.2.0` are in [`v0.2.0/`](v0.2.0/README.md): what the three clients
+share, and one note per client, each read at the commit it names. The checklists above were
+written against `v0.1.0` and are not rewritten; the notes for `v0.2.0` say what each still
+describes, with the pin `v0.2.0` in its place.

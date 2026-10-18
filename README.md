@@ -9,13 +9,20 @@ its pid and its heartbeat, never by matching a command line. An optional store l
 sidecar beside each datastore, saying which runs made it and recording its fingerprint, and
 creates, adopts, copies, moves, fingerprints and retires stores under that record.
 
-**Status: `v0.1.0`.** This is the `RunRegistry/` package of
+**Status: `v0.2.0`.** `v0.1.0` was the `RunRegistry/` package of
 [SecondaryGWKit](https://github.com/ds283/SecondaryGWKit), moved here and made generic: a client's
 root and settings come from the `runregistrykit.toml` at that root, and the store layer takes the
 client's own fingerprinter. SecondaryGWKit, ChamPBH and StochasticInstantons adopt it from here.
+`v0.2.0` adds what an interrupted run needs: a run records the machine and the boot it ran on, a
+run whose status cannot be read is counted as in use, `python -m runregistrykit end` records a run
+whose end was never recorded, and `begin` refuses a store that a run which has not finished names.
+What it changes in what the registry writes, and what an older record means, is in its release
+notes, [`docs/releases/v0.2.0.md`](docs/releases/v0.2.0.md).
 Where each part came from, and what changed on the way, is in [`PROVENANCE.md`](PROVENANCE.md).
 The plan for the move is [`prompts/extraction/README.md`](prompts/extraction/README.md), and its
 status board is [`prompts/extraction/IMPLEMENTATION_STATE.md`](prompts/extraction/IMPLEMENTATION_STATE.md).
+The plan for `v0.2.0` is [`prompts/interrupted-runs/README.md`](prompts/interrupted-runs/README.md),
+and its status board is [`prompts/interrupted-runs/IMPLEMENTATION_STATE.md`](prompts/interrupted-runs/IMPLEMENTATION_STATE.md).
 
 The core depends on nothing beyond the Python standard library. The store layer depends on
 [DatastoreKit](https://github.com/ds283/DatastoreKit), the datastore layer extracted from the same
@@ -48,7 +55,7 @@ In a client's `requirements.txt`, the release, with the extra, beside the client
 DatastoreKit at `v0.4.0` or later:
 
 ```
-runregistrykit[stores] @ git+https://github.com/ds283/RunRegistryKit@v0.1.0
+runregistrykit[stores] @ git+https://github.com/ds283/RunRegistryKit@v0.2.0
 datastorekit @ git+https://github.com/ds283/DatastoreKit@v0.4.0
 ```
 
@@ -59,7 +66,7 @@ offer. That line is also what makes `datastorekit` come from DatastoreKit's tag 
 else.
 
 A client that uses only the core writes `runregistrykit @
-git+https://github.com/ds283/RunRegistryKit@v0.1.0`, with no extra and no `datastorekit`.
+git+https://github.com/ds283/RunRegistryKit@v0.2.0`, with no extra and no `datastorekit`.
 
 An editable install (`pip install -e`) is for developing this package, never for a client's
 production runs.
@@ -110,9 +117,24 @@ and never writes), `scope`, `heartbeat_means`, `pid` (default the calling proces
 runs root, default the config's `runs_root`), `when`, and `client_root`.
 
 It finds the client root first, so that a refusal leaves nothing behind, and refuses a `results`
-store whose sidecar is a tombstone. Then it makes the run directory,
+store whose sidecar is a tombstone. It also refuses a `results` store that a run which has not
+finished names: any run under the runs root it is creating this run in whose state is not
+terminal, which is `running` (alive, stale or on another host) or a status that does not say, and
+which names the store by its `results` or its `results_store_id`. There is no override. A stale
+run is ended by a person, with `python -m runregistrykit end` (below), and then `begin()` is
+called again; the registry does not decide that a run is dead. It is the check the store
+operations make, and it is a check and not a lock: a run begun at the same moment is not seen.
+Then it makes the run directory,
 `<runs_root>/<campaign>-<prompt>-<slug>-<YYYYMMDDTHHMMSS>`, writes `manifest.json` in it, once,
-and `status.json` with the state `running`, and returns a `Run`. A job then calls:
+and `status.json` with the state `running`, and returns a `Run`.
+
+It records the host the run is on, read once by `this_host()`: in the manifest's `host`, its `id`,
+`name`, `machine`, `system`, `release` and `python`, and in `status.json`'s `host` its `id` and
+`boot`, which every later write keeps. `id` is a digest of the machine's own identity (macOS
+`gethostuuid(3)`, Linux `/etc/machine-id`), never the identity itself; `boot` identifies the
+current boot (macOS `kern.bootsessionuuid`, Linux `boot_id`); each is `null` where the platform
+offers none. `name` is for a person to read and is never judged by: `RUNREGISTRYKIT_HOST_NAME` if
+it is set and not empty, else `platform.node()`. A job then calls:
 
 - `heartbeat(units_done=None, units_total=None, pid=None, stage=None)`, to say it is alive and how
   far it has got; a launcher that spawns a detached child passes the child's `pid` here;
@@ -121,18 +143,67 @@ and `status.json` with the state `running`, and returns a `Run`. A job then call
 - `known()`, to read the units already recorded, dropping (with a notice) any written by a
   different version of the script;
 - `finish(state, exit_code=None, *, fingerprint=False)` at the end, with `state` one of `done`,
-  `failed` or `killed`; with `fingerprint=True` it first takes the fingerprint of the `results`
+  `failed` or `killed`, the three a caller reports (`lost`, the fourth of `TERMINAL_STATES`, is
+  the state `python -m runregistrykit end` records for a run whose end the registry never saw);
+  with `fingerprint=True` it first takes the fingerprint of the `results`
   store (the store layer, below), and a fingerprint that fails is recorded, never a reason to
   change how the run ended.
 
 The run directory also names `stdout.log` and `stderr.log` (`Run.stdout_path`,
 `Run.stderr_path`), for a launcher to send the job's output to; `begin()` does not redirect it.
+`status.json` is written through a temporary name of each write's own beside it,
+`status.json.<pid>-<n>-<hex>.tmp`, and then replaced, so a process killed in the middle of a write
+can leave one behind; the registry never reads it, and a reader of `status.json` sees the previous
+status or the new one, never a half-written file.
 
 `python -m runregistrykit list` prints every run under the runs root, newest first, with its state,
-progress, age and purpose. A run is alive if and only if its pid answers `kill -0` and its heartbeat
-is inside the staleness window (`--stale-after SECONDS`, default 900); one whose state is still
-`running` but which fails either test is **stale**, and is marked `!!`. `--root DIR` names another
-runs root.
+progress, age and purpose, and then a line counting the runs by their liveness and the records
+with no host. A run's liveness is `liveness()`'s, one of `alive`, `stale`, `foreign`, `finished`
+and `unknown`:
+- a terminal state is **finished**, and any state but `running`, or no readable status, is
+  **unknown**;
+- a `running` run recorded on another host is **foreign**, and is marked `??` with that host's
+  name: its pid is not tested here and its heartbeat is not weighed, so `foreign` never means that
+  the run is alive, or that it is dead;
+- a `running` run recorded on this host in an earlier boot is **stale**, whatever its pid answers,
+  since its pid cannot name a process of this boot;
+- otherwise a run is **alive** if and only if its pid answers `kill -0` and its heartbeat is inside
+  the staleness window (`--stale-after SECONDS`, default 900), and **stale** if it fails either. A
+  stale run is marked `!!`.
+
+A record with no host, which every record written before `v0.2.0` is, is judged by its pid and
+heartbeat as before. A run with a manifest whose status cannot be read, or does not say whether the
+run is running, is `unknown` and is marked `!!` too. On stderr `list` says how many runs are stale,
+how many it cannot tell about, and how many are on another host; the first two lines name `end`
+(below) as the way to record that a run is over. `--root DIR` names another runs root.
+
+### Ending a run whose end was never recorded
+
+A run killed by `SIGKILL`, a power loss, a reboot or the OOM killer never reaches `finish`, so its
+status says `running` for ever. `python -m runregistrykit end RUN_ID --reason TEXT [--unverified]
+[--root DIR]` records, on a person's word, that such a run has ended. `RUN_ID` is the run's
+directory name under the runs root (`--root DIR` names another), and `--reason`, saying why, is
+required. **The registry does not decide that a run is dead**: `end` records a person's decision,
+after checking that the evidence on this machine does not say the run is still running.
+- A run recorded on this host in an earlier boot is accepted, its pid not tested.
+- A `running` run on this host, or with no host recorded, is accepted when its pid does not answer
+  `kill -0`, and refused when it does, **with no override**: `--unverified` does not change it. A
+  process that was killed and not yet reaped by its parent answers `kill -0` too, until its parent
+  waits for it or exits.
+- A run on another host, and a run whose status cannot be read or does not say whether it is
+  running, are refused unless the person passes `--unverified`, saying they have checked on its
+  host or by other means; the record then says that it was not verified, and why. A pid that such a
+  status gives, when it is not on another host or from an earlier boot, is still tested, and one
+  that answers is refused.
+- A run whose status says it has already ended, `lost` included, is always refused.
+
+Every check is made before anything is written. It then writes `status.json`, through the same
+writer as every other status write, with the state `lost`, the exit code `null` and an `ended`
+record saying who ended it, when, why, at what `git_head` of the client root, on which host,
+whether it was verified and why not, and the evidence it checked; every other field the status held
+is kept. Nothing else is written, the manifest, the ledger and every sidecar included, and nothing
+is deleted. A `lost` run is finished, so the store operations and `begin()` no longer count it as
+in use.
 
 ### The store layer
 
@@ -179,16 +250,17 @@ The commands, `python -m runregistrykit store <command>`:
 
 Those that read runs take `--runs-root DIR`, and `retire` takes `--stores-root DIR`; each defaults
 to the config's. `retire` alone deletes, and only a store's own files, its shards and then its
-primary; it keeps the sidecar, and it refuses a store that a `running` run names and one whose
-recorded fingerprint does not match its content. No command deletes a sidecar, a run directory or
-any other record.
+primary; it keeps the sidecar, and it refuses a store that any run names whose status does not say
+it has finished and one whose recorded fingerprint does not match its content. No command deletes
+a sidecar, a run directory or any other record.
 
 ### What the registry writes is part of its interface
 
 A client holds run directories and sidecars written by earlier releases, and reads them with the
 current one. The run directory's `manifest.json`, `status.json` and `checkpoint.jsonl`, and a
 store's sidecar, are therefore part of this package's interface: a change to any of them is made
-only in a release of its own, which says so.
+only in a release of its own, which says so. Each release that changes a record says so in its
+release notes, in [`docs/releases/`](docs/releases/).
 
 ## The rules
 
@@ -216,8 +288,10 @@ runs root below is the one the client's `runregistrykit.toml` names (`runs_root`
    looks like coverage: the discovery rule matters as much as the file format.
 
 2. **Liveness.** A run is alive if and only if its pid answers `kill -0` **and** its heartbeat is
-   inside the staleness window. Never decide by matching a command line: `pgrep -f <name>` also
-   matches the shells polling for the job, so a wait on it can never end.
+   inside the staleness window. It judges a run on the run's own host: a run recorded on another
+   host is not judged here, and one recorded on this host in an earlier boot is stale. Never
+   decide by matching a command line: `pgrep -f <name>` also matches the shells polling for the
+   job, so a wait on it can never end.
 
    *The failure it answers.* Nineteen poll loops accumulated and none of them could ever exit,
    because each polled with `pgrep -f` on the script's name, which matches the waiting shell's own
@@ -274,7 +348,7 @@ Each module's `__all__` is its public interface, and nothing else is:
 - `runregistrykit`, the core: `CONFIG_FILE`, `ClientRoot`, `ConfigError`, `DEFAULT_STALE_AFTER`,
   `Run`, `TERMINAL_STATES`, `begin`, `find_client_root`, `git_provenance`, `heartbeat_age`,
   `list_runs`, `liveness`, `now_iso`, `package_provenance`, `pid_alive`, `read_json`, `run_id`,
-  `script_sha256`, `slugify` and `write_json_atomic`;
+  `script_sha256`, `slugify`, `this_host` and `write_json_atomic`;
 - `runregistrykit.stores`, the store layer (it needs the extra `[stores]`): `AMEND_KEYS`,
   `AMEND_OPERATION`, `HISTORY_KEYS`, `IDENTITY_OPERATIONS`, `INCOMPLETE_MOVE_SUFFIX`,
   `KNOWN_FIELDS`, `RELOCATION_OPERATIONS`, `REQUIRED_FIELDS`, `RETIREMENT_STATES`,
@@ -292,8 +366,9 @@ Everything else is private and may change in any release, a leading underscore o
 **No patch target is promised.** Where the package looks a name up at call time, a client that
 patches that name does so at its own risk. The two places are `Run.finish` with `fingerprint=True`,
 which imports `runregistrykit.stores` when it runs and calls `fingerprint_store`, and `begin()`
-with `results`, which imports `runregistrykit.stores` and calls `read_sidecar`; the package
-promises nothing about the objects it finds there, nor about the module-level names behind them.
+with `results`, which imports `runregistrykit.stores` and calls `read_sidecar` and the store
+operations' in-use check; the package promises nothing about the objects it finds there, nor about
+the module-level names behind them.
 
 ## Developing
 
@@ -314,8 +389,9 @@ docs`).
 
 CI (`.github/workflows/tests.yml`) runs the suite at both ends of the supported range and `black` at
 the low end, and the core alone in a job with none of `datastorekit`, `ray` and `sqlalchemy`
-installed: the two test modules that need nothing else, `test_run_registry` and
-`test_public_names`, and a smoke of the imports and the command line. The checks under
+installed: the core's test modules, which need nothing else, `test_run_registry`,
+`test_public_names`, `test_host`, `test_status_writes`, `test_unreadable_status`, `test_end` and
+`test_second_writer`, and a smoke of the imports and the command line. The checks under
 `docs/extraction/` read the client repositories through `git`, and run locally only.
 
 ## Licence
