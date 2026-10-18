@@ -150,6 +150,7 @@ from typing import List, Optional, Tuple
 from . import (
     DEFAULT_STALE_AFTER,
     TERMINAL_STATES,
+    _END,
     _repo_path,
     _resolve,
     find_client_root,
@@ -1067,7 +1068,19 @@ def _unsure_remedy(running) -> str:
         return ""
     return (
         "A run whose status does not say whether it is running is ended by a person, with "
-        "Run.finish, once they have checked that it is not"
+        f"`{_END} --unverified`, once they have checked that it is not"
+    )
+
+
+def _foreign_remedy(running) -> str:
+    """The sentence a refusal adds, without its full stop, when any of ``running`` is a `running`
+    run on another host: its pid is not tested here, and a person checks there. Empty otherwise.
+    """
+    if not any(entry["liveness"] == "foreign" for entry in running):
+        return ""
+    return (
+        f"A run on another host is ended by a person, with `{_END}` on that host, or here "
+        f"with `--unverified` once they have checked there"
     )
 
 
@@ -1075,16 +1088,18 @@ def _refuse_if_in_use(operation, src, dst, store_id, runs_root, client) -> None:
     """Refuse if any run that has not finished names the source or the destination: `running`,
     alive **or stale**, or a status that does not say (`_running_runs_naming`). Liveness is
     evidence, not proof, and the registry does not decide that a run is dead: a stale run is ended
-    by a person, with `Run.finish`, before its store is moved.
+    by a person, with `python -m runregistrykit end`, before its store is moved.
     """
     running = _running_runs_naming(operation, [src, dst], store_id, runs_root, client)
     if running:
         described = _describe_running(running)
+        foreign = _foreign_remedy(running)
         unsure = _unsure_remedy(running)
         raise RuntimeError(
             f'Cannot {operation} "{src}" to "{dst}": {described}. A stale run is ended by a '
-            f"person, with Run.finish, before its store is moved; the registry does not decide "
+            f"person, with `{_END}`, before its store is moved; the registry does not decide "
             f"that a run is dead. "
+            f"{foreign + '. ' if foreign else ''}"
             f"{unsure + '. ' if unsure else ''}"
             f"Nothing was written"
         )
@@ -1388,11 +1403,13 @@ def fingerprint_store(
         "fingerprint", [primary], store_id, runs_root, client, exclude=taken_by
     )
     if running:
+        foreign = _foreign_remedy(running)
         unsure = _unsure_remedy(running)
         raise RuntimeError(
             f'Cannot fingerprint "{primary}": {_describe_running(running)}. A fingerprint of a '
             f"store that is being written describes no instant; a stale run is ended by a "
-            f"person, with Run.finish, first. "
+            f"person, with `{_END}`, first. "
+            f"{foreign + '. ' if foreign else ''}"
             f"{unsure + '. ' if unsure else ''}"
             f"Nothing was read or written"
         )
@@ -1715,10 +1732,12 @@ def retire_store(
         )
     running = _running_runs_naming("retire", [primary], store_id, runs_root, client)
     if running:
+        foreign = _foreign_remedy(running)
         unsure = _unsure_remedy(running)
         raise refuse(
-            f"{_describe_running(running)}. A stale run is ended by a person, with Run.finish, "
+            f"{_describe_running(running)}. A stale run is ended by a person, with `{_END}`, "
             f"before its store is retired; the registry does not decide that a run is dead. "
+            f"{foreign + '. ' if foreign else ''}"
             f"{unsure + '. ' if unsure else ''}"
             f'Once it is ended, `python -m runregistrykit store fingerprint "{primary}" --write` records '
             f"the fingerprint that retirement needs"
@@ -2070,10 +2089,12 @@ def amend_sidecar(
     store_id = fields["store_id"]
     running = _running_runs_naming("amend", [primary], store_id, runs_root, client)
     if running:
+        foreign = _foreign_remedy(running)
         unsure = _unsure_remedy(running)
         raise refuse(
-            f"{_describe_running(running)}. A stale run is ended by a person, with Run.finish, "
+            f"{_describe_running(running)}. A stale run is ended by a person, with `{_END}`, "
             f"before its sidecar is amended; the registry does not decide that a run is dead"
+            f"{'. ' + foreign if foreign else ''}"
             f"{'. ' + unsure if unsure else ''}"
         )
 

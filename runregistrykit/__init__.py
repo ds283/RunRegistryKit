@@ -62,6 +62,7 @@ to be running but are not.
 """
 
 import copy
+import getpass
 import hashlib
 import importlib.metadata
 import itertools
@@ -101,7 +102,11 @@ __all__ = [
     "write_json_atomic",
 ]
 
-TERMINAL_STATES = ("done", "failed", "killed")
+TERMINAL_STATES = ("done", "failed", "killed", "lost")
+
+# the command a person runs to record that a run whose end the registry never saw has ended, as
+# the store operations' refusals and `list` name it (`_end_run` checks and writes)
+_END = "python -m runregistrykit end RUN_ID --reason TEXT"
 
 # The lister's default staleness window. `liveness()` itself takes the window from its caller;
 # fifteen minutes is a convention for the command line, overridable with --stale-after, and is
@@ -796,6 +801,8 @@ class Run:
     def finish(self, state, exit_code=None, *, fingerprint=False) -> dict:
         """Set the terminal state and the exit code. The registry records; it does not kill,
         restart or reap, so `killed` is something a caller reports, not something observed.
+        `lost` is the state `python -m runregistrykit end` records for a run whose end the
+        registry never saw; a caller reporting how its own run ended uses one of the other three.
 
         With ``fingerprint=True``, and a manifest that names `results`, it first fingerprints that
         store (`runregistrykit.stores.fingerprint_store`, read-only, with this run as `taken_by` so
@@ -1199,3 +1206,180 @@ def list_runs(
         )
     entries.sort(key=lambda entry: entry["created_epoch"], reverse=True)
     return entries
+
+
+# =================================================================================================
+# ending a run whose end the registry never saw, on a person's word (`python -m runregistrykit end`)
+
+
+def _not_ended(run_id, why) -> RuntimeError:
+    return RuntimeError(f"Cannot end {run_id}: {why}. Nothing was written")
+
+
+def _end_run(path, reason, *, unverified=False, client_root=None) -> dict:
+    """Record the run at ``path`` as ended, in the terminal state `lost`, on a person's word, after
+    checking that the evidence on this machine does not say it is still running. Returns the
+    payload written. Raises `RuntimeError`, beginning `Cannot end <run id>:` and ending `Nothing
+    was written`, for a refusal, and `ConfigError` when no client root is found; every check is
+    made, and the client root located, before anything is written.
+
+    The registry does not decide that a run is dead: this records a person's decision. In order:
+
+    1. ``path`` is a directory holding a `manifest.json` or a `status.json`; otherwise nothing the
+       registry wrote is there. A manifest that is missing, torn or not an object does not
+       refuse: the status is what is judged;
+    2. ``reason``, stripped, is not empty;
+    3. a status whose state is terminal, `lost` included, is refused: the run has ended, and says
+       how;
+    4. a status that does not say whether the run is running (not readable as a JSON object, or a
+       state neither `running` nor terminal) is refused unless ``unverified``, and is then
+       recorded `verified: false`, `"status does not say"`. But when it is readable and gives a
+       pid (its `pid` is not null), and is on this host or records none, and is not from an
+       earlier boot, the pid is tested, and a pid that answers is refused as in step 6;
+    5. a `running` status on another host (its `host.id` not null and not this host's, as
+       `liveness` calls it `foreign`) is refused unless ``unverified``, and is then recorded
+       `verified: false`, `"another host"`; its pid is not tested;
+    6. a `running` status here, or with no host recorded, which is judged by its pid as `liveness`
+       judges it: from an earlier boot of this host it is accepted, verified, its pid not tested,
+       since it names no process of this boot. Otherwise the pid is tested (`pid_alive`, whose
+       coercion decides, so a `null` pid does not answer): a pid that answers is **refused, and
+       ``unverified`` does not override it**; one that does not is accepted, verified.
+
+    ``unverified`` where no check needs it changes nothing. A process that was killed and not yet
+    reaped by its parent answers `kill -0`, so such a run is refused until its parent waits for it
+    or exits. This takes no lock and is not one: the status is read again when it is written, by
+    the status writer, which keeps every field it holds and adds `state` `lost`, `exit_code` null
+    and `ended`. The manifest, the ledger and every sidecar are not touched, and nothing is
+    deleted. ``client_root`` is a `ClientRoot`, a directory to find one in, or None, as `Run`
+    takes; its `git_head` is recorded.
+    """
+    path = os.path.abspath(path)
+    identifier = os.path.basename(path)
+    client = find_client_root(client_root=client_root)
+    manifest_path = os.path.join(path, "manifest.json")
+    status_path = os.path.join(path, "status.json")
+
+    # 1. the run
+    if not os.path.isdir(path):
+        raise _not_ended(identifier, f"{path} is not a directory")
+    if not (os.path.lexists(manifest_path) or os.path.lexists(status_path)):
+        raise _not_ended(
+            identifier,
+            f"{path} holds neither a manifest.json nor a status.json, so nothing the registry "
+            f"wrote is there; a directory that predates the registry names no store and blocks "
+            f"none",
+        )
+
+    # 2. the reason
+    if not (isinstance(reason, str) and reason.strip()):
+        raise _not_ended(
+            identifier,
+            "a reason is required, saying why the run is ended, which only a person can say",
+        )
+
+    raw = read_json(status_path)
+    readable = isinstance(raw, dict)
+    status = _json_object(raw)
+    state = status.get("state")
+
+    # 3. the state
+    if state in TERMINAL_STATES:
+        raise _not_ended(
+            identifier,
+            f"its status says it has already ended, as {state!r}; end records only a run whose "
+            f"end the registry never saw",
+        )
+
+    # where the status was written, as `liveness` reads it
+    here = this_host()
+    recorded = status.get("host")
+    if isinstance(recorded, dict) and recorded.get("id") is not None:
+        where = "another" if recorded["id"] != here["id"] else "this"
+    else:
+        where = "not recorded"
+    boot = None
+    if where == "this":
+        then, now = recorded.get("boot"), here["boot"]
+        if then is not None and now is not None:
+            boot = "earlier" if then != now else "this"
+        else:
+            boot = "not recorded"
+    pid = status.get("pid")
+
+    def refuse_a_live_pid():
+        raise _not_ended(
+            identifier,
+            f"its pid {pid} answers kill -0, so a process with that pid exists on this host, "
+            f"and a run whose process may be alive is not ended; --unverified does not override "
+            f"this. A process that was killed and not yet reaped by its parent (a zombie) "
+            f"answers kill -0 too, until its parent waits for it or exits",
+        )
+
+    answers = None
+    because = None
+    if not readable or state != "running":
+        # 4. a status that does not say
+        if readable and pid is not None and where != "another" and boot != "earlier":
+            answers = pid_alive(pid)
+            if answers:
+                refuse_a_live_pid()
+        if not unverified:
+            said = (
+                "cannot be read (status.json is missing, is not JSON, or is not a JSON object)"
+                if not readable
+                else "says neither running nor finished (state "
+                f"{'none' if state is None else repr(state)})"
+            )
+            raise _not_ended(
+                identifier,
+                f"its status {said}, so whether it is running cannot be told here. Once a "
+                f"person has checked that it is not, `{_END} --unverified` ends it, recorded as "
+                f"not verified",
+            )
+        because = "status does not say"
+    elif where == "another":
+        # 5. running on another host
+        if not unverified:
+            manifest = _json_object(read_json(manifest_path))
+            described = manifest.get("host")
+            name = described.get("name") if isinstance(described, dict) else None
+            raise _not_ended(
+                identifier,
+                f"it is running on another host, {name or recorded['id']} (pid {pid}, not "
+                f"tested here), and a pid means nothing off its own host. It is ended with "
+                f"`{_END}` on that host, or here with `--unverified` once a person has checked "
+                f"there",
+            )
+        because = "another host"
+    elif boot != "earlier":
+        # 6. running here
+        answers = pid_alive(pid)
+        if answers:
+            refuse_a_live_pid()
+
+    try:
+        by = getpass.getuser()
+    except Exception:
+        by = None
+    ended = {
+        "by": by,
+        "at": now_iso(),
+        "reason": reason.strip(),
+        "git_head": git_provenance(client.found)["git_head"],
+        "host": {key: here[key] for key in ("id", "boot", "name")},
+        "verified": because is None,
+        "not_verified_because": because,
+        "evidence": {
+            "state": state,
+            "status_readable": readable,
+            "pid": pid,
+            "pid_answers": answers,
+            "host": where,
+            "boot": boot,
+            "heartbeat": status.get("heartbeat"),
+            "heartbeat_age": heartbeat_age(status),
+        },
+    }
+    return Run(path, client_root=client)._update(
+        state="lost", exit_code=None, ended=ended
+    )

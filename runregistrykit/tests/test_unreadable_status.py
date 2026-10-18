@@ -81,7 +81,10 @@ FORMS = (
     ),
 )
 
-REMEDY = "is ended by a person, with Run.finish, once they have checked that it is not"
+REMEDY = (
+    "is ended by a person, with `python -m runregistrykit end RUN_ID --reason TEXT "
+    "--unverified`, once they have checked that it is not"
+)
 
 
 def give_status_the_form(run, make) -> None:
@@ -228,7 +231,10 @@ class TestTheListCommand(UnreadableStatusTestCase):
         )
         self.assertIn("the registry cannot tell whether they are running", lines[0])
         self.assertIn("the store operations count them as in use", lines[0])
-        self.assertIn("end it with Run.finish", lines[0])
+        self.assertIn(
+            "end it with `python -m runregistrykit end RUN_ID --reason TEXT --unverified`.",
+            lines[0],
+        )
         self.assertIn(f"{len(FORMS) + 2} run(s) under {self.root}", done.stdout)
 
     def test_a_state_that_is_a_list_or_an_object_is_listed_not_raised_on(self):

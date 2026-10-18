@@ -326,12 +326,16 @@ class TestRefusals(AmendTestCase):
     def test_an_alive_and_a_stale_running_run(self):
         primary = self.a_registry_store("alive")
         run = self.a_running_run("in-use", primary)
-        self.refused_amend(primary, run.id, "(alive,", "Run.finish", value=1)
+        self.refused_amend(
+            primary, run.id, "(alive,", "runregistrykit end RUN_ID", value=1
+        )
         run.finish("killed")
 
         stale = self.a_registry_store("stale")
         run2 = self.a_stale_run("in-use-stale", stale)
-        self.refused_amend(stale, run2.id, "(stale,", "Run.finish", value=1)
+        self.refused_amend(
+            stale, run2.id, "(stale,", "runregistrykit end RUN_ID", value=1
+        )
 
     def test_a_running_run_by_store_id_alone(self):
         primary = self.a_registry_store()

@@ -8,14 +8,16 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, not run (README §6.2).** Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18 and landed (this commit), not yet reviewed, closing the issue it was written for (README §6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
 to its 3.14 `with` point, under L11 (a), with no owner. One, found at the writing of 03, is open in
 §3 with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
 (§4), and its work found one more, open in §3 with no owner; its review found another, open in
-§3 with no owner. One, found at the writing of 04, is open in §3 with no owner.
+§3 with no owner. One, found at the writing of 04, is open in §3 with no owner. 04 closed
+`[a3-v2-a-hard-killed-run-blocks-its-store]` (§4), and its work found one more, open in §3 with no
+owner.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -56,13 +58,14 @@ tag's.
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
 | 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
-| 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | written 2026-10-18, not run | — | |
+| 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed** 2026-10-18 ([log](logs/04-end-a-run.md)), not yet reviewed; one issue closed, one opened by the work | this commit | 347 → 378 |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
-from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, and 347 after 03.
+from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, 347 after 03, and
+378 after 04.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
@@ -632,7 +635,7 @@ at 3.12 and at 3.13. **03's review is complete; check 9 holds.**
 | **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ✅ `2959b78` |
 | **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ✅ `35ce264` |
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ✅ `ab0cad9` |
-| **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
+| **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ✅ this commit |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
 | **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ⬜ |
 | **Z1** | 07 | the verification document; the close | — | ⬜ |
@@ -651,11 +654,13 @@ at 3.12 and at 3.13. **03's review is complete; check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Seven: two of the five assigned here, for 04 and 05; one found by 02b's review, narrowed by 02c
+Seven: one of the five assigned here, for 05; one found by 02b's review, narrowed by 02c
 (`35ce264`) to its Python 3.14 `with` point, with no owner; two opened by 03, with no owner: one
-at its writing and one by its work; one opened by 03's review (`ab0cad9`), with no owner; and one
-opened at the writing of 04, with no owner. The last five are at the end of this section.
-`[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, which 03 closed, is in §4.
+at its writing and one by its work; one opened by 03's review (`ab0cad9`), with no owner; one
+opened at the writing of 04, with no owner; and one opened by 04's work (this commit), with no
+owner. The last six are at the end of this section.
+`[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, which 03 closed, and
+`[a3-v2-a-hard-killed-run-blocks-its-store]`, which 04 closed, are in §4.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
@@ -663,160 +668,6 @@ does not keep a terminal state when the handler returns (README §0.2), so its e
 **Corrected at planning** paragraph. `[04-runs-do-not-say-which-machine-produced-them]` was closed
 by 01 (`387c58f`), and `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
 by 02 (`2bf9c72`); both are in §4. In the README's order:
-
-### `[a3-v2-a-hard-killed-run-blocks-its-store]`
-
-**Opened:** 2026-10-16 in SGK's `handover` campaign, by a measurement ahead of its A3 v2 launch and
-not by a prompt; handed over the same day (SGK `prompts/handover/runregistrykit-stale-run-brief.md`,
-committed in SGK `79434bf`). **From:** SGK `prompts/handover/IMPLEMENTATION_STATE.md` §3.
-**Owner:** none. Found by SGK in the package, not inherited from SGK's code; its name is SGK's, kept
-so that SGK can find it here.
-
-**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 04: the `end` command, under
-L7 and L8 (its README §2). Moved here from the `inherited-issues` board the same day, unchanged
-above and below but for this line. It is one of the five that bear on a long job that may be
-interrupted, and the campaign takes them together.
-
-*The defect.* A run killed by `SIGKILL`, power loss, a reboot or the OOM killer never reaches
-`Run.finish`, so its `status.json` says `running` for ever. `list` reports it as stale, which is
-right. Every store operation that checks for a running run counts it "alive **or stale**", so
-fingerprint, copy, move, retire and amend refuse its store, and so does a resumed run's
-`finish(fingerprint=True)`. The refusals name the remedy, "a stale run is ended by a person, with
-Run.finish". No command applies it, and `Run.finish` checks nothing about the run it ends. The
-rule the refusals keep, that the registry does not decide that a run is dead
-(`runregistrykit/stores.py:1031-1032`), is not in question; SGK does not ask to weaken it.
-
-*The package's lines (`79015a7`).*
-
-- *The in-use check.* `_running_runs_naming` (`runregistrykit/stores.py:998`) keeps every entry
-  whose state is `running` other than the excluded caller (`:1017`), whatever its liveness. Its
-  callers are copy and move (`_refuse_if_in_use`, `:1029`, called at `:1102`), `fingerprint_store`
-  (`:1338`), `retire_store` (`:1664`) and `amend_sidecar` (`:2017`). The module docstring says so
-  (`:102-107`).
-- *The remedy the refusals name.* At `:1038-1039` (copy, move), `:1344` (fingerprint), `:1667`
-  (retire) and `:2020` (amend). `test_store_retire.TestRefusals.test_a_stale_running_run_and_its_remedy`
-  (`runregistrykit/tests/test_store_retire.py:436`) asserts it, on `a_stale_run`
-  (`runregistrykit/tests/store_fixtures.py:148`): a run given a reaped pid, not a killed process.
-- *No command applies it.* `main` (`runregistrykit/__main__.py:408`) has `list` (`:418`) and `store
-  show|create|adopt|copy|move|fingerprint|retire|amend` (`:433-522`). None writes a `status.json`.
-- *The remedy checks nothing.* `Run.finish` (`runregistrykit/__init__.py:424`) checks only that the
-  state is in `TERMINAL_STATES` (`:99`, `:441`). It does not consult `pid_alive` (`:258`), the
-  heartbeat or `liveness` (`:294`). A person who ends the wrong directory ends a live run's record.
-- *The resumed run.* `_fingerprint_results` passes `taken_by=self` (`:476`), the only exclusion
-  (`stores.py:1338-1339`), so a later run on the same store is refused by its stale predecessor. It
-  records `fingerprint_error` and writes no fingerprint.
-
-*Measured.* By SGK, 2026-10-16 at SGK `f1a7de3` with `runregistrykit` 0.1.0, no Ray, on a throwaway
-two-shard store (brief §1, steps 1-6). A child process that had called `begin` and `heartbeat` was
-sent `SIGKILL` (returncode −9); its `status.json` was the same before and after, `running`, and
-`liveness` gave `stale`. `list` flagged it `!!`. A second `begin` on the store returned normally,
-and its `finish("done", exit_code=0, fingerprint=True)` wrote `done` with no fingerprint and a
-`fingerprint_error` naming the killed run. `store fingerprint --write`, `store retire --dry-run`
-(with and without `--without-fingerprint`) and `store copy` each exited 1, the sidecar's SHA-256
-unchanged. Once `kill -0` showed the pid gone, `Run(…).finish("killed", exit_code=137)` by hand
-cleared the `!!`, `store fingerprint` matched the recorded digest, and `store retire` completed.
-
-**Re-measured here** at `79015a7`, 2026-10-16, by a scratch probe (not committed) on the suite's
-own fixtures (`RetireTestCase`, a full four-shard store) in a `tempfile` directory: a child process
-that called `begin` and `heartbeat(stage=…)` on the store was sent `SIGKILL` (returncode −9).
-`status.json` was unchanged by the kill; `list_runs` gave state `running`, liveness `stale`.
-`fingerprint_store`, `retire_store(dry_run=True)` and `copy_store` each refused, naming the run. A
-resumed run's `finish("done", exit_code=0, fingerprint=True)` wrote `done`, no `fingerprint`, and a
-`fingerprint_error` naming the stale run.
-
-*Impact.* For SGK's A3 v2, a ~36-hour Ray build that may be interrupted and resumed: after a hard
-kill nothing is lost, and the documented route works, but it is the API by hand and unguarded, on
-the build that matters most. For any client: a stale entry stays `!!` in `list` until someone ends
-it through the API, and every store operation on its store is refused meanwhile. A `SIGTERM`'d run
-whose terminal state was lost to `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
-meets the same block. SGK does not ask for a release before A3 v2 (brief §2).
-
-*Next step.* Choose a route; SGK offers three and prefers the first (brief §1):
-
-1. **A person-run command that records a stale run as terminal**, for example `python -m
-   runregistrykit end RUN_ID --reason TEXT`. It refuses unless the run's state is `running` and its
-   pid fails `kill -0`, and writes a terminal state, a `null` exit code (nothing observed one) and
-   who ended it, when, why and at what `git_head`. It never writes the manifest and deletes nothing.
-   The open point is the state: `killed` is a terminal state already, but `finish`'s docstring calls
-   it "something a caller reports, not something observed" (`__init__.py:425-426`); a new `lost`
-   says the registry never saw how the run ended, at the cost of a fourth terminal state that
-   `liveness` and `list` learn. Either is a change to what the registry writes. The same check could
-   guard `Run.finish` when called on a run that is not the caller's own.
-2. **An explicit exclusion on the store operations**, for example `--stale-run RUN_ID`, accepted
-   only for a named run whose pid fails `kill -0` and recorded in the sidecar's `history` or the
-   tombstone. It unblocks the store and leaves the run `running`, with its `!!`.
-3. **`begin` and `finish` learning about predecessors** (`supersedes: [RUN_ID]`). It decides at
-   `begin` that a stale run is dead, the line the package has chosen not to cross; listed by SGK
-   for completeness.
-
-*Added on hand-over.* Any route that tests `kill -0` tests evidence that holds only on the machine
-that owns the pid, and only while the pid has not been reused, which a reboot, one of this entry's
-causes, makes likely. So the route depends on `[04-runs-do-not-say-which-machine-produced-them]`
-(its fourth question), and that decision is taken first, or with this one. The test SGK proposes
-stands: begin a run in a child process, `SIGKILL` it, and assert what the new route does; the
-probe above is its shape. `a_stale_run` fakes the pid and never exercises a kill.
-
-*Split on hand-over.* The brief's point that `begin` does not look for a run already on its store
-is held as its own entry, `[00-begin-does-not-refuse-a-second-writer]`: it holds whether or not the
-first run is dead, and its fix is none of the three routes.
-
-*Package lines (01, `387c58f`).* In `runregistrykit/stores.py`: `_running_runs_naming` `:998` and
-its filter `:1017` are unmoved; `_refuse_if_in_use` `:1029` → `:1041`, called at `:1102` → `:1114`;
-`fingerprint_store`'s check `:1338-1339` → `:1350-1351`; `retire_store`'s `:1664` → `:1676`;
-`amend_sidecar`'s `:2017` → `:2029`; the module docstring `:102-107` is unmoved. The remedy text
-`:1038-1039` → `:1050-1051` (copy, move), `:1344` → `:1356` (fingerprint), `:1667` → `:1679`
-(retire), `:2020` → `:2032` (amend), unchanged in its words; `stores.py:1031-1032` → `:1043-1044`.
-In `runregistrykit/__main__.py`: `main` `:408` → `:413`, `list` `:418` → `:423`, the store
-subcommands `:433-522` → `:438-527`. In `runregistrykit/__init__.py`: `Run.finish` `:424` → `:621`
-(its docstring `:425-426` → `:622-623`), `TERMINAL_STATES` `:99` → `:101`, its check `:441` →
-`:638`; `pid_alive` `:258` → `:260` (`PermissionError` `:276` → `:278`); `liveness` `:294` →
-`:465`; `_fingerprint_results`' `taken_by=self` `:476` → `:673`.
-
-*Package lines (02, `2bf9c72`).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:621` →
-`:744` (its docstring `:622-623` → `:745-746`), `TERMINAL_STATES` `:101` → `:104`, its check
-`:638` → `:761`; `pid_alive` `:260` → `:356` (`PermissionError` `:278` → `:374`); `liveness`
-`:465` → `:561`; `_fingerprint_results`' `taken_by=self` `:673` → `:796`. `stores.py` and
-`__main__.py` are not touched by 02, so their lines above stand.
-
-*Package lines (02b, `2959b78`).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:744` →
-`:785` (its docstring `:745-746` → `:786-787`), its check `:761` → `:802`; `TERMINAL_STATES` `:104`
-is unmoved; `pid_alive` `:356` → `:389` (`PermissionError` `:374` → `:407`); `liveness` `:561` →
-`:594`; `_fingerprint_results`' `taken_by=self` `:796` → `:837`. `stores.py` and `__main__.py` are
-not touched by 02b, so their lines above stand.
-
-*Package lines (02c, `35ce264`).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:785` →
-`:788` (its docstring `:786-787` → `:789-790`), its check `:802` → `:805`; `TERMINAL_STATES` `:104`
-is unmoved; `pid_alive` `:389` → `:390` (`PermissionError` `:407` → `:408`); `liveness` `:594` →
-`:595`; `_fingerprint_results`' `taken_by=self` `:837` → `:840`. `stores.py` and `__main__.py` are
-not touched by 02c, so their lines above stand.
-
-*Package lines (03, `ab0cad9`).* `runregistrykit/__init__.py`: `Run.finish` `:788` → `:796` (its
-docstring `:789-790` → `:797-798`, its check `:805` → `:813`); `TERMINAL_STATES` `:104` is unmoved;
-`pid_alive` `:390` → `:398` (`PermissionError` `:408` → `:416`); `liveness` `:595` → `:603`;
-`_fingerprint_results`' `taken_by=self` `:840` → `:848`. `runregistrykit/stores.py`:
-`_running_runs_naming` `:998` → `:1001`, its filter `:1017` → `:1023`, which now keeps every run
-whose state is not terminal; `_refuse_if_in_use` `:1041` → `:1074`, called at `:1114` → `:1151`;
-fingerprint's check `:1350-1351` → `:1387-1389`; `retire_store`'s `:1676` → `:1716`;
-`amend_sidecar`'s `:2029` → `:2071`; the module docstring `:102-107` → `:102-109`. The remedy text
-`:1050-1051` (copy, move) → `:1085-1090`, `:1356` (fingerprint) → `:1393-1398`, `:1679` (retire) →
-`:1719-1725`, `:2032` (amend) → `:2074-2078`: the words for a `running` run unchanged, and, when any
-entry is not `running`, one sentence added (`_unsure_remedy`, `:1063`) saying a run whose status
-does not say whether it is running is ended by a person, with `Run.finish`, once they have checked;
-the boundary sentence `:1043-1044` → `:1076-1078`. `runregistrykit/__main__.py`: `main` `:413` →
-`:419`, `list` `:423` → `:429`, the store subcommands `:438-527` → `:444-533`. 03 does not touch
-this entry's defect: a run `SIGKILL`'d stays `running`, and `Run.finish` is still its only remedy,
-with no command (04).
-
-*Measured at writing 04 (2026-10-18, at `9e38581`).* By a scratch probe on `RetireTestCase`, a
-child begun on a full four-shard store, heartbeating, then sent `SIGKILL`. Reaped (return code
-−9), its `status.json` was byte-identical to before the kill, `running`, `stale`; copy, move,
-fingerprint, fingerprint `--write`, retire's dry run and amend each refused, naming "A stale run is
-ended by a person, with Run.finish"; a resumed run's `finish(fingerprint=True)` wrote no
-fingerprint and a `fingerprint_error`; `python -m runregistrykit end` is an argparse error.
-`Run(path).finish("killed")` ended the record of a run alive in the probe's own process as readily
-as the dead one's, after which the operations proceeded. Before the reap, the killed child answered
-`kill -0` and was `alive`: `[04-a-killed-process-not-yet-reaped-answers-kill-0]`, opened with 04.
-04's file states the command the user took (L7 and L8 (a), 2026-10-18).
 
 ### `[00-begin-does-not-refuse-a-second-writer]`
 
@@ -880,6 +731,13 @@ tombstone check `:1059-1071` → `:1067-1079`, the refusal `:1065` → `:1073`; 
 `:1081`. In `stores.py`: `_running_runs_naming` `:998` → `:1001`, now counting every run not in
 `TERMINAL_STATES`, so that what 05's refusal asks (L9) can use it as it is; `runs_naming` `:957` →
 `:960`; the module docstring's `:106-107` → `:108-109`.
+
+*Package lines (04, this commit).* `begin` `runregistrykit/__init__.py:976` → `:983`; its
+tombstone check `:1067-1079` → `:1074-1086`, the refusal `:1073` → `:1080`; `this_host()` `:1081` →
+`:1088`. In `stores.py`: `_running_runs_naming` `:1001` → `:1002`; `runs_naming` `:960` → `:961`;
+the module docstring's `:108-109` is unmoved. A `lost` run is terminal, so `_running_runs_naming`
+does not return it, and the refusal 05 adds can name `end` from `_END` (`__init__.py:109`), with
+`stores._foreign_remedy` (`:1075`) and `_unsure_remedy` (`:1064`) as the store refusals do.
 
 ### `[02b-a-raising-handler-can-leave-the-status-lock-held]`
 
@@ -997,6 +855,13 @@ section and changes the writer's base read (`:375` → `:383`) only; the rest mo
 `:390-391`. `_update`'s docstring `:726-766` → `:734-774`, its "Not covered" paragraph `:757-765` →
 `:765-773`. The 3.14 `with` point is as it was; 02b's and 02c's sweeps pass unchanged (03's log §4).
 
+*Package lines (04, this commit).* 04 does not touch the writer; it moves by five lines (an import
+and the `_END` constant above it): `_write_status` `:360` → `:365`, its `with` `:363` → `:368`,
+`next()` `:370` → `:375`, the comment `:373` → `:378`, the filters `:374` → `:379` and `:381` →
+`:386`; the `finally` `:390-391` → `:395-396`. `_update`'s docstring `:734-774` → `:739-779`, its
+"Not covered" paragraph `:765-773` → `:770-778`. 02b's and 02c's sweeps pass unchanged (04's log
+§2).
+
 ### `[03-a-run-whose-manifest-cannot-be-read-names-no-store]`
 
 **Opened:** 2026-10-18 at the writing of prompt 03, by its planner's probe; measured. **Owner:**
@@ -1030,6 +895,10 @@ file said, a manifest `[1]` is now read as no manifest by `list_runs` (`has_mani
 `fingerprint_store` proceeds (03's log §3). The torn and missing rows are unchanged, and this entry
 stands.
 
+*Package lines (04, this commit).* `runs_naming` `runregistrykit/stores.py:960` → `:961`, its skip
+`:976` → `:977`; `Run.__init__`'s manifest read `runregistrykit/__init__.py:675` → `:680`;
+`list_runs`' reads `:1172-1173` → `:1179-1180`, `has_manifest` `:1182` → `:1189`.
+
 ### `[03-a-run-on-a-manifest-that-is-not-an-object-raises-where-it-is-used]`
 
 **Opened:** 2026-10-18 by 03, from the orchestrator's correction 16; measured. **Owner:** none.
@@ -1055,6 +924,12 @@ operations, which are what a person uses to look, no longer raise on it (03).
 does, so that `Run.manifest` is always a dict; or leave it, given the impact. Either way, a test of
 the three forms. It is one line, and belongs with whichever prompt next touches `Run.__init__`.
 
+*Package lines (04, this commit).* `Run.__init__`'s manifest read `runregistrykit/__init__.py:675` →
+`:680`; `checkpoint_path`'s read `:715` → `:720`, `results_path`'s `:725` → `:730`; the reads at
+`:878` → `:885`, `:895-897` → `:902-904` and `:939` → `:946`; `_json_object` `:247` → `:252`. 04's
+`_end_run` constructs a `Run` only to write its status, and nothing on that path reads
+`Run.manifest`.
+
 ### `[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]`
 
 **Opened:** 2026-10-18 by the orchestrator's review of 03; measured. **Owner:** none.
@@ -1075,6 +950,9 @@ and a run begun on it in the probe's process, its status's `state` then replaced
 
 *Next step.* Format the state with `str(...)` as `list` does, and a test of the two forms. It is one
 line, and belongs with whichever prompt next touches `store show`.
+
+*Package lines (04, this commit).* `store show`'s format `runregistrykit/__main__.py:204` → `:217`;
+`list`'s row `:573` → `:651`. Not otherwise touched by 04.
 
 ### `[04-a-killed-process-not-yet-reaped-answers-kill-0]`
 
@@ -1098,6 +976,39 @@ shell when it dies. It bites a launcher that starts a detached child, passes the
 *Next step.* Leave it, with `end`'s refusal saying why (04). Telling a zombie from a live process
 needs `ps -o stat=` on macOS, a subprocess per pid, or `/proc/<pid>/stat` on Linux; a later unit,
 beside L3 (b)'s process start time (README §8), if a client meets it.
+
+*Package lines (04, this commit).* `pid_alive` `runregistrykit/__init__.py:398` → `:403`; `liveness`
+`:603` → `:608`. `end` refuses such a run as a live pid, with no override, and its refusal says why
+(`_end_run`'s live-pid refusal, `:1309-1316`): a process killed and not yet reaped by its parent
+answers `kill -0` until its parent waits for it or exits. 04's planner's probe, re-run by 04 (its
+log §3), shows it on the killed child before its reap.
+
+### `[04-a-pid-out-of-range-makes-pid-alive-raise]`
+
+**Opened:** 2026-10-18 by 04 (this commit), from its work; measured. **Owner:** none.
+
+*The defect.* `pid_alive` (`runregistrykit/__init__.py:403`) coerces the pid with `int()` and
+asks `os.kill(pid, 0)`, catching `ProcessLookupError`, `PermissionError` and `OSError`. A pid
+outside a C `int`, `2**31` or more, makes `os.kill` raise `OverflowError` ("signed integer is
+greater than maximum"), which is none of them. So `liveness` (`:608`) raises on a `running` status
+that holds one, and with it `list_runs` (`:1144`), `list`, every store operation under the runs
+root (read, not run: `runs_naming` calls `list_runs`), and `end` (`_end_run`, `:1219`, at the pid test), which the command
+does not catch.
+
+*Measured* at 04's tree and `ab0cad9`, 2026-10-18 (scratch, not committed): `pid_alive(2**31)` and
+`pid_alive(2**40)` raise `OverflowError` at both; `pid_alive(-1)`, `'x'` and `None` give false. A
+run begun in a `tempfile` directory, its status's `pid` set to `2**31` by hand: `list_runs` and
+`_end_run` raise `OverflowError`; `python -m runregistrykit list` and `… end` each exit 1 with a
+traceback; `status.json` unchanged.
+
+*Impact.* Low. No writer of the registry records such a pid (`begin` records `os.getpid()`, a
+launcher a child's pid); a hand edit or a corrupted file would. But one such record makes `list`
+and every store operation under its runs root raise, as the non-object status did before 03.
+
+*Next step.* Catch `OverflowError` (or `(OverflowError, ValueError)`) in `pid_alive` with the other
+`OSError`s, returning false: no process has such a pid. A test of `2**31`, `2**63` and `-2**31 - 1`
+through `liveness` and `list_runs`. It is one line, and belongs with whichever prompt next touches
+`pid_alive`.
 
 ---
 
@@ -1644,3 +1555,199 @@ four shards), `test_a_resumed_runs_fingerprint_is_refused_by_an_unreadable_prede
 not an object read as none), `TestLiveness`, `TestTheRemedy` (`Run.finish` ends a run in every
 form), `TestTheListCommand` and `TestAnOldRecord`. Eight mutations of the rule, the reads, the
 writer and `list` each fail one or more of them (the log's §5).
+
+### `[a3-v2-a-hard-killed-run-blocks-its-store]`
+
+**Opened:** 2026-10-16 in SGK's `handover` campaign, by a measurement ahead of its A3 v2 launch and
+not by a prompt; handed over the same day (SGK `prompts/handover/runregistrykit-stale-run-brief.md`,
+committed in SGK `79434bf`). **From:** SGK `prompts/handover/IMPLEMENTATION_STATE.md` §3.
+**Owner:** none. Found by SGK in the package, not inherited from SGK's code; its name is SGK's, kept
+so that SGK can find it here.
+
+**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 04: the `end` command, under
+L7 and L8 (its README §2). Moved here from the `inherited-issues` board the same day, unchanged
+above and below but for this line. It is one of the five that bear on a long job that may be
+interrupted, and the campaign takes them together.
+
+*The defect.* A run killed by `SIGKILL`, power loss, a reboot or the OOM killer never reaches
+`Run.finish`, so its `status.json` says `running` for ever. `list` reports it as stale, which is
+right. Every store operation that checks for a running run counts it "alive **or stale**", so
+fingerprint, copy, move, retire and amend refuse its store, and so does a resumed run's
+`finish(fingerprint=True)`. The refusals name the remedy, "a stale run is ended by a person, with
+Run.finish". No command applies it, and `Run.finish` checks nothing about the run it ends. The
+rule the refusals keep, that the registry does not decide that a run is dead
+(`runregistrykit/stores.py:1031-1032`), is not in question; SGK does not ask to weaken it.
+
+*The package's lines (`79015a7`).*
+
+- *The in-use check.* `_running_runs_naming` (`runregistrykit/stores.py:998`) keeps every entry
+  whose state is `running` other than the excluded caller (`:1017`), whatever its liveness. Its
+  callers are copy and move (`_refuse_if_in_use`, `:1029`, called at `:1102`), `fingerprint_store`
+  (`:1338`), `retire_store` (`:1664`) and `amend_sidecar` (`:2017`). The module docstring says so
+  (`:102-107`).
+- *The remedy the refusals name.* At `:1038-1039` (copy, move), `:1344` (fingerprint), `:1667`
+  (retire) and `:2020` (amend). `test_store_retire.TestRefusals.test_a_stale_running_run_and_its_remedy`
+  (`runregistrykit/tests/test_store_retire.py:436`) asserts it, on `a_stale_run`
+  (`runregistrykit/tests/store_fixtures.py:148`): a run given a reaped pid, not a killed process.
+- *No command applies it.* `main` (`runregistrykit/__main__.py:408`) has `list` (`:418`) and `store
+  show|create|adopt|copy|move|fingerprint|retire|amend` (`:433-522`). None writes a `status.json`.
+- *The remedy checks nothing.* `Run.finish` (`runregistrykit/__init__.py:424`) checks only that the
+  state is in `TERMINAL_STATES` (`:99`, `:441`). It does not consult `pid_alive` (`:258`), the
+  heartbeat or `liveness` (`:294`). A person who ends the wrong directory ends a live run's record.
+- *The resumed run.* `_fingerprint_results` passes `taken_by=self` (`:476`), the only exclusion
+  (`stores.py:1338-1339`), so a later run on the same store is refused by its stale predecessor. It
+  records `fingerprint_error` and writes no fingerprint.
+
+*Measured.* By SGK, 2026-10-16 at SGK `f1a7de3` with `runregistrykit` 0.1.0, no Ray, on a throwaway
+two-shard store (brief §1, steps 1-6). A child process that had called `begin` and `heartbeat` was
+sent `SIGKILL` (returncode −9); its `status.json` was the same before and after, `running`, and
+`liveness` gave `stale`. `list` flagged it `!!`. A second `begin` on the store returned normally,
+and its `finish("done", exit_code=0, fingerprint=True)` wrote `done` with no fingerprint and a
+`fingerprint_error` naming the killed run. `store fingerprint --write`, `store retire --dry-run`
+(with and without `--without-fingerprint`) and `store copy` each exited 1, the sidecar's SHA-256
+unchanged. Once `kill -0` showed the pid gone, `Run(…).finish("killed", exit_code=137)` by hand
+cleared the `!!`, `store fingerprint` matched the recorded digest, and `store retire` completed.
+
+**Re-measured here** at `79015a7`, 2026-10-16, by a scratch probe (not committed) on the suite's
+own fixtures (`RetireTestCase`, a full four-shard store) in a `tempfile` directory: a child process
+that called `begin` and `heartbeat(stage=…)` on the store was sent `SIGKILL` (returncode −9).
+`status.json` was unchanged by the kill; `list_runs` gave state `running`, liveness `stale`.
+`fingerprint_store`, `retire_store(dry_run=True)` and `copy_store` each refused, naming the run. A
+resumed run's `finish("done", exit_code=0, fingerprint=True)` wrote `done`, no `fingerprint`, and a
+`fingerprint_error` naming the stale run.
+
+*Impact.* For SGK's A3 v2, a ~36-hour Ray build that may be interrupted and resumed: after a hard
+kill nothing is lost, and the documented route works, but it is the API by hand and unguarded, on
+the build that matters most. For any client: a stale entry stays `!!` in `list` until someone ends
+it through the API, and every store operation on its store is refused meanwhile. A `SIGTERM`'d run
+whose terminal state was lost to `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
+meets the same block. SGK does not ask for a release before A3 v2 (brief §2).
+
+*Next step.* Choose a route; SGK offers three and prefers the first (brief §1):
+
+1. **A person-run command that records a stale run as terminal**, for example `python -m
+   runregistrykit end RUN_ID --reason TEXT`. It refuses unless the run's state is `running` and its
+   pid fails `kill -0`, and writes a terminal state, a `null` exit code (nothing observed one) and
+   who ended it, when, why and at what `git_head`. It never writes the manifest and deletes nothing.
+   The open point is the state: `killed` is a terminal state already, but `finish`'s docstring calls
+   it "something a caller reports, not something observed" (`__init__.py:425-426`); a new `lost`
+   says the registry never saw how the run ended, at the cost of a fourth terminal state that
+   `liveness` and `list` learn. Either is a change to what the registry writes. The same check could
+   guard `Run.finish` when called on a run that is not the caller's own.
+2. **An explicit exclusion on the store operations**, for example `--stale-run RUN_ID`, accepted
+   only for a named run whose pid fails `kill -0` and recorded in the sidecar's `history` or the
+   tombstone. It unblocks the store and leaves the run `running`, with its `!!`.
+3. **`begin` and `finish` learning about predecessors** (`supersedes: [RUN_ID]`). It decides at
+   `begin` that a stale run is dead, the line the package has chosen not to cross; listed by SGK
+   for completeness.
+
+*Added on hand-over.* Any route that tests `kill -0` tests evidence that holds only on the machine
+that owns the pid, and only while the pid has not been reused, which a reboot, one of this entry's
+causes, makes likely. So the route depends on `[04-runs-do-not-say-which-machine-produced-them]`
+(its fourth question), and that decision is taken first, or with this one. The test SGK proposes
+stands: begin a run in a child process, `SIGKILL` it, and assert what the new route does; the
+probe above is its shape. `a_stale_run` fakes the pid and never exercises a kill.
+
+*Split on hand-over.* The brief's point that `begin` does not look for a run already on its store
+is held as its own entry, `[00-begin-does-not-refuse-a-second-writer]`: it holds whether or not the
+first run is dead, and its fix is none of the three routes.
+
+*Package lines (01, `387c58f`).* In `runregistrykit/stores.py`: `_running_runs_naming` `:998` and
+its filter `:1017` are unmoved; `_refuse_if_in_use` `:1029` → `:1041`, called at `:1102` → `:1114`;
+`fingerprint_store`'s check `:1338-1339` → `:1350-1351`; `retire_store`'s `:1664` → `:1676`;
+`amend_sidecar`'s `:2017` → `:2029`; the module docstring `:102-107` is unmoved. The remedy text
+`:1038-1039` → `:1050-1051` (copy, move), `:1344` → `:1356` (fingerprint), `:1667` → `:1679`
+(retire), `:2020` → `:2032` (amend), unchanged in its words; `stores.py:1031-1032` → `:1043-1044`.
+In `runregistrykit/__main__.py`: `main` `:408` → `:413`, `list` `:418` → `:423`, the store
+subcommands `:433-522` → `:438-527`. In `runregistrykit/__init__.py`: `Run.finish` `:424` → `:621`
+(its docstring `:425-426` → `:622-623`), `TERMINAL_STATES` `:99` → `:101`, its check `:441` →
+`:638`; `pid_alive` `:258` → `:260` (`PermissionError` `:276` → `:278`); `liveness` `:294` →
+`:465`; `_fingerprint_results`' `taken_by=self` `:476` → `:673`.
+
+*Package lines (02, `2bf9c72`).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:621` →
+`:744` (its docstring `:622-623` → `:745-746`), `TERMINAL_STATES` `:101` → `:104`, its check
+`:638` → `:761`; `pid_alive` `:260` → `:356` (`PermissionError` `:278` → `:374`); `liveness`
+`:465` → `:561`; `_fingerprint_results`' `taken_by=self` `:673` → `:796`. `stores.py` and
+`__main__.py` are not touched by 02, so their lines above stand.
+
+*Package lines (02b, `2959b78`).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:744` →
+`:785` (its docstring `:745-746` → `:786-787`), its check `:761` → `:802`; `TERMINAL_STATES` `:104`
+is unmoved; `pid_alive` `:356` → `:389` (`PermissionError` `:374` → `:407`); `liveness` `:561` →
+`:594`; `_fingerprint_results`' `taken_by=self` `:796` → `:837`. `stores.py` and `__main__.py` are
+not touched by 02b, so their lines above stand.
+
+*Package lines (02c, `35ce264`).* Only `runregistrykit/__init__.py` moved: `Run.finish` `:785` →
+`:788` (its docstring `:786-787` → `:789-790`), its check `:802` → `:805`; `TERMINAL_STATES` `:104`
+is unmoved; `pid_alive` `:389` → `:390` (`PermissionError` `:407` → `:408`); `liveness` `:594` →
+`:595`; `_fingerprint_results`' `taken_by=self` `:837` → `:840`. `stores.py` and `__main__.py` are
+not touched by 02c, so their lines above stand.
+
+*Package lines (03, `ab0cad9`).* `runregistrykit/__init__.py`: `Run.finish` `:788` → `:796` (its
+docstring `:789-790` → `:797-798`, its check `:805` → `:813`); `TERMINAL_STATES` `:104` is unmoved;
+`pid_alive` `:390` → `:398` (`PermissionError` `:408` → `:416`); `liveness` `:595` → `:603`;
+`_fingerprint_results`' `taken_by=self` `:840` → `:848`. `runregistrykit/stores.py`:
+`_running_runs_naming` `:998` → `:1001`, its filter `:1017` → `:1023`, which now keeps every run
+whose state is not terminal; `_refuse_if_in_use` `:1041` → `:1074`, called at `:1114` → `:1151`;
+fingerprint's check `:1350-1351` → `:1387-1389`; `retire_store`'s `:1676` → `:1716`;
+`amend_sidecar`'s `:2029` → `:2071`; the module docstring `:102-107` → `:102-109`. The remedy text
+`:1050-1051` (copy, move) → `:1085-1090`, `:1356` (fingerprint) → `:1393-1398`, `:1679` (retire) →
+`:1719-1725`, `:2032` (amend) → `:2074-2078`: the words for a `running` run unchanged, and, when any
+entry is not `running`, one sentence added (`_unsure_remedy`, `:1063`) saying a run whose status
+does not say whether it is running is ended by a person, with `Run.finish`, once they have checked;
+the boundary sentence `:1043-1044` → `:1076-1078`. `runregistrykit/__main__.py`: `main` `:413` →
+`:419`, `list` `:423` → `:429`, the store subcommands `:438-527` → `:444-533`. 03 does not touch
+this entry's defect: a run `SIGKILL`'d stays `running`, and `Run.finish` is still its only remedy,
+with no command (04).
+
+*Measured at writing 04 (2026-10-18, at `9e38581`).* By a scratch probe on `RetireTestCase`, a
+child begun on a full four-shard store, heartbeating, then sent `SIGKILL`. Reaped (return code
+−9), its `status.json` was byte-identical to before the kill, `running`, `stale`; copy, move,
+fingerprint, fingerprint `--write`, retire's dry run and amend each refused, naming "A stale run is
+ended by a person, with Run.finish"; a resumed run's `finish(fingerprint=True)` wrote no
+fingerprint and a `fingerprint_error`; `python -m runregistrykit end` is an argparse error.
+`Run(path).finish("killed")` ended the record of a run alive in the probe's own process as readily
+as the dead one's, after which the operations proceeded. Before the reap, the killed child answered
+`kill -0` and was `alive`: `[04-a-killed-process-not-yet-reaped-answers-kill-0]`, opened with 04.
+04's file states the command the user took (L7 and L8 (a), 2026-10-18).
+
+*Package lines (04, this commit).* `runregistrykit/__init__.py`: `Run.finish` `:796` → `:801` (its
+docstring `:797-798` → `:802-805`, one sentence added on `lost`; its check `:813` → `:820`);
+`TERMINAL_STATES` `:104` → `:105`; `pid_alive` `:398` → `:403` (`PermissionError` `:416` →
+`:421`); `liveness` `:603` → `:608`; `_fingerprint_results`' `taken_by=self` `:848` → `:855`.
+`runregistrykit/stores.py`: `_running_runs_naming` `:1001` → `:1002`, its filter `:1023` → `:1024`;
+`_refuse_if_in_use` `:1074` → `:1087`, called at `:1151` → `:1166`; fingerprint's check
+`:1387-1389` → `:1402-1404`; `retire_store`'s `:1716` → `:1733`; `amend_sidecar`'s `:2071` →
+`:2090`; the module docstring `:102-109` is unmoved. The remedy text `:1085-1090` (copy, move) →
+`:1098-1105`, `:1393-1398` (fingerprint) → `:1408-1415`, `:1719-1725` (retire) → `:1737-1744`,
+`:2074-2078` (amend) → `:2094-2099`; `_unsure_remedy` `:1063` → `:1064`; the boundary sentence
+`:1076-1078` → `:1089-1091`. `runregistrykit/__main__.py`: `main` `:419` → `:474`, `list` `:429` →
+`:484`, the store subcommands `:444-533` → `:520-609`.
+
+**Resolved (2026-10-18, by 04, this commit).** Under L7 (a) and L8 (a) (README §6.2), as 04's §2
+states them, with the orchestrator's corrections. `python -m runregistrykit end RUN_ID --reason TEXT
+[--unverified] [--root DIR]` (`runregistrykit/__main__.py:432`, the subparser `:499-517`), run by a
+person, calls the private `_end_run` (`runregistrykit/__init__.py:1219`), which checks and then
+writes, through `Run._update`, the new terminal state `lost` (`TERMINAL_STATES`, `:105`), exit code
+null and an `ended` record: `by`, `at`, `reason`, `git_head`, `host` (`id`, `boot`, `name`),
+`verified`, `not_verified_because` and `evidence` (`state`, `status_readable`, `pid`,
+`pid_answers`, `host`, `boot`, `heartbeat`, `heartbeat_age`). Every other field of the status is
+kept; the manifest, `checkpoint.jsonl` and every sidecar are not written. It refuses, writing
+nothing: a directory holding neither file; an empty reason; a run that has ended, `lost` included;
+a pid that answers `kill -0` on this host, **with no override**, whatever state stands beside it;
+a run on another host, or whose status does not say, unless `--unverified`, which the record then
+states. A boot other than this one, or a pid that does not answer, is accepted, verified. A `lost`
+run is `finished`, and in use by no store, through `TERMINAL_STATES` alone. The five store
+refusals and `_unsure_remedy` name the command, composed from `_END` (`:109`), and one sentence,
+`_foreign_remedy` (`stores.py:1075`), is added when a run is on another host; `list`'s stale line
+names it too (`__main__.py:665-672`). `Run.finish`'s code is not changed. The log is
+[`logs/04-end-a-run.md`](logs/04-end-a-run.md). Pinned by
+`test_end_stores.TestEndingAHardKilledRun.test_refused_until_it_is_ended_and_then_every_operation_proceeds`
+(a child begun on a full store, `SIGKILL`'d and reaped; the six operations refused, the tree
+unchanged; `end` by the command; a resumed run's fingerprint recorded; the six operations
+proceeding), `test_end_stores.TestTheWords` (the old texts with the one substitution, byte for
+byte; the foreign sentence once; 03's sentence with `--unverified`), and in the core by
+`test_end.TestAHardKilledRun`, `TestRefusals`, `TestAcceptances`, `TestWhatIsNotWritten`,
+`TestAnOldRecord`, `TestTheState`, `TestFinishIsNotChanged` and `TestTheCommand`. Eight mutations
+of the check, the record, the state, the words and the command each fail one or more of them (the
+log's §5). `[04-a-killed-process-not-yet-reaped-answers-kill-0]` is not resolved: `end` refuses
+such a run and its refusal says why.

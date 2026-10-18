@@ -431,7 +431,7 @@ class TestRefusals(RetireTestCase):
     def test_an_alive_running_run(self):
         primary = self.a_full_store()
         run = self.a_running_run("alive", primary)
-        self.refused_retire(primary, run.id, "(alive,", "Run.finish")
+        self.refused_retire(primary, run.id, "(alive,", "runregistrykit end RUN_ID")
 
     def test_a_stale_running_run_and_its_remedy(self):
         primary = self.a_full_store()
@@ -443,7 +443,7 @@ class TestRefusals(RetireTestCase):
             primary,
             run.id,
             "(stale,",
-            "A stale run is ended by a person, with Run.finish",
+            "A stale run is ended by a person, with `python -m runregistrykit end",
             "store fingerprint",
             "--write",
         )
@@ -773,7 +773,7 @@ class TestWithoutFingerprint(RetireTestCase):
                     primary,
                     run.id,
                     f"({liveness},",
-                    "A stale run is ended by a person, with Run.finish",
+                    "A stale run is ended by a person, with `python -m runregistrykit end",
                     without_fingerprint=True,
                 )
 

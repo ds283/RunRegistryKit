@@ -34,14 +34,27 @@ field's old value in an `amend` history entry; it is the one way to change an un
 never touches a known one. It refuses a store such a run names.
 None of them initialises Ray. `retire` alone deletes, and only a store's own files; none deletes a
 sidecar, a run directory or any other record, and every other command refuses a tombstone.
+
+`python -m runregistrykit end RUN_ID --reason TEXT [--unverified]` records, on a person's word,
+that a run whose end the registry never saw has ended, as `lost`, after checking that the evidence
+on this machine does not say it is running: a run whose pid answers here is refused, with no
+override, and one on another host, or whose status does not say, is ended only with `--unverified`.
 """
 
 import argparse
 import json
+import os
 import sys
 import time
 
-from . import DEFAULT_STALE_AFTER, ConfigError, find_client_root, list_runs
+from . import (
+    DEFAULT_STALE_AFTER,
+    _END,
+    ConfigError,
+    _end_run,
+    find_client_root,
+    list_runs,
+)
 from . import stores
 from .fingerprint import load_fingerprinter, require_fingerprinter
 
@@ -416,6 +429,48 @@ def _store(args, client) -> int:
     return 0
 
 
+def _end(args, client) -> int:
+    """`end`: ``args.run`` is a run id, a directory name under the runs root, never a path."""
+    name = args.run
+    if name in ("", ".", "..") or any(
+        sep and sep in name for sep in (os.sep, os.altsep)
+    ):
+        print(
+            f"!! Cannot end {name!r}: RUN_ID is a run id, the name of a directory under the runs "
+            f"root, not a path. Nothing was written",
+            file=sys.stderr,
+        )
+        return 1
+    root = args.root or client.runs_root
+    path = os.path.join(root, name)
+    if not os.path.isdir(path):
+        print(
+            f"!! Cannot end {name}: there is no run directory {path}. Nothing was written",
+            file=sys.stderr,
+        )
+        return 1
+    try:
+        status = _end_run(
+            path, args.reason, unverified=args.unverified, client_root=client
+        )
+    except (RuntimeError, ConfigError) as e:
+        print(f"!! {e}", file=sys.stderr)
+        return 1
+    ended = status["ended"]
+    evidence = ended["evidence"]
+    if not ended["verified"]:
+        because = ended["not_verified_because"]
+        how = f"not verified ({because}): on a person's word, with --unverified"
+    elif evidence["boot"] == "earlier":
+        how = "verified: its status was written on this host in an earlier boot"
+    else:
+        how = (
+            f"verified: its pid {evidence['pid']} does not answer kill -0 on this host"
+        )
+    print(f">> end: {name} is now lost, {how}")
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="runregistrykit", description=__doc__)
     parser.add_argument(
@@ -439,6 +494,27 @@ def main(argv=None) -> int:
         default=DEFAULT_STALE_AFTER,
         metavar="SECONDS",
         help=f"heartbeat staleness window, default {DEFAULT_STALE_AFTER:.0f}",
+    )
+
+    ender = sub.add_parser(
+        "end",
+        help="record, on a person's word, that a run whose end was never recorded has ended",
+    )
+    ender.add_argument("run", metavar="RUN_ID", help="the run's directory name")
+    ender.add_argument(
+        "--reason", required=True, metavar="TEXT", help="why the run is ended"
+    )
+    ender.add_argument(
+        "--unverified",
+        action="store_true",
+        help="for a run on another host, or whose status does not say: a person has checked "
+        "by other means that it is not running. A pid that answers here is refused regardless",
+    )
+    ender.add_argument(
+        "--root",
+        default=None,
+        metavar="DIR",
+        help="the runs root; default the client config's runs_root",
     )
 
     store = sub.add_parser("store", help="a datastore and its sidecar")
@@ -534,7 +610,7 @@ def main(argv=None) -> int:
 
     args = parser.parse_args(argv)
     # the client root is located only now, and only when the command needs it: every store
-    # command, and `list` without --root. Not finding one writes nothing and exits 1
+    # command, `end`, and `list` without --root. Not finding one writes nothing and exits 1
     client = None
     root = args.root if args.command == "list" else None
     if args.command == "store" or root is None:
@@ -545,6 +621,8 @@ def main(argv=None) -> int:
             return 1
     if args.command == "store":
         return _store(args, client)
+    if args.command == "end":
+        return _end(args, client)
 
     if root is None:
         root = client.runs_root
@@ -589,7 +667,7 @@ def main(argv=None) -> int:
             f"!! {counts['stale']} run(s) say they are running and are not: the pid does not "
             f"answer kill -0, the heartbeat is older than {args.stale_after:.0f} s, or this "
             f"machine has rebooted since. Nothing here has killed or cleaned anything — go and "
-            f"look.",
+            f"look. Once you know one is over, end it with `{_END}`.",
             file=sys.stderr,
         )
     unsaid = sum(1 for entry in entries if _unsaid(entry))
@@ -598,7 +676,7 @@ def main(argv=None) -> int:
             f"!! {unsaid} run(s) have a manifest and a status that does not say whether the run "
             f"is running, or that cannot be read: the registry cannot tell whether they are "
             f"running, and the store operations count them as in use. Go and look; once you know "
-            f"one is not running, end it with Run.finish.",
+            f"one is not running, end it with `{_END} --unverified`.",
             file=sys.stderr,
         )
     if counts.get("foreign"):

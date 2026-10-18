@@ -226,7 +226,7 @@ class TestRefusals(StoreTestCase):
                     self.top / "C" / "c.sqlite",
                     run.id,
                     "stale",
-                    "Run.finish",
+                    "runregistrykit end RUN_ID",
                 )
 
     def test_a_match_by_results_store_id_alone(self):

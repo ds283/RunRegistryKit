@@ -166,7 +166,8 @@ class TestAnUnreadableStatusIsInUse(test_store_retire.RetireTestCase):
                     f"run {unnamed.id}'s status says neither running", message
                 )
                 self.assertIn(
-                    "tale run is ended by a person, with Run.finish, ", message
+                    "tale run is ended by a person, with `python -m runregistrykit end RUN_ID",
+                    message,
                 )
                 self.assertEqual(message.count(REMEDY), 1, message)
 

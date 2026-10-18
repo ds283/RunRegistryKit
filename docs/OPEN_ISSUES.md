@@ -29,7 +29,7 @@ two found here reading it, read at `79015a7`. The five that bear on a long job w
 | `[01-cross-filesystem-move-advice-says-delete-by-hand]` | none | `store move` relays DatastoreKit's "delete the source by hand" for a registered store, which is retired instead |
 | `[06-runregistrykit-list-into-a-closed-pipe-ends-in-a-traceback]` | none | `list \| head` can end in a `BrokenPipeError` traceback; cosmetic, nothing lost |
 
-### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01, 02, 02b, 02c and 03 landed
+### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01, 02, 02b, 02c, 03 and 04 landed
 
 Assigned from the `inherited-issues` board on 2026-10-16: the five that bear on a long job that
 may be interrupted, taken in this order, one prompt each (the campaign's README §2). The first,
@@ -37,14 +37,14 @@ may be interrupted, taken in this order, one prompt each (the campaign's README 
 `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, by 02 on 2026-10-17. Two more were opened by 02's review on 2026-10-17, on the bookkeeping of the
 `status.json` writer, and closed by 02b the same day. One was opened by 02b's review, the same day,
 and assigned to 02c, which fixed it at Python 3.12 and 3.13 and narrowed it to its 3.14 `with`
-point, now with no owner. One was opened at the writing of 03, on 2026-10-18, with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` the same day, and its work opened one more, with no owner; its review opened another, with no owner. One was opened at the writing of 04, the same day, with no owner.
+point, now with no owner. One was opened at the writing of 03, on 2026-10-18, with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` the same day, and its work opened one more, with no owner; its review opened another, with no owner. One was opened at the writing of 04, the same day, with no owner. 04 closed `[a3-v2-a-hard-killed-run-blocks-its-store]` the same day, and its work opened one more, with no owner.
 
 | Issue | Owner | Hook |
 |---|---|---|
-| `[a3-v2-a-hard-killed-run-blocks-its-store]` | 04 | A `SIGKILL`'d run stays `running`, and the store operations count a stale run as in use, so fingerprint, copy, move, retire, amend and a resumed run's fingerprint are refused; the named remedy, `Run.finish`, has no command and checks no pid |
 | `[00-begin-does-not-refuse-a-second-writer]` | 05 | `begin` does not look for a `running` run on its results store, so a second writer on a live run's store is begun silently |
 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` | none | At Python 3.14 only, a handler raising just after `with` takes the writer's lock leaves it held, as at any `with` on that version; no client or CI runs 3.14 |
 | `[03-a-run-whose-manifest-cannot-be-read-names-no-store]` | none | A live run whose manifest is torn or missing names no store, so the store operations proceed on the store it is writing |
 | `[03-a-run-on-a-manifest-that-is-not-an-object-raises-where-it-is-used]` | none | `Run(path)` on a manifest that is JSON but not an object constructs, then `checkpoint_path` and `results_path` raise `AttributeError`; low impact |
 | `[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]` | none | `store show` ends in a `TypeError` traceback when a run's status `state` is a JSON list or object; predates 03; low impact |
 | `[04-a-killed-process-not-yet-reaped-answers-kill-0]` | none | A killed run whose process its parent has not reaped answers `kill -0`, so `liveness` calls it `alive` and `end` will refuse it; low impact |
+| `[04-a-pid-out-of-range-makes-pid-alive-raise]` | none | A status `pid` of `2**31` or more makes `pid_alive` raise `OverflowError`, so `list`, the store operations and `end` raise on it; only a hand edit writes one; low impact |
