@@ -1,6 +1,6 @@
 # interrupted-runs campaign — implementation state
 
-**Last updated:** 2026-10-18 · **Status: CLOSED — 2026-10-18, by prompt 07 (this commit): all nine
+**Last updated:** 2026-10-18 · **Status: CLOSED — 2026-10-18, by prompt 07 (`c991b03`, reviewed): all nine
 prompts landed, the campaign verified in `docs/interrupted-runs-verification.md`, G1–G3 open and
 six issues open, none with an owner. Before it: 01 landed (`387c58f`) and reviewed, CI green
 (run `38911075984`); 02 landed (`2bf9c72`) and reviewed, CI green
@@ -10,7 +10,7 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, landed (`0bae3a3`) and reviewed the same day, CI green (run `39143681701`), and **`v0.2.0` tagged on `0bae3a3`** (tag object `895e3c7`); its review opened one issue; 07 written 2026-10-18 and landed the same day (this commit), closing
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, landed (`0bae3a3`) and reviewed the same day, CI green (run `39143681701`), and **`v0.2.0` tagged on `0bae3a3`** (tag object `895e3c7`); its review opened one issue; 07 written 2026-10-18 and landed the same day (`c991b03`), closing
 the campaign and opening nothing.** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
@@ -66,7 +66,7 @@ tag's.
 | 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
 | 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/05-begin-refuses-a-second-writer.md)); CI green, run `39129061916`; two issues closed, none opened | `eb68583` | 378 → 410 |
 | 06 | [`06-release-v0.2.0.md`](06-release-v0.2.0.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/06-release-v0.2.0.md)); CI green, run `39143681701`; **`v0.2.0` tagged** (tag object `895e3c7`); one issue opened by the review | `0bae3a3` | 410 → 410 |
-| 07 | [`07-verification-and-close-out.md`](07-verification-and-close-out.md) | Opus | **landed** 2026-10-18, not yet reviewed ([log](logs/07-verification-and-close-out.md)); the verification document and the interrupted-run smoke run against the pin from GitHub; **the campaign closed**; nothing opened | this commit | 410 → 410 |
+| 07 | [`07-verification-and-close-out.md`](07-verification-and-close-out.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/07-verification-and-close-out.md)); the verification document and the interrupted-run smoke run against the pin from GitHub; **the campaign closed**; nothing opened | `c991b03` | 410 → 410 |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
 from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, 347 after 03,
@@ -78,7 +78,8 @@ for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), us
 [`orchestrator/prompt-02c.md`](orchestrator/prompt-02c.md) (`e4a2b6c`), used for 02c; [`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`75eab12`), used for 03;
 [`orchestrator/prompt-04.md`](orchestrator/prompt-04.md) (`5d8a97b`), used for 04;
 [`orchestrator/prompt-05.md`](orchestrator/prompt-05.md) (`5d0fa78`), used for 05;
-[`orchestrator/prompt-06.md`](orchestrator/prompt-06.md) (`c4f2abc`), used for 06.
+[`orchestrator/prompt-06.md`](orchestrator/prompt-06.md) (`c4f2abc`), used for 06;
+[`orchestrator/prompt-07.md`](orchestrator/prompt-07.md) (`e4bf592`), used for 07.
 
 **Orchestrator review of prompt 01 (2026-10-16).** Dispatched from `8023e14` to one Opus subagent,
 with the note's §0 as a copy in the session scratchpad: its facts, its eight corrections and
@@ -1020,6 +1021,142 @@ client writes, `runregistrykit[stores] @ git+https://github.com/ds283/RunRegistr
 DatastoreKit's `v0.4.0`, `ray==2.55.1` and `sqlalchemy==2.0.46`, in a fresh 3.13.16 venv, resolves
 `runregistrykit` to `0bae3a3`. 07 verifies against the pin installed from GitHub.
 
+**Orchestrator review of prompt 07 (2026-10-18).** Dispatched from `e4bf592` to one Opus subagent,
+with the note's §0 as a copy in the session scratchpad: its facts, its eighteen corrections and
+readings of the prompt, and its conventions. Reviewed against its commit `c991b03`, with nothing
+landed after it. No stop condition fired. **Every check of the note's §3 passed.** Acceptance 1–6
+are met, the campaign is closed, and the review opens nothing.
+
+*At dispatch.* The note's gate held at `c094811`: `main`, clean, this checkout the only worktree,
+`origin/main` at `aeacba8`; the gate's diff empty; `git ls-remote origin` giving `v0.2.0`
+`895e3c7`, peeled to `0bae3a3`; the ten CI runs of the prompt's §1.3 each `success`; the 42 commits
+in the prompt's classes; `Ran 410 tests in 175.358s`, `OK (skipped=1)`; `black` 37 files; no Ray,
+`RAY_ADDRESS` unset; the logs' label words as the prompt's table; the index at 11. Measured before
+writing the note: `test_status_writes` at 3.14.8, 22 tests, OK, no skip. The orchestrator's own pin
+venvs (`pin-low`, `pin-high`, `pin-core`) were installed from GitHub while the agent worked: each
+`commit_id` `0bae3a3c501a…`, `requested_revision` `v0.2.0`, the five modules `cmp`-equal to
+`git show 0bae3a3:runregistrykit/<module>`, no `tests/` in `RECORD`, and `datastorekit`, Ray and
+SQLAlchemy absent from `pin-core`.
+
+*The checks.*
+1. **Scope (Z1).** `c991b03` touches §0's seven files and no others, three of them new. The diff
+   from `e4bf592` of `runregistrykit/`, `pyproject.toml`, `README.md`, `PROVENANCE.md`,
+   `docs/releases/`, `docs/adoption/`, `docs/extraction/`, `docs/extraction-verification.md`,
+   `.github/`, `CLAUDE.md`, `LICENSE`, `.gitignore`, the prompt and `orchestrator/` is empty, and so
+   is `git diff 0bae3a3 c991b03 -- runregistrykit pyproject.toml`. The campaign README's diff is its
+   header, 07's row and a §7 line.
+2. **Nothing outside (Z8).** SGK `79434bf`, CPBH `3cd2be4` and SI `5fb4a1d`, with `status
+   --porcelain` 0, 22 and 0 lines and one worktree each, as at dispatch and as the log records at
+   its start and end. `/private/tmp`'s `ray*` names and times are unchanged. No Ray process, and no
+   `python` process of the agent's left.
+3. **The script by reading (Z2).** It imports the standard library and `runregistrykit`, nothing of
+   `runregistrykit.tests`, and `datastorekit` and `sqlalchemy` only in the client module's source.
+   It takes the four constants from the extraction script by path, with no bytecode written beside
+   it. The guard's own `scan_code_names`, `scan_strings` and `scan_comments`, run over it against
+   the 454 forbidden words, find no hit. Its one citation hit, "prompt 07" in the docstring, is the
+   kind the extraction script carries too, and the guard scans the package only.
+   - Each step is isolated, and every value it asserts is its own.
+   - Every child and command runs in the client root with `PYTHONPATH` unset. Each child's
+     `runregistrykit.__file__` is asserted equal to the parent's, and the parent's to lie under
+     `site-packages`.
+   - Every wait is bounded. A `finally` reaps every child, and signals go only to its own children.
+   - Steps 8 and 9 name the hard-killed run apart from step 7's, and step 6 checks the state, not
+     the bytes. The Ray check runs at the end.
+4. **The script run by the orchestrator (Z2)**, from the repository root at `c991b03`, `TMPDIR`
+   set, Ray and the user's `python` processes the same before and after each run:
+   - `pin-low`: exit 0, thirteen `PASS`, 8.4 s; `pin-high`: exit 0, thirteen `PASS`, 7.2 s. Every
+     child's `runregistrykit.__file__` lies under that venv's `site-packages`. Two children each,
+     both reaped by their steps. `ray` was imported (by the client module) and never initialised.
+   - `pin-core`: exit 1, `FAIL (1, 11, 12)`, as the log records. Step 1 fails on `No module named
+     'sqlalchemy'`, step 11 on the fingerprinter's `ConfigError` recorded as `fingerprint_error`,
+     and step 12 on the same error from `store fingerprint`. No traceback escapes a step.
+   - Exit 2 in three cases: under `/opt/local/bin/python3.12 -I` (not importable), with `PATH`
+     lacking `git`, and from a copy of the script alone in a scratch directory (the extraction
+     script not found).
+   - `--clean` leaves no directory behind; without it the directory stays. The tree here is
+     unchanged throughout.
+5. **The breakage (Z6).** The log's two diffs, extracted by a script and replayed in `bash` in a
+   `git clone` of `c991b03` (`--check`, apply, the run in `pin-low`, `-R --check`, reverse):
+   - (a): `FAIL (9, 10, 11, 12, 13)`, as the log says.
+   - (b): `FAIL (2, 3, 8, 9, 10, 11, 12, 13)`, as the log says. Before the reap the run is `alive`
+     and its `list` row unmarked, with the summary `1 alive`. Step 8's `end` is refused as a live
+     pid, and the `finally` reaps the child (returncode −9).
+
+   Then the orchestrator's own, each in the clone, each caught:
+   - (o1) step 7's handler exits `128 + signum` without `run.finish`: `FAIL (7, 10)`, step 7 on
+     "expected state killed; saw running".
+   - (o2) step 4 pointed at the second store: `FAIL (4)`. The note expected that store to exist and
+     the command to exit 0. The script only names that store, so `store fingerprint` exits 1 for a
+     missing primary, and the step's check that the refusal names the run catches it.
+   - (o3) step 5's `begin` given the second store: `FAIL (5, 6, 7, 10)`. Step 5 fails on the
+     missing `RuntimeError` before its listing check is reached. Steps 6 and 7 fail because the
+     parent's run, whose pid is alive, now holds the second store.
+6. **The release (Z3)**, in the orchestrator's pin venvs, as at dispatch; `import
+   runregistrykit.tests` a `ModuleNotFoundError` in each. The log's installs agree. The extraction's
+   smoke run in `pin-low`, from a fresh clone: exit 1, `FAIL (3)`, its last line `1 run(s) under
+   …: 1 finished; 0 with no host recorded.`, the clause 01 added, and nothing else failing.
+7. **The document by checking (Z4).** §2.1's twelve sections, in order, and the head the prompt
+   asks for.
+   - A scratch link checker finds every relative link and anchor resolving and all fifteen external
+     links on `github.com/ds283/…`, each naming a tag, a commit or a run.
+   - The document cites 23 `path:line`s. The note asked for a sample of at least twenty-five, so all
+     23 were read at their trees, and each holds: the package at `0bae3a3`, `docs/` at `c991b03`,
+     and SGK's `interrupt_when.py:161` and `requirements.txt:81` at `79434bf`.
+   - From a fresh `git clone` of `c991b03`, a sample of §11 ran verbatim and gave what it states:
+     the commit count, `ls-remote`, a run's `gh run view`, the `RECORD` and `import` checks, the
+     smoke run at the high end, the exit-2 `PATH` case, and the extraction's smoke run.
+8. **The counts, recounted (Z4).**
+   - **Commits and CI.** The 44 commits and their classes, checked against `git log`, and the ten
+     CI runs against `gh run list`.
+   - **The suite.** Its progression agrees with the board.
+   - **Issues.** Fourteen: nine opened in the campaign and five assigned. Eight are resolved (the
+     five assigned, 02's two and the pid out of range) and six open (board §3 headings 6, §4 8). The
+     prompt's headline "four found and resolved along the way" is three, as the log's deviation 12
+     says.
+   - **Deviations.** Entries per class were counted independently in 01, 02c, 03, 05 and 06 by a
+     script that joins each entry's lines and sets aside a closing "No UNINTENDED DRIFT" line. Each
+     equals the document's table: 01 16 (8 / 9 / 0), 02c 20 (15 / 6 / 0), 03 17 (7 / 9 / 1, one
+     unlabelled), 05 22 (15 / 6 / 0, one unlabelled), 06 17 (10 / 7 / 0).
+   - **Observations.** Per log, 5, 5, 4, 4, 6, 7, 8 and 7, which makes 46. The disposition tally
+     (2 / 2 / 6 / 3 / 6 / 1 / 26) was recounted from the table. Dispositions checked against the
+     records include the `foreign` remedy (`_foreign_remedy` naming `end`, 04), the board's "410
+     after 06" (06's review), a torn status's `end` record and containers' `machine-id` (the
+     release notes' §2.2 and §2.6), and the killed child not yet reaped (the open issue).
+   - **The reviews.** The document explains its two disagreements with them, 03's UNINTENDED DRIFT
+     label and 05's count of fifteen; each is right as the document reads the log.
+9. **The re-measurements (Z5).** In `venv/` at `c991b03`: `Ran 410 tests in 160.201s`, `OK
+   (skipped=1)`. `black --check runregistrykit docs` leaves 38 files unchanged. `git status
+   --short --ignored` and `var/ledger.jsonl` are as at dispatch, and no Ray ran. The log's high end
+   (410, 171.955 s, the same by module, the one skip `test_the_readers_on_linux`) and its 3.14.8 run
+   (22 OK, no skip) agree with the note. **A slip in the note, not in the work:** §0 gave the ledger
+   as `93589747…`, its SHA-1, where 06's note gave `471d0859…`, its SHA-256. The agent found it; the
+   file is unchanged.
+10. **The records (Z7).** The log has every section of README §5.1 and the prompt's §5 item 6
+    additions, and classifies sixteen deviations, none UNINTENDED DRIFT. Corrections 14, 15, 17 and
+    18 are applied as written but not listed as deviations: the indexes' headers, `/private/tmp`
+    (the log's §10), the notes cited by commit, and `black` 38. That is a gap in the list only.
+    - **The board:** header CLOSED, 07's row (410 → 410), Z1 ✅, §2's dated line, and §3's six dated
+      lines, with nothing else of §3 changed.
+    - **The campaign README:** its header, 07's row and the §7 line.
+    - **`prompts/INDEX.md`:** closed, 6 open, its header 2 closed.
+    - **`docs/OPEN_ISSUES.md`:** 11 rows by count, §1.3's heading closed.
+    - **Residue fixed here:** "this commit" → `c991b03` on the board, in the log, in the README and
+      in `prompts/INDEX.md`. "reviewed" for 07 in the board's header and row, the README's header
+      and §2 row, and `prompts/INDEX.md`. This note added to the notes line. The document names no
+      commit of its own, and is unchanged.
+
+*Observations, not opened.* The log's three stand as the log gives them.
+- The extraction's smoke run fails its step 3 at `v0.2.0`, which is right at both tags.
+- The hard-kill route works in the core form, with only the fingerprint needing `[stores]`.
+- Steps 4 and 5 cannot tell a stale run from an alive one, since both refusals name `end` whatever
+  the run's liveness. That is the package's wording, and steps 2 and 3 judge the liveness.
+
+None is a defect.
+
+**Verdict:** 07 is accepted. **The campaign is closed**, with G1–G3 open and six issues open, none
+with an owner. Nothing is pushed: `origin/main` is `aeacba8`, and `c094811`, `e4bf592`, `c991b03`
+and this review's commit are local.
+
 ### 1.1 Items
 
 | Item | Prompt | What | Closes | State |
@@ -1032,7 +1169,7 @@ DatastoreKit's `v0.4.0`, `ray==2.55.1` and `sqlalchemy==2.0.46`, in a fresh 3.13
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ✅ `5e20772` |
 | **B1** | 05 | `begin` refuses a store a run that has not finished names; `pid_alive` false out of range | `[00-begin-does-not-refuse-a-second-writer]`, `[04-a-pid-out-of-range-makes-pid-alive-raise]` | ✅ `eb68583` |
 | **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ✅ `0bae3a3` |
-| **Z1** | 07 | the verification document; the close | — | ✅ this commit |
+| **Z1** | 07 | the verification document; the close | — | ✅ `c991b03` |
 
 **Legend.** ⬜ not yet · ✅ done.
 
@@ -1044,7 +1181,7 @@ DatastoreKit's `v0.4.0`, `ray==2.55.1` and `sqlalchemy==2.0.46`, in a fresh 3.13
 | **G2** | not yet (CPBH adopts) |
 | **G3** | not yet (SI adopts) |
 
-*2026-10-18, at the close (07, this commit):* none of G1–G3 has held. SGK is pinned at `v0.1.0`
+*2026-10-18, at the close (07, `c991b03`):* none of G1–G3 has held. SGK is pinned at `v0.1.0`
 (`requirements.txt:81` at its newest commit, `79434bf`); ChamPBH and StochasticInstantons use
 nothing of the registry. The campaign closed without waiting for them (README §7). **After the
 close, a gate is recorded on this board when it holds, in a records commit of its own.**
@@ -1053,7 +1190,7 @@ close, a gate is recorded on this board when it holds, in a records commit of it
 
 ## 3. Active and unresolved issues
 
-**At the close (2026-10-18, 07, this commit), all six stay open, none with an owner**; each entry
+**At the close (2026-10-18, 07, `c991b03`), all six stay open, none with an owner**; each entry
 below ends with a dated line saying so, and `docs/interrupted-runs-verification.md` §6 says why
 each stays open and what would take it up.
 
@@ -1201,7 +1338,7 @@ lines from `pid_alive` down move by four (its docstring sentence and the `Overfl
 `_write_status` `:365` and the lines before it are unmoved. 02b's and 02c's sweeps pass unchanged
 (05's log §2).
 
-*At the close (2026-10-18, by 07, this commit):* open, owner none. 07 ran `test_status_writes` at
+*At the close (2026-10-18, by 07, `c991b03`):* open, owner none. 07 ran `test_status_writes` at
 3.14.8 (22 tests, OK, no skip), which says nothing about the `with` window (the verification
 document's §3, §10).
 
@@ -1247,7 +1384,7 @@ stands.
 (`begin` grew by forty lines above them). `stores.py` is not touched by 05. `begin` does not see such
 a run, as the store operations do not (05's file).
 
-*At the close (2026-10-18, by 07, this commit):* open, owner none.
+*At the close (2026-10-18, by 07, `c991b03`):* open, owner none.
 
 ### `[03-a-run-on-a-manifest-that-is-not-an-object-raises-where-it-is-used]`
 
@@ -1284,7 +1421,7 @@ the three forms. It is one line, and belongs with whichever prompt next touches 
 `:684`; `checkpoint_path`'s read `:720` → `:724`, `results_path`'s `:730` → `:734`; the reads at
 `:885` → `:889`, `:902-904` → `:906-908` and `:946` → `:950`; `_json_object` `:252` is unmoved.
 
-*At the close (2026-10-18, by 07, this commit):* open, owner none.
+*At the close (2026-10-18, by 07, `c991b03`):* open, owner none.
 
 ### `[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]`
 
@@ -1310,7 +1447,7 @@ line, and belongs with whichever prompt next touches `store show`.
 *Package lines (04, `5e20772`).* `store show`'s format `runregistrykit/__main__.py:204` → `:217`;
 `list`'s row `:573` → `:651`. Not otherwise touched by 04.
 
-*At the close (2026-10-18, by 07, this commit):* open, owner none.
+*At the close (2026-10-18, by 07, `c991b03`):* open, owner none.
 
 ### `[04-a-killed-process-not-yet-reaped-answers-kill-0]`
 
@@ -1346,7 +1483,7 @@ log §3), shows it on the killed child before its reap.
 refusal `:1309-1316` → `:1349-1356`. `begin` now refuses a killed child's store until the child is
 reaped, as the store operations do (05's log, observation 7); the issue is unchanged.
 
-*At the close (2026-10-18, by 07, this commit):* open, owner none. 07's breakage (b) measured it
+*At the close (2026-10-18, by 07, `c991b03`):* open, owner none. 07's breakage (b) measured it
 against the release installed from GitHub: before its reap, a `SIGKILL`'d child's run read
 `alive`, its `list` row unmarked, and `end` refused it as a live pid (the verification document's
 §4.3).
@@ -1377,7 +1514,7 @@ state the rule as the code applies it.
 brought into the module docstring's terms (`stores.py:102-109`), no behaviour changed. It is not
 needed before `v0.2.0` is tagged.
 
-*At the close (2026-10-18, by 07, this commit):* open, owner none.
+*At the close (2026-10-18, by 07, `c991b03`):* open, owner none.
 
 ---
 

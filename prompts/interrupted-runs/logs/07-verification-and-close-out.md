@@ -1,7 +1,7 @@
 # Log — prompt 07: verification and close-out
 
 **Subject:** Verify the interrupted-runs campaign and close it
-**Commit:** this commit (on `main`, after `e4bf592`)
+**Commit:** `c991b03` (on `main`, after `e4bf592`)
 **Date:** 2026-10-18
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (corrections and readings 1–18). No stop condition fired.
