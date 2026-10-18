@@ -1,11 +1,11 @@
 # Log — prompt 06, release `v0.2.0`
 
 - **Subject:** Prepare the v0.2.0 release: version, README and notes
-- **Commit:** this commit, on `main` after `c4f2abc` (the orchestration note's commit)
+- **Commit:** `0bae3a3`, on `main` after `c4f2abc` (the orchestration note's commit)
 - **Result:** landed, not yet reviewed. `pyproject.toml` says `0.2.0`; the README describes
   `v0.2.0`; the release notes and the adoption notes are new; the release check passed on this
   machine. No file under `runregistrykit/` or `.github/` changed. The suite is 410 before and
-  after. **No tag is made and nothing is pushed**: `v0.2.0` is ready to be tagged on this commit
+  after. **No tag is made and nothing is pushed**: `v0.2.0` is ready to be tagged on `0bae3a3`
   once CI has passed on it, all three jobs (the prompt's §7).
 - **Model:** Claude Opus 5.5. The session was interrupted once by a usage limit after breakage (a)
   and (b) had run, and resumed; on resuming, no child process of this work was running, no scratch
@@ -525,7 +525,7 @@ plain word`; RESULT 1 PROBLEM(S).
 
 ## State handed to the next prompt
 
-- **`v0.2.0` is ready to be tagged on this commit** once CI has passed on it, pushed alone, all three
+- **`v0.2.0` is ready to be tagged on `0bae3a3`** once CI has passed on it, pushed alone, all three
   jobs (the prompt's §7); no tag is made, nothing is pushed. The wheel from an export of this
   commit's tree is 66 257 bytes, ten entries, SHA-256 `1a169488…44c9`.
 - **For 07:** the release notes (`docs/releases/v0.2.0.md`) and the adoption notes

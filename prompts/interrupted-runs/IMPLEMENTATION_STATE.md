@@ -8,7 +8,7 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, and landed (this commit), not yet reviewed.** `v0.2.0` is ready to be tagged on 06's commit once CI has passed on that commit, all three jobs; no tag is made. Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, landed (`0bae3a3`) and reviewed the same day, pending CI; its review opened one issue.** `v0.2.0` is ready to be tagged on `0bae3a3` once CI has passed on that commit, all three jobs; no tag is made. Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
@@ -17,8 +17,8 @@ to its 3.14 `with` point, under L11 (a), with no owner. One, found at the writin
 (§4), and its work found one more, open in §3 with no owner; its review found another, open in
 §3 with no owner. One, found at the writing of 04, is open in §3 with no owner. 04 closed
 `[a3-v2-a-hard-killed-run-blocks-its-store]` (§4), and its work found one more, which was assigned
-to 05. 05 closed that one and `[00-begin-does-not-refuse-a-second-writer]` (§4); five are open in §3,
-none with an owner.
+to 05. 05 closed that one and `[00-begin-does-not-refuse-a-second-writer]` (§4). 06's review found one
+more, open in §3 with no owner; six are open in §3, none with an owner.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -61,19 +61,20 @@ tag's.
 | 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
 | 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
 | 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/05-begin-refuses-a-second-writer.md)); CI green, run `39129061916`; two issues closed, none opened | `eb68583` | 378 → 410 |
-| 06 | [`06-release-v0.2.0.md`](06-release-v0.2.0.md) | Opus | **landed, not yet reviewed** 2026-10-18 ([log](logs/06-release-v0.2.0.md)); `v0.2.0` not tagged | this commit | 410 → 410 |
+| 06 | [`06-release-v0.2.0.md`](06-release-v0.2.0.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/06-release-v0.2.0.md)); pending CI, `v0.2.0` not tagged; one issue opened by the review | `0bae3a3` | 410 → 410 |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
 from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, 347 after 03,
-378 after 04, and 410 after 05.
+378 after 04, 410 after 05, and 410 after 06.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
 [`orchestrator/prompt-02b.md`](orchestrator/prompt-02b.md) (`201e507`), used for 02b;
 [`orchestrator/prompt-02c.md`](orchestrator/prompt-02c.md) (`e4a2b6c`), used for 02c; [`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`75eab12`), used for 03;
 [`orchestrator/prompt-04.md`](orchestrator/prompt-04.md) (`5d8a97b`), used for 04;
-[`orchestrator/prompt-05.md`](orchestrator/prompt-05.md) (`5d0fa78`), used for 05.
+[`orchestrator/prompt-05.md`](orchestrator/prompt-05.md) (`5d0fa78`), used for 05;
+[`orchestrator/prompt-06.md`](orchestrator/prompt-06.md) (`c4f2abc`), used for 06.
 
 **Orchestrator review of prompt 01 (2026-10-16).** Dispatched from `8023e14` to one Opus subagent,
 with the note's §0 as a copy in the session scratchpad: its facts, its eight corrections and
@@ -875,6 +876,130 @@ Linux gave an id and a boot, and `test_second_writer` and `test_second_writer_st
 passed on Linux at 3.12 and at 3.13, the hard-killed child among them. **05's review is complete;
 check 9 holds.**
 
+**Orchestrator review of prompt 06 (2026-10-18).** Dispatched from `c4f2abc` to one Opus subagent,
+with the note's §0 as a copy in the session scratchpad: its facts, its seventeen corrections and
+readings of the prompt, and its conventions. The agent stopped once at a usage limit, mid-work and
+with only `pyproject.toml` changed. It was resumed with its context and nothing else changed, and
+then committed `0bae3a3`, with nothing landed after it. No stop condition fired. **Every check of
+the note's §3 passed, but for one gap, recorded below.** Acceptance 1–3 are met. The tag waits on
+CI, and the review opens one issue.
+
+*At dispatch.* The note's gate held at `7f88787`: `main`, clean, this checkout the only worktree;
+`git diff --stat eb68583 HEAD -- runregistrykit pyproject.toml .github README.md docs` empty; `Ran
+410 tests in 148.666s`, `OK (skipped=1)`, with `TMPDIR` in the scratchpad, and the tree and
+`var/ledger.jsonl` (`471d0859…`) the same after it; `black` 37 files; no Ray, `RAY_ADDRESS` unset;
+the index at 10. Measured before writing the note: PyPI's newest `ray` 2.59.0; `v0.4.0` of
+DatastoreKit peeled to `c8570e8`; a `0.2.0` wheel from an export installs offline into 3.13.16. The
+clients' commits and every line the prompt cites hold through `git`.
+
+*The checks.*
+1. **Scope (R1).** `0bae3a3` touches §0's twelve files and no others. The diff from `c4f2abc` of
+   `runregistrykit/`, `.github/`, `PROVENANCE.md`, `CLAUDE.md`, `LICENSE`, `.gitignore`, the three
+   `v0.1.0` checklists, the measuring script, `docs/extraction/`,
+   `docs/extraction-verification.md`, `docs/OPEN_ISSUES.md`, the prompt and `orchestrator/` is
+   empty. The other diffs are each what the note allows: `pyproject.toml` one line,
+   `docs/adoption/README.md` one appended section, and in the campaign README 06's row only.
+2. **The suite (R2).** In `venv/` at `0bae3a3`: `Ran 410 tests in 160.904s`, `OK (skipped=1)`.
+   `git status --short --ignored` and the ledger are as at the gate; there is no `build/` or `dist/`
+   and no Ray. `black` reports 37 files. `importlib.metadata.version` gives `0.2.0` from the
+   repository root and from a scratch directory.
+3. **The wheel (R2).** Built by the orchestrator from `git archive 0bae3a3`, nothing copied over,
+   with `uv build --offline --wheel`:
+   - `runregistrykit-0.2.0-py3-none-any.whl`, 66 257 bytes, the same ten entries as the log's,
+     `Version: 0.2.0`, `Requires-Python: >=3.12`, `Requires-Dist: datastorekit>=0.4.0; extra ==
+     "stores"`, and no `runregistrykit/tests/`;
+   - its SHA-256 is `6db7c1ef…82c2`. The log's `1a169488…44c9` is a wheel from `c4f2abc`'s export
+     with the version edited, and an archive's file times are its commit's, so the two differ and
+     neither is a release identity;
+   - installed into a fresh 3.13.16 venv as correction 4 says, and run with `-I` from an empty
+     directory: the five modules come from `site-packages`, the version is `0.2.0`, `this_host` is
+     in `__all__`, `DatastoreKitFingerprinter` imports, `import runregistrykit.tests` raises
+     `ModuleNotFoundError`, and `--help` and `end --help` exit 0.
+4. **The README (R3).** The diff is the prompt's §2.3 rows and nothing else; `:40-41` is unchanged,
+   with Ray at 2.59.0. Each changed statement was checked against the code at `0bae3a3`:
+   - `begin`'s refusal against `begin` (`__init__.py:1095-1125`) and `_running_runs_naming`;
+   - the temporary name against `_status_temporary_name` (`:292`);
+   - the liveness values, their order, and what a record with no host means, against `liveness`
+     (`:612`);
+   - `list`'s markers, its summary clause and which two stderr lines name `end`, against
+     `__main__.py:640-690`;
+   - every one of `end`'s acceptances and refusals against `_end_run` (`:1259`) and `end --help`;
+   - the `this_host()` fields and `RUNREGISTRYKIT_HOST_NAME` against its docstring and readers;
+   - the seven core modules against the workflow's line.
+5. **The release notes' fields (R4).** The orchestrator's own `lifecycle.py` ran against `git
+   archive v0.1.0` and `git archive c4f2abc`, whose package is `0bae3a3`'s, each run printing
+   `runregistrykit.__file__`. Compared with `v0.1.0`:
+   - the manifest gains `host` {`id`, `machine`, `name`, `python`, `release`, `system`}, all
+     strings here;
+   - `status.json` gains `host` {`boot`, `id`}, running and after `finish`;
+   - `end` writes `state` `lost`, `exit_code` `null` and `ended` with the eight `evidence` keys. On
+     a torn status, with `--unverified`, it writes only `ended`, `exit_code`, `heartbeat` and
+     `state`, with `not_verified_because` `"status does not say"`;
+   - the ledger line, the sidecar and the file set are identical;
+   - `list_runs` gains `host`, `host_id`, `host_recorded` and `status_readable`.
+
+   Every field in the notes' §2.1 is written, every field added is named, and the types agree. By
+   `inspect.signature` over every `__all__` at both trees: `TERMINAL_STATES` gains `lost`,
+   `liveness` gains `here=`, and `this_host` is new; nothing else moved. §2.6's readers were read
+   from `_read_machine_identity` and `_read_boot_identity`: both machine-id files, the 32-hex rule,
+   the all-zero UUID, `boot_id`. *A wording slip, not changed:* §2.4 says `begin` writes both
+   `host` records "even when every value is `null`", but the manifest's `machine`, `system`,
+   `release` and `python` are always strings. It means `id`, `boot` and `name`, and no claim
+   depends on it.
+6. **The mixed-version table (R4).** The orchestrator's own `mixed.sh`, `build.py` and `read.py`
+   build a fresh runs root for each writer and reader. The alive pid is a `sleep` child shown
+   answering `kill -0` at every reading; the dead pid is a reaped child. Every row of the notes' §4
+   table, and §3's two directions, equal the orchestrator's measurement, cell for cell:
+   - at `v0.1.0`, `foreign` and earlier-boot runs with a live pid read `alive`, and a `lost` run
+     reads `unknown`;
+   - at `v0.1.0`, a torn status is unmarked and is not counted as in use;
+   - `v0.1.0`'s `begin` begins in every row;
+   - a `[1]` status makes `v0.1.0`'s `list` exit 1 and every store operation under that runs root
+     raise `AttributeError`;
+   - `v0.2.0`'s `begin` refuses a store that a `v0.1.0` run which has not finished names.
+7. **The adoption notes (R5).** Every `path:line` in `secondarygwkit.md` was checked by `git -C
+   <SGK> show 79434bf:<path> | sed -n`: `requirements.txt:17`, `:75`, `:81`, `:88`, the driver
+   lines, `interrupt_when.py:161-190`, and the test lines in `registry_fixtures.py`,
+   `test_killed_handler.py`, `test_pipeline_adoption.py` and
+   `test_quadsource_atol_sweep_prepare.py`, with the `begin` and `register` greps re-run (same
+   hits). The brief's table was read against the brief's §1 and §2. The shared README's six tests
+   are the six that call `set_aside` at `eb68583`, by name. CPBH's nine and SI's three `git grep`
+   lines, and their `requirements.txt` lines, re-run the same. 05's "The cost" does say CPBH and SI
+   held no run directories. The route after a hard kill matches the orchestrator's own run of
+   `end`, and the refusal quoted is `begin`'s text composed as the code composes it.
+8. **The log (R7).** Every section of README §5.1 and the prompt's §4.3 additions are present.
+   Seventeen deviations are classified, corrections 1–17 among them, none UNINTENDED DRIFT;
+   deviation 9 (CPBH's and SI's `git grep`s find campaign records besides) is accepted. The "For
+   06" lines are honoured, each with its place. **Residue fixed here:** "this commit" → `0bae3a3`.
+9. **The breakage (R6).**
+   - (a) and (b) were replayed from the log's diffs on fresh exports of `0bae3a3`. (a) gives a
+     `0.1.0` wheel, and the installed version is `0.1.0`. (b) gives 38 entries, and `import
+     runregistrykit.tests` succeeds.
+   - (c) was replayed by `git apply` on a copy of the notes, and the agent's `field_check.py`
+     reports both breaks. It is clean on the notes as committed.
+   - (o1), the `exclude` widened to `runregistrykit*`, gives a wheel with no modules, and `import
+     runregistrykit` fails.
+   - (o2), one known issue dropped from an export's notes, is caught by the agent's `docs_check.py`
+     ("the notes' list is not the board's §3").
+   - (o3), `host.id` typed `int` in a copy of the notes, is **not caught**. `field_check.py`
+     compares names, not types. **A gap, recorded and not opened:** check 5 compared the types by
+     the orchestrator's own shapes.
+10. **The records (R7).** The board's header, 06's row (410 → 410), V1 and the five §3 entries are
+    unchanged in substance. The campaign README's 06 row and `prompts/INDEX.md`'s line are right,
+    and `docs/OPEN_ISSUES.md` is unchanged at 10.
+
+*The issue.* The log's observation 1 recorded four lines of `stores.py` prose that still state the
+in-use rule as it was before 03, and opened no issue, following 03's and 04's logs. `CLAUDE.md`'s
+rule 4 asks for a §3 issue for a finding not fixed, and these are the public docstrings of
+`fingerprint_store`, `retire_store` and `amend_sidecar` in the release clients adopt. So the review
+opens `[06-three-store-docstrings-and-a-comment-state-the-old-in-use-rule]`, with no owner. The
+release notes' known issues are the board's §3 at `0bae3a3`, where the tag goes, and that list
+stays true there.
+
+**Verdict:** 06 is accepted, **pending CI**: all three jobs green on `0bae3a3` itself, pushed
+alone; the core job's count 148; the suite 410 at both ends with one skip in each; `black` 37
+files. Then `v0.2.0` is tagged on `0bae3a3`, as the prompt's §7 says.
+
 ### 1.1 Items
 
 | Item | Prompt | What | Closes | State |
@@ -886,7 +1011,7 @@ check 9 holds.**
 | **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ✅ `ab0cad9` |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ✅ `5e20772` |
 | **B1** | 05 | `begin` refuses a store a run that has not finished names; `pid_alive` false out of range | `[00-begin-does-not-refuse-a-second-writer]`, `[04-a-pid-out-of-range-makes-pid-alive-raise]` | ✅ `eb68583` |
-| **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ✅ this commit |
+| **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ✅ `0bae3a3` |
 | **Z1** | 07 | the verification document; the close | — | ⬜ |
 
 **Legend.** ⬜ not yet · ✅ done.
@@ -903,7 +1028,7 @@ check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Five, none with an owner: one found by 02b's review, narrowed by 02c (`35ce264`) to its Python
+Six, none with an owner: one opened by 06's review (`0bae3a3`), on the store layer's prose; one found by 02b's review, narrowed by 02c (`35ce264`) to its Python
 3.14 `with` point; two opened by 03, one at its writing and one by its work; one opened by 03's
 review (`ab0cad9`); and one opened at the writing of 04.
 `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, which 03 closed,
@@ -1182,6 +1307,32 @@ log §3), shows it on the killed child before its reap.
 refusal `:1309-1316` → `:1349-1356`. `begin` now refuses a killed child's store until the child is
 reaped, as the store operations do (05's log, observation 7); the issue is unchanged.
 
+
+### `[06-three-store-docstrings-and-a-comment-state-the-old-in-use-rule]`
+
+**Opened:** 2026-10-18 by 06's review, from 06's log, observation 1; read. **Owner:** none.
+
+*The defect.* Since 03 (`ab0cad9`), the store operations count as in use every run whose status
+does not say it has finished: `running`, alive, stale or on another host, or a status that cannot
+be read or names no state the registry writes (`_running_runs_naming`, `runregistrykit/stores.py`,
+and its callers). Four lines of prose still state the rule as it was before:
+- `fingerprint_store`'s docstring, `stores.py:1366` ("any `running` run under ``runs_root``, alive
+  or stale");
+- `retire_store`'s, `:1640` ("Any `running` run under ``runs_root``, alive **or stale**");
+- the comment at `:1727` ("any running run, alive or stale");
+- `amend_sidecar`'s docstring, `:2025` ("a store that a `running` run names, alive or stale").
+
+03's log (deviation 17) and 04's (observation 5) recorded three of them as documentation and
+opened no issue; 06's log found the fourth (`:1640`).
+
+*Impact.* Low. The code refuses more than the docstrings say, never less, so nothing is lost. But
+these are the public docstrings of three public names in `v0.2.0`: a reader of `help()` is told a
+run with a torn status does not block the store, where it does. The README and the release notes
+state the rule as the code applies it.
+
+*Next step.* A docstring-only change in a later release, made by a prompt that says so: each line
+brought into the module docstring's terms (`stores.py:102-109`), no behaviour changed. It is not
+needed before `v0.2.0` is tagged.
 
 ---
 

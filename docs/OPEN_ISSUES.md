@@ -3,8 +3,8 @@
 One line per open issue, pointing at the board that holds it. The board is right if the two
 disagree. See `CLAUDE.md` for the maintenance rule.
 
-**Last updated:** 2026-10-18 · **10 open**: 2 on the `extraction` board (§1.1), 3 on the
-`inherited-issues` board (§1.2) and 5 on the `interrupted-runs` board (§1.3).
+**Last updated:** 2026-10-18 · **11 open**: 2 on the `extraction` board (§1.1), 3 on the
+`inherited-issues` board (§1.2) and 6 on the `interrupted-runs` board (§1.3).
 
 ## 1. By campaign
 
@@ -29,7 +29,7 @@ two found here reading it, read at `79015a7`. The five that bear on a long job w
 | `[01-cross-filesystem-move-advice-says-delete-by-hand]` | none | `store move` relays DatastoreKit's "delete the source by hand" for a registered store, which is retired instead |
 | `[06-runregistrykit-list-into-a-closed-pipe-ends-in-a-traceback]` | none | `list \| head` can end in a `BrokenPipeError` traceback; cosmetic, nothing lost |
 
-### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01, 02, 02b, 02c, 03, 04 and 05 landed
+### 1.3 `interrupted-runs` ([board](../prompts/interrupted-runs/IMPLEMENTATION_STATE.md)): open 2026-10-16, 01, 02, 02b, 02c, 03, 04, 05 and 06 landed
 
 Assigned from the `inherited-issues` board on 2026-10-16: the five that bear on a long job that
 may be interrupted, taken in this order, one prompt each (the campaign's README §2). The first,
@@ -37,7 +37,7 @@ may be interrupted, taken in this order, one prompt each (the campaign's README 
 `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, by 02 on 2026-10-17. Two more were opened by 02's review on 2026-10-17, on the bookkeeping of the
 `status.json` writer, and closed by 02b the same day. One was opened by 02b's review, the same day,
 and assigned to 02c, which fixed it at Python 3.12 and 3.13 and narrowed it to its 3.14 `with`
-point, now with no owner. One was opened at the writing of 03, on 2026-10-18, with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` the same day, and its work opened one more, with no owner; its review opened another, with no owner. One was opened at the writing of 04, the same day, with no owner. 04 closed `[a3-v2-a-hard-killed-run-blocks-its-store]` the same day, and its work opened one more, assigned to 05 on 2026-10-18 at the user's request. 05 closed both of its assigned issues the same day, `[00-begin-does-not-refuse-a-second-writer]` and `[04-a-pid-out-of-range-makes-pid-alive-raise]`.
+point, now with no owner. One was opened at the writing of 03, on 2026-10-18, with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` the same day, and its work opened one more, with no owner; its review opened another, with no owner. One was opened at the writing of 04, the same day, with no owner. 04 closed `[a3-v2-a-hard-killed-run-blocks-its-store]` the same day, and its work opened one more, assigned to 05 on 2026-10-18 at the user's request. 05 closed both of its assigned issues the same day, `[00-begin-does-not-refuse-a-second-writer]` and `[04-a-pid-out-of-range-makes-pid-alive-raise]`. One was opened by 06's review, the same day, with no owner.
 
 | Issue | Owner | Hook |
 |---|---|---|
@@ -45,4 +45,5 @@ point, now with no owner. One was opened at the writing of 03, on 2026-10-18, wi
 | `[03-a-run-whose-manifest-cannot-be-read-names-no-store]` | none | A live run whose manifest is torn or missing names no store, so the store operations proceed on the store it is writing |
 | `[03-a-run-on-a-manifest-that-is-not-an-object-raises-where-it-is-used]` | none | `Run(path)` on a manifest that is JSON but not an object constructs, then `checkpoint_path` and `results_path` raise `AttributeError`; low impact |
 | `[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]` | none | `store show` ends in a `TypeError` traceback when a run's status `state` is a JSON list or object; predates 03; low impact |
+| `[06-three-store-docstrings-and-a-comment-state-the-old-in-use-rule]` | none | `fingerprint_store`'s, `retire_store`'s and `amend_sidecar`'s docstrings and a comment in `retire_store` still say a `running` run is in use, where the code counts every run whose status does not say it has finished; prose only |
 | `[04-a-killed-process-not-yet-reaped-answers-kill-0]` | none | A killed run whose process its parent has not reaped answers `kill -0`, so `liveness` calls it `alive` and `end` will refuse it; low impact |
