@@ -5,7 +5,7 @@
 (run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
 `39060913296`), closing the two issues 02's
 review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`), narrowing the one 02b's review opened
-to its Python 3.14 `with` point; 03 landed 2026-10-18 (this commit), not yet reviewed, closing the issue it was written for. L1–L4 (the machine decision)
+to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI pending a push, closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined (README
 §6.2).** Holds the five issues that bear on a
@@ -14,7 +14,8 @@ three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's revi
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
 to its 3.14 `with` point, under L11 (a), with no owner. One, found at the writing of 03, is open in
 §3 with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
-(§4), and its work found one more, open in §3 with no owner.
+(§4), and its work found one more, open in §3 with no owner; its review found another, open in
+§3 with no owner.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -54,7 +55,7 @@ tag's.
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
-| 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed, not yet reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); one issue closed, one opened | this commit | 329 → 347 |
+| 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI pending a push; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
@@ -66,7 +67,7 @@ from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, a
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
 [`orchestrator/prompt-02b.md`](orchestrator/prompt-02b.md) (`201e507`), used for 02b;
-[`orchestrator/prompt-02c.md`](orchestrator/prompt-02c.md) (`e4a2b6c`), used for 02c.
+[`orchestrator/prompt-02c.md`](orchestrator/prompt-02c.md) (`e4a2b6c`), used for 02c; [`orchestrator/prompt-03.md`](orchestrator/prompt-03.md) (`75eab12`), used for 03.
 
 **Orchestrator review of prompt 01 (2026-10-16).** Dispatched from `8023e14` to one Opus subagent,
 with the note's §0 as a copy in the session scratchpad: its facts, its eight corrections and
@@ -516,6 +517,103 @@ unchanged. The one skip in each is `test_host`'s macOS readers, so
 `TestARaisingHandlerAtEveryJump` ran and passed on Linux at 3.12 and at 3.13. **02c's review is
 complete; check 9 holds.**
 
+**Orchestrator review of prompt 03 (2026-10-18).** Dispatched from `75eab12` to one Sonnet
+subagent, with the note's §0 as a copy in the session scratchpad (its facts, its sixteen
+corrections and readings of the prompt, and its conventions) and the planner's three probes.
+Reviewed against its commit `ab0cad9`, with nothing landed after it. No stop condition fired.
+**Every check of the note's §3 passed**, and acceptance 1–3 are met; the CI half of check 9 waits
+for a push. The review opens one issue,
+`[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]`, a defect that predates 03.
+
+*At dispatch.* The note's gate held at `75eab12`: `main`, clean, nothing staged, this checkout the
+only worktree; `git diff --stat 35ce264 HEAD -- runregistrykit pyproject.toml .github` empty; `Ran
+329 tests in 124.542s`, `OK (skipped=1)`, with `TMPDIR` in the scratchpad; no Ray process,
+`RAY_ADDRESS` unset; the index at 10.
+
+*The checks.*
+1. **Scope (K1).** `ab0cad9` touches §0's eleven files and no others; the diff from `75eab12` of
+   `pyproject.toml`, `client.py`, `fingerprint.py`, `README.md`, `PROVENANCE.md`, `CLAUDE.md`,
+   `docs/` other than the index, the prompt and `orchestrator/` is empty; under
+   `runregistrykit/tests` it adds the two new modules (294 and 186 lines) and changes nothing; the
+   workflow's diff is its core line, now naming five modules; the campaign README's diff is 03's
+   row. `__main__.py`'s docstring diff is correction 8's four phrases, re-wrapped (the agent's
+   deviation 9).
+2. **The suite (K5).** `Ran 347 tests in 127.991s`, `OK (skipped=1)`, in `venv/` at `ab0cad9`.
+   `black --check runregistrykit docs`: 33 files. The core run in the orchestrator's own scratch
+   venv (`uv`, offline, editable, no `[stores]`): the three absent, `Ran 98 tests in 27.243s`, `OK
+   (skipped=1)`; the venv removed. At 3.13.16 and 3.14.8, `test_status_writes`, `test_host` and
+   `test_unreadable_status` with `PYTHONPATH` on the checkout: `Ran 61 tests`, `OK (skipped=1)`,
+   each. No Ray process; `git status` clean after.
+3. **The writer (K5).** Within the writer's section `git diff -U0` is the base read alone,
+   `read_json(path) or {}` → `_json_object(read_json(path))`; the helper `_json_object` is at
+   `:247`, in the "files" section, outside it. 02c's review's `bombard.py`, 45 s at 3.13.16 against
+   `git archive ab0cad9`, the handler raising: 33 463 interruptions, 33 240 inside the writer, **0
+   lock held, 0 in-flight kept**.
+4. **Nothing written changes (K2).** The orchestrator's `lifecycle.py` (`begin` with a ledger on a
+   registered full store, `heartbeat`, `record`, `finish("done", fingerprint=True)`), printing the
+   shape (keys, nested keys, value types) of `status.json`, the manifest, a `checkpoint.jsonl` line,
+   the sidecar and the run directory's files: `git archive 35ce264` and `git archive ab0cad9`
+   **identical**. (Run against the checkout instead, the manifest's `packages.runregistrykit.url`
+   differs, `None` for `str`: that is the import path, editable checkout against archive, not the
+   code.) `write_json_atomic` and `_land_status` are untouched.
+5. **The probe (K3).** The planner's three probes, from the orchestrator's own copy, each printing
+   the tree it ran. Against `35ce264`: §"At writing"'s table exactly: ten forms proceeding, files
+   changed by copy, move, `--write` and amend, no marker; `[1]`, `"x"`, `5` raising
+   `AttributeError` in `list_runs`, `list` and all six operations; `finish` raising on those three;
+   a manifest `[1]` raising. Against `ab0cad9`: **all thirteen forms refused by all six
+   operations**, `list_runs` raising on none, every row `!!`, exit 0; `finish("killed", 137)`
+   ending all eight of its forms `killed`; a manifest `[1]` read as none; a torn or missing manifest
+   still proceeding, as `[03-a-run-whose-manifest-cannot-be-read-names-no-store]` says.
+6. **The words and the rule (K4).** Every text for a `running` run is byte for byte as before: the
+   remedy f-strings are split at the insertion point, `"...dead. " + "" + "Nothing was written"`,
+   and amend's and retire's likewise. The new texts in `_describe_running` and `_unsure_remedy`
+   match the log's quotation. `TERMINAL_STATES` is imported from the core; `grep '"done", "failed"'
+   stores.py` is empty. Every state the registry has written since `v0.1.0` is `running` or one of
+   `TERMINAL_STATES` (`finish` refuses any other), so the rule turns no existing record of the
+   registry's own into one in use. `git grep -n signal` outside the tests: `finish`'s docstring,
+   `:807`, alone.
+7. **The log (K7).** Every section of README §5.1 and the prompt's §4.4 additions; seventeen
+   deviations classified, corrections 1–16 among them, none UNINTENDED DRIFT (the seventeenth, prose
+   left in `stores.py`, is an observation rather than a deviation); the suite before (329) and after
+   (347); the core, 3.13 and 3.14 runs; both probe tables; the sweeps' counts (unchanged at 3.12,
+   one fewer at 3.13); every mutation as a diff; the refusal texts as shipped. The log's citations
+   checked by `grep -n` at `ab0cad9` where they were spot-read: right. **Residue fixed here:** "this
+   commit" → `ab0cad9`. **Not fixed, recorded:** (m5) fails two tests, not the one the log names;
+   the second is `test_a_state_that_is_a_list_or_an_object_is_listed_not_raised_on`.
+8. **The mutations (K6).** (m1)–(m8) extracted from the log by a script and replayed in a `git
+   clone` of `ab0cad9`, `PYTHONPATH` on the clone, the two new modules: each fails as the log says
+   ((m1) 100 failures; (m2) 34, exactly the readable forms and the stale-remedy test; (m3) 13 errors
+   and a failure; (m4) 3 errors, `[1]`, `"x"`, `5`; (m5) 2; (m6) 6; (m7) 2; (m8) 1), the clone
+   clean after each. The orchestrator's own, each caught:
+   - (o1) `_describe_running`'s unreadable branch disabled, so an unreadable run gets the
+     "neither running nor finished" words: 63 failures;
+   - (o2) the remedy sentence in every refusal is the agent's (m6): caught by
+     `test_a_refusal_for_running_runs_alone_has_no_new_sentence`;
+   - (o3) `liveness`'s non-dict guard removed: 5 errors, `test_a_status_that_is_not_an_object_is_unknown`;
+   - (o4) `list`'s `!!` for every `unknown` row, manifest or not: 2 failures;
+   - (o5) `has_manifest` back to `manifest is not None`: 4 failures, the non-object manifest test;
+   - (o6) `"paused"` treated as terminal by the filter: 7 failures, that form across the six
+     operations.
+   **A gap, recorded and not opened:** the prompt's §2.6 asks that the stale *and foreign*
+   refusals' fragments still appear beside an unreadable run's; the test mixes a stale run with
+   two unsaid ones, and no test mixes a foreign one. The order of `_describe_running`'s branches
+   makes the foreign branch reachable only for a `running` entry, as before, and
+   `test_host_stores` pins its words.
+9. **The records (K7).** The board's header, 03's row (329 → 347), C1, the issue moved to §4 with
+   its *Resolved* paragraph, the "Package lines (03, …)" sentences, the agent's new issue
+   `[03-a-run-on-a-manifest-that-is-not-an-object-raises-where-it-is-used]` (its measurement and
+   citations checked: `:675`, `:715`, `:725`, `:878`, `:895`, `:939` right), and
+   `[03-a-run-whose-manifest-cannot-be-read-names-no-store]` still in §3. `docs/OPEN_ISSUES.md`
+   counted 10 by its rows: one closed, one opened. `prompts/INDEX.md`'s line and the README's 03 row
+   updated. **Opened by this review**, with the index at 11:
+   `[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]`, measured at both commits: the
+   same width format that the agent fixed in `list` (its deviation 13, accepted as within "never
+   raised on") remains in `store show`, which the prompt did not name. **CI is not read yet:**
+   nothing is pushed, and the new core module first runs on Linux.
+
+**Verdict:** 03 is accepted, **pending CI**: all three jobs green, the core job's count 98, read
+from the run's log after the user pushes `main`.
+
 ### 1.1 Items
 
 | Item | Prompt | What | Closes | State |
@@ -524,7 +622,7 @@ complete; check 9 holds.**
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ `2bf9c72` |
 | **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ✅ `2959b78` |
 | **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ✅ `35ce264` |
-| **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ✅ this commit |
+| **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ✅ `ab0cad9` |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
 | **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ⬜ |
@@ -544,9 +642,10 @@ complete; check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Five: two of the five assigned here, for 04 and 05; one found by 02b's review, narrowed by 02c
-(`35ce264`) to its Python 3.14 `with` point, with no owner; and two opened by 03, with no owner: one
-at its writing and one by its work. The last three are at the end of this section.
+Six: two of the five assigned here, for 04 and 05; one found by 02b's review, narrowed by 02c
+(`35ce264`) to its Python 3.14 `with` point, with no owner; two opened by 03, with no owner: one
+at its writing and one by its work; and one opened by 03's review (`ab0cad9`), with no owner. The
+last four are at the end of this section.
 `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, which 03 closed, is in §4.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
@@ -682,7 +781,7 @@ is unmoved; `pid_alive` `:389` → `:390` (`PermissionError` `:407` → `:408`);
 `:595`; `_fingerprint_results`' `taken_by=self` `:837` → `:840`. `stores.py` and `__main__.py` are
 not touched by 02c, so their lines above stand.
 
-*Package lines (03, this commit).* `runregistrykit/__init__.py`: `Run.finish` `:788` → `:796` (its
+*Package lines (03, `ab0cad9`).* `runregistrykit/__init__.py`: `Run.finish` `:788` → `:796` (its
 docstring `:789-790` → `:797-798`, its check `:805` → `:813`); `TERMINAL_STATES` `:104` is unmoved;
 `pid_alive` `:390` → `:398` (`PermissionError` `:408` → `:416`); `liveness` `:595` → `:603`;
 `_fingerprint_results`' `taken_by=self` `:840` → `:848`. `runregistrykit/stores.py`:
@@ -756,7 +855,7 @@ tombstone check `:1015-1027` → `:1056-1068`, the refusal `:1021` → `:1062`; 
 tombstone check `:1056-1068` → `:1059-1071`, the refusal `:1062` → `:1065`; `this_host()` `:1070` →
 `:1073`. `stores.py` is not touched by 02c, so its lines above stand.
 
-*Package lines (03, this commit).* `begin` `runregistrykit/__init__.py:968` → `:976`; its
+*Package lines (03, `ab0cad9`).* `begin` `runregistrykit/__init__.py:968` → `:976`; its
 tombstone check `:1059-1071` → `:1067-1079`, the refusal `:1065` → `:1073`; `this_host()` `:1073` →
 `:1081`. In `stores.py`: `_running_runs_naming` `:998` → `:1001`, now counting every run not in
 `TERMINAL_STATES`, so that what 05's refusal asks (L9) can use it as it is; `runs_naming` `:957` →
@@ -871,7 +970,7 @@ are unmoved; the filters `:365` → `:366` and `:372` → `:373`, with the comme
 `finally` `:381-382` → `:382-383`. `_update`'s docstring `:725-763` → `:726-766`, its "Not covered"
 paragraph `:756-762` → `:757-765`.
 
-*Package lines (03, this commit).* 03 adds the helper `_json_object` (`:247`) before the writer's
+*Package lines (03, `ab0cad9`).* 03 adds the helper `_json_object` (`:247`) before the writer's
 section and changes the writer's base read (`:375` → `:383`) only; the rest moves by eight lines:
 `_write_status` `:352` → `:360`, its `with` `:355` → `:363`, `next()` `:362` → `:370`, the comment
 `:365` → `:373`, the filters `:366` → `:374` and `:373` → `:381`; the `finally` `:382-383` →
@@ -904,7 +1003,7 @@ counted as in use for **every** store (it may name any), refused with words that
 reported by `list` and the refusals without blocking; or left. Whichever, a test of the probe's
 case.
 
-*Package lines (03, this commit).* `runs_naming` `runregistrykit/stores.py:957` → `:960`, its skip
+*Package lines (03, `ab0cad9`).* `runs_naming` `runregistrykit/stores.py:957` → `:960`, its skip
 `:973` → `:976`; `Run.__init__`'s manifest read `runregistrykit/__init__.py:667` → `:675`. As 03's
 file said, a manifest `[1]` is now read as no manifest by `list_runs` (`has_manifest` false, with
 `:1172-1173` and `:1182`), so it no longer raises, and now behaves as the torn one does:
@@ -935,6 +1034,27 @@ operations, which are what a person uses to look, no longer raise on it (03).
 *Next step.* Read the manifest in `Run.__init__` through `_json_object` (`:247`), as `list_runs`
 does, so that `Run.manifest` is always a dict; or leave it, given the impact. Either way, a test of
 the three forms. It is one line, and belongs with whichever prompt next touches `Run.__init__`.
+
+### `[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]`
+
+**Opened:** 2026-10-18 by the orchestrator's review of 03; measured. **Owner:** none.
+
+*The defect.* `store show` prints each run naming the store with its state formatted to a width,
+`{(entry['state'] or 'unknown'):9}` (`runregistrykit/__main__.py:204`). A status whose `state` is a
+JSON list or object makes that format raise `TypeError: unsupported format string passed to
+list.__format__` (or `dict.__format__`), so `store show` ends in a traceback for the whole store.
+03 fixed the same format in `list`'s rows (`:573`, its deviation 13) and not this one, which the
+prompt did not name.
+
+*Measured* by the review at `35ce264` and at `ab0cad9` (scratch, not committed), on a full store
+and a run begun on it in the probe's process, its status's `state` then replaced: `["a"]` and
+`{"a": 1}` raise at both commits; `5` and `"paused"` print, exit 0. Not a regression of 03.
+
+*Impact.* Low. No writer of the registry records a state that is not a string; a hand edit would.
+`list` and the store operations, which 03 made total, no longer raise on one.
+
+*Next step.* Format the state with `str(...)` as `list` does, and a test of the two forms. It is one
+line, and belongs with whichever prompt next touches `store show`.
 
 ---
 
@@ -1450,13 +1570,13 @@ files from the writer's base read (`:375`). So the check fails open on ten forms
 traceback on three, and the named remedy fails on those three. 03's file states the rule the user
 took (L6 (a) refined, 2026-10-18).
 
-*Package lines (03, this commit).* `list_runs`' status read `runregistrykit/__init__.py:1159` →
+*Package lines (03, `ab0cad9`).* `list_runs`' status read `runregistrykit/__init__.py:1159` →
 `:1173` (with the manifest's `:1172`); `liveness`'s answer for an empty payload `:619` → `:627`;
 the writer's base read `:375` → `:383`. `stores.py`: `_running_runs_naming`'s filter `:1017` →
 `:1023`; the module docstring `:102-107` → `:102-109`. `__main__.py`: the marker `:558` → `:565-567`,
 the stale line `:578-585` → `:587-594`.
 
-**Resolved (2026-10-18, by 03, this commit).** Under L6 (a), refined (README §6.2), as 03's §2
+**Resolved (2026-10-18, by 03, `ab0cad9`).** Under L6 (a), refined (README §6.2), as 03's §2
 states it. A run whose manifest names the store is in use unless its status says a terminal state:
 `_running_runs_naming` (`runregistrykit/stores.py:1001`) keeps every entry whose state is not in
 `TERMINAL_STATES` (`:1023`), so a status that is missing, empty, torn, not JSON, not an object, has

@@ -1,7 +1,7 @@
 # Log — prompt 03: an unreadable status is in use
 
 **Subject:** Count a run whose status does not say it has finished as in use
-**Commit:** this commit (on `main`, after `75eab12`)
+**Commit:** `ab0cad9` (on `main`, after `75eab12`)
 **Date:** 2026-10-18
 **Agent:** Claude Sonnet 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (corrections and readings 1–16). No stop condition fired.
