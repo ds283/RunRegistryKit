@@ -5,7 +5,7 @@
 (run `39049728089`); 02b landed (`2959b78`) and reviewed, CI green (run
 `39060913296`), closing the two issues 02's
 review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`), narrowing the one 02b's review opened
-to its Python 3.14 `with` point; 03 written 2026-10-18, not run. L1–L4 (the machine decision)
+to its Python 3.14 `with` point; 03 landed 2026-10-18 (this commit), not yet reviewed, closing the issue it was written for. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined (README
 §6.2).** Holds the five issues that bear on a
@@ -13,7 +13,8 @@ long job that may be interrupted, assigned here from the `inherited-issues` boar
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
 to its 3.14 `with` point, under L11 (a), with no owner. One, found at the writing of 03, is open in
-§3 with no owner.
+§3 with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
+(§4), and its work found one more, open in §3 with no owner.
 
 **Campaign:** [`README.md`](README.md) ·
 **Evidence:** SGK's `prompts/handover/runregistrykit-stale-run-brief.md` (SGK `79434bf`) and the
@@ -53,14 +54,14 @@ tag's.
 | 02 | [`02-status-writes.md`](02-status-writes.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02-status-writes.md)); CI green, run `39049728089` | `2bf9c72` | 307 → 322 |
 | 02b | [`02b-the-writers-bookkeeping.md`](02b-the-writers-bookkeeping.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02b-the-writers-bookkeeping.md)); CI green, run `39060913296`; one issue opened by the review | `2959b78` | 322 → 328 |
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
-| 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | written 2026-10-18, not run | — | |
+| 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed, not yet reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); one issue closed, one opened | this commit | 329 → 347 |
 | 04 | `04-end-a-run.md` | Opus | not written | — | |
 | 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
-from then until 01), 307 after 01, 322 after 02, 328 after 02b, and 329 after 02c.
+from then until 01), 307 after 01, 322 after 02, 328 after 02b, 329 after 02c, and 347 after 03.
 
 **Orchestrator notes:** [`orchestrator/prompt-01.md`](orchestrator/prompt-01.md) (`8023e14`), used
 for 01; [`orchestrator/prompt-02.md`](orchestrator/prompt-02.md) (`b52cc01`), used for 02;
@@ -523,7 +524,7 @@ complete; check 9 holds.**
 | **W1** | 02 | `status.json`'s own temporary name; a superseded write discarded | `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]` | ✅ `2bf9c72` |
 | **W2** | 02b | the merge re-applying only newer in-flight writes; the record of what landed never lowered; the instruction sweep | `[02-an-in-flight-write-is-re-applied-over-a-newer-landed-one]`, `[02-the-landed-record-is-unpinned-and-can-move-backwards]` | ✅ `2959b78` |
 | **W3** | 02c | the writer's two filters as generator expressions; a sweep at every `JUMP_BACKWARD` of the writer, the lock and the in-flight entry checked after a raising handler; the 3.14 `with` point under L11 | `[02b-a-raising-handler-can-leave-the-status-lock-held]` (under L11 (a), narrowed to 3.14) | ✅ `35ce264` |
-| **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ⬜ |
+| **C1** | 03 | an unreadable status counted as in use; `list` flags it | `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` | ✅ this commit |
 | **E1** | 04 | `python -m runregistrykit end`, what it checks and writes | `[a3-v2-a-hard-killed-run-blocks-its-store]` | ⬜ |
 | **B1** | 05 | `begin` refuses a store a `running` run names | `[00-begin-does-not-refuse-a-second-writer]` | ⬜ |
 | **V1** | 06 | `v0.2.0`, its release notes, the adoption notes | — | ⬜ |
@@ -543,9 +544,10 @@ complete; check 9 holds.**
 
 ## 3. Active and unresolved issues
 
-Five: three of the five assigned here; one found by 02b's review, narrowed by 02c (`35ce264`) to
-its Python 3.14 `with` point, with no owner; and one opened at the writing of 03, with no owner.
-The last two are at the end of this section.
+Five: two of the five assigned here, for 04 and 05; one found by 02b's review, narrowed by 02c
+(`35ce264`) to its Python 3.14 `with` point, with no owner; and two opened by 03, with no owner: one
+at its writing and one by its work. The last three are at the end of this section.
+`[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, which 03 closed, is in §4.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
 was planned, each with its text unchanged except for an **Assigned** line. One moved with a
 correction: `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`'s next step
@@ -553,80 +555,6 @@ does not keep a terminal state when the handler returns (README §0.2), so its e
 **Corrected at planning** paragraph. `[04-runs-do-not-say-which-machine-produced-them]` was closed
 by 01 (`387c58f`), and `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`
 by 02 (`2bf9c72`); both are in §4. In the README's order:
-
-### `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
-
-**Opened:** 2026-10-16 here, reading SGK's stale-run brief against
-`[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`; measured. **Owner:**
-none.
-
-**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 03: the in-use check counting
-a run whose status cannot be read, under L6 (its README §2). Moved here from the `inherited-issues`
-board the same day, unchanged above and below but for this line. It is one of the five that bear on
-a long job that may be interrupted, and the campaign takes them together.
-
-*The defect.* The store operations' in-use check fails open on a run whose `status.json` cannot be
-read. `list_runs` reads it as `read_json(…) or {}` (`runregistrykit/__init__.py:771`), so a
-missing, torn or non-JSON `status.json` gives state `None`, and `liveness` answers `unknown` for an
-empty payload (`:301`). `_running_runs_naming` keeps only entries whose state is `running`
-(`runregistrykit/stores.py:1017`), so the run is not counted, however alive its process, and
-fingerprint, copy, move, retire and amend proceed on its store. `list` prints it as `unknown`
-without `!!` (`runregistrykit/__main__.py:550-556`; only `stale` is flagged).
-
-*Measured* here at `79015a7`, 2026-10-16, by the scratch probe of
-`[a3-v2-a-hard-killed-run-blocks-its-store]`, on a full four-shard registered store in a `tempfile`
-directory. A run begun in the probe's own process named the store (liveness `alive`), and
-`fingerprint_store`, `retire_store(dry_run=True)` and `copy_store` each refused, naming it. Its
-`status.json` was then cut to its first half, as a torn write leaves it. The process still answered
-`kill -0`; `list_runs` gave state `None`, liveness `unknown`; and all three operations proceeded. A
-real `retire_store` then deleted the primary and all four shards, leaving the tombstone, while the
-run's process was alive. Move and amend make the same check (`:1102`, `:2017`), read and not run.
-
-*Impact.* The check is the store layer's one protection of a store being written (module docstring,
-`stores.py:102-107`), and here it fails in the direction that loses data: it lets a person
-retire, move or fingerprint a store under a live writer, with nothing in `list` to warn them. The
-known cause is the race of
-`[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`: rare in any one
-heartbeat, but a ~36-hour run has thousands. A `status.json` lost any other way does the same.
-
-*Next step.* Count a run whose manifest names the store and whose `status.json` cannot be read as
-possibly running: refuse, saying that the status is unreadable and that the registry cannot tell
-whether the run is alive. Such a run is then where a stale one is, and is resolved by
-`[a3-v2-a-hard-killed-run-blocks-its-store]`'s route. Fixing the race removes the known cause, not
-this failure of the check. The test is the probe's case, asserting the refusal for each operation.
-Whether `list` flags an `unknown` run that has a manifest is a smaller, separate choice.
-
-*Package lines (01, `387c58f`).* `list_runs`' status read `runregistrykit/__init__.py:771` →
-`:992`; `liveness`'s answer for an empty payload `:301` → `:489`. `_running_runs_naming`'s filter
-`stores.py:1017` is unmoved; move's check `:1102` → `:1114`, amend's `:2017` → `:2029`; the module
-docstring `:102-107` is unmoved. `list`'s rows, `__main__.py:550-556`, are now `:555-566`; 01 adds
-`??` for a `foreign` run there, and `unknown` is still printed without a marker.
-
-*Package lines (02, `2bf9c72`).* `list_runs`' status read `runregistrykit/__init__.py:992` →
-`:1115`; `liveness`'s answer for an empty payload `:489` → `:585`. `stores.py` and `__main__.py` are
-not touched by 02, so their lines above stand. 02 removes the one known cause of an unreadable
-`status.json`, a handler's write sharing the heartbeat's temporary file, and every other cause (a
-disk error, a hand edit, a file truncated or lost by anything else) stands, as does this entry's
-defect in the check.
-
-*Package lines (02b, `2959b78`).* `list_runs`' status read `runregistrykit/__init__.py:1115` →
-`:1156`; `liveness`'s answer for an empty payload `:585` → `:618`. `stores.py` and `__main__.py` are
-not touched by 02b, so their lines above stand.
-
-*Package lines (02c, `35ce264`).* `list_runs`' status read `runregistrykit/__init__.py:1156` →
-`:1159`; `liveness`'s answer for an empty payload `:618` → `:619`. `stores.py` and `__main__.py` are
-not touched by 02c, so their lines above stand.
-
-*Measured at writing 03 (2026-10-18, at `0c75dd3`).* By a scratch probe on `test_host_stores`'
-fixtures, a live run (the probe's own pid) on a full store, its `status.json` replaced by each of
-thirteen forms. Missing, empty, torn, not JSON, `null`, `[]`, `{}`, state `null`, state
-`"paused"` and state `5`: `list_runs` gave liveness `unknown`, `list` no marker, and copy, move,
-fingerprint, fingerprint `--write`, retire's dry run and amend all proceeded. `[1]`, `"x"` and
-`5`: `list_runs` raised `AttributeError` (`__init__.py:1159`), so `list` and every store
-operation under the runs root raised, other stores' included, and `Run.finish` raised on the same
-files from the writer's base read (`:375`). So the check fails open on ten forms and fails with a
-traceback on three, and the named remedy fails on those three. 03's file states the rule the user
-took (L6 (a) refined, 2026-10-18).
 
 ### `[a3-v2-a-hard-killed-run-blocks-its-store]`
 
@@ -754,6 +682,23 @@ is unmoved; `pid_alive` `:389` → `:390` (`PermissionError` `:407` → `:408`);
 `:595`; `_fingerprint_results`' `taken_by=self` `:837` → `:840`. `stores.py` and `__main__.py` are
 not touched by 02c, so their lines above stand.
 
+*Package lines (03, this commit).* `runregistrykit/__init__.py`: `Run.finish` `:788` → `:796` (its
+docstring `:789-790` → `:797-798`, its check `:805` → `:813`); `TERMINAL_STATES` `:104` is unmoved;
+`pid_alive` `:390` → `:398` (`PermissionError` `:408` → `:416`); `liveness` `:595` → `:603`;
+`_fingerprint_results`' `taken_by=self` `:840` → `:848`. `runregistrykit/stores.py`:
+`_running_runs_naming` `:998` → `:1001`, its filter `:1017` → `:1023`, which now keeps every run
+whose state is not terminal; `_refuse_if_in_use` `:1041` → `:1074`, called at `:1114` → `:1151`;
+fingerprint's check `:1350-1351` → `:1387-1389`; `retire_store`'s `:1676` → `:1716`;
+`amend_sidecar`'s `:2029` → `:2071`; the module docstring `:102-107` → `:102-109`. The remedy text
+`:1050-1051` (copy, move) → `:1085-1090`, `:1356` (fingerprint) → `:1393-1398`, `:1679` (retire) →
+`:1719-1725`, `:2032` (amend) → `:2074-2078`: the words for a `running` run unchanged, and, when any
+entry is not `running`, one sentence added (`_unsure_remedy`, `:1063`) saying a run whose status
+does not say whether it is running is ended by a person, with `Run.finish`, once they have checked;
+the boundary sentence `:1043-1044` → `:1076-1078`. `runregistrykit/__main__.py`: `main` `:413` →
+`:419`, `list` `:423` → `:429`, the store subcommands `:438-527` → `:444-533`. 03 does not touch
+this entry's defect: a run `SIGKILL`'d stays `running`, and `Run.finish` is still its only remedy,
+with no command (04).
+
 ### `[00-begin-does-not-refuse-a-second-writer]`
 
 **Opened:** 2026-10-16, split on hand-over from SGK's `[a3-v2-a-hard-killed-run-blocks-its-store]`
@@ -810,6 +755,12 @@ tombstone check `:1015-1027` → `:1056-1068`, the refusal `:1021` → `:1062`; 
 *Package lines (02c, `35ce264`).* `begin` `runregistrykit/__init__.py:965` → `:968`; its
 tombstone check `:1056-1068` → `:1059-1071`, the refusal `:1062` → `:1065`; `this_host()` `:1070` →
 `:1073`. `stores.py` is not touched by 02c, so its lines above stand.
+
+*Package lines (03, this commit).* `begin` `runregistrykit/__init__.py:968` → `:976`; its
+tombstone check `:1059-1071` → `:1067-1079`, the refusal `:1065` → `:1073`; `this_host()` `:1073` →
+`:1081`. In `stores.py`: `_running_runs_naming` `:998` → `:1001`, now counting every run not in
+`TERMINAL_STATES`, so that what 05's refusal asks (L9) can use it as it is; `runs_naming` `:957` →
+`:960`; the module docstring's `:106-107` → `:108-109`.
 
 ### `[02b-a-raising-handler-can-leave-the-status-lock-held]`
 
@@ -920,6 +871,13 @@ are unmoved; the filters `:365` → `:366` and `:372` → `:373`, with the comme
 `finally` `:381-382` → `:382-383`. `_update`'s docstring `:725-763` → `:726-766`, its "Not covered"
 paragraph `:756-762` → `:757-765`.
 
+*Package lines (03, this commit).* 03 adds the helper `_json_object` (`:247`) before the writer's
+section and changes the writer's base read (`:375` → `:383`) only; the rest moves by eight lines:
+`_write_status` `:352` → `:360`, its `with` `:355` → `:363`, `next()` `:362` → `:370`, the comment
+`:365` → `:373`, the filters `:366` → `:374` and `:373` → `:381`; the `finally` `:382-383` →
+`:390-391`. `_update`'s docstring `:726-766` → `:734-774`, its "Not covered" paragraph `:757-765` →
+`:765-773`. The 3.14 `with` point is as it was; 02b's and 02c's sweeps pass unchanged (03's log §4).
+
 ### `[03-a-run-whose-manifest-cannot-be-read-names-no-store]`
 
 **Opened:** 2026-10-18 at the writing of prompt 03, by its planner's probe; measured. **Owner:**
@@ -945,6 +903,38 @@ in a run's life. A hand edit, a disk error or a copy that loses it would.
 counted as in use for **every** store (it may name any), refused with words that name it; or
 reported by `list` and the refusals without blocking; or left. Whichever, a test of the probe's
 case.
+
+*Package lines (03, this commit).* `runs_naming` `runregistrykit/stores.py:957` → `:960`, its skip
+`:973` → `:976`; `Run.__init__`'s manifest read `runregistrykit/__init__.py:667` → `:675`. As 03's
+file said, a manifest `[1]` is now read as no manifest by `list_runs` (`has_manifest` false, with
+`:1172-1173` and `:1182`), so it no longer raises, and now behaves as the torn one does:
+`fingerprint_store` proceeds (03's log §3). The torn and missing rows are unchanged, and this entry
+stands.
+
+### `[03-a-run-on-a-manifest-that-is-not-an-object-raises-where-it-is-used]`
+
+**Opened:** 2026-10-18 by 03, from the orchestrator's correction 16; measured. **Owner:** none.
+
+*The defect.* `Run.__init__` reads the manifest as `read_json(…) or {}`
+(`runregistrykit/__init__.py:675`), so a `manifest.json` that parses but is not an object, `[1]`,
+`"x"` or `5`, is kept as it is. `list_runs` reads such a manifest as none since 03, but a `Run` built
+on the directory does not. Its `manifest.get(…)` then raises `AttributeError` wherever the manifest
+is used: `checkpoint_path` (`:715`) and `results_path` (`:725`), so `record`, `known` and a
+`finish(..., fingerprint=True)` that needs `results`; and the reads at `:878`, `:895-897` and `:939`.
+
+*Measured* at 03's commit, 2026-10-18 (scratch, not committed), on a run begun in a `tempfile`
+directory: with the manifest `[1]`, `"x"` or `5`, `Run(path)` constructed, `Run.manifest` was the
+value itself, `checkpoint_path` and `results_path` raised `AttributeError`, and `finish("killed")`
+without `fingerprint` returned. With the manifest `null`, `Run.manifest` was `{}` and nothing
+raised.
+
+*Impact.* Low. The manifest is written once, by `begin`, through `write_json_atomic`, and is never
+rewritten, so no known cause makes it a non-object; a hand edit would. The `list` and the store
+operations, which are what a person uses to look, no longer raise on it (03).
+
+*Next step.* Read the manifest in `Run.__init__` through `_json_object` (`:247`), as `list_runs`
+does, so that `Run.manifest` is always a dict; or leave it, given the impact. Either way, a test of
+the three forms. It is one line, and belongs with whichever prompt next touches `Run.__init__`.
 
 ---
 
@@ -1385,3 +1375,109 @@ The sweeps run in a child process, never signalled: a handler raising at an inst
 interpreter's exception table leaves uncovered left the writer's lock held in the test process
 (02b's log, deviation 3 and observation 1, read and not measured for a real signal; no issue
 opened). The log is [`logs/02b-the-writers-bookkeeping.md`](logs/02b-the-writers-bookkeeping.md).
+
+### `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`
+
+**Opened:** 2026-10-16 here, reading SGK's stale-run brief against
+`[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`; measured. **Owner:**
+none.
+
+**Assigned (2026-10-16):** to the `interrupted-runs` campaign, prompt 03: the in-use check counting
+a run whose status cannot be read, under L6 (its README §2). Moved here from the `inherited-issues`
+board the same day, unchanged above and below but for this line. It is one of the five that bear on
+a long job that may be interrupted, and the campaign takes them together.
+
+*The defect.* The store operations' in-use check fails open on a run whose `status.json` cannot be
+read. `list_runs` reads it as `read_json(…) or {}` (`runregistrykit/__init__.py:771`), so a
+missing, torn or non-JSON `status.json` gives state `None`, and `liveness` answers `unknown` for an
+empty payload (`:301`). `_running_runs_naming` keeps only entries whose state is `running`
+(`runregistrykit/stores.py:1017`), so the run is not counted, however alive its process, and
+fingerprint, copy, move, retire and amend proceed on its store. `list` prints it as `unknown`
+without `!!` (`runregistrykit/__main__.py:550-556`; only `stale` is flagged).
+
+*Measured* here at `79015a7`, 2026-10-16, by the scratch probe of
+`[a3-v2-a-hard-killed-run-blocks-its-store]`, on a full four-shard registered store in a `tempfile`
+directory. A run begun in the probe's own process named the store (liveness `alive`), and
+`fingerprint_store`, `retire_store(dry_run=True)` and `copy_store` each refused, naming it. Its
+`status.json` was then cut to its first half, as a torn write leaves it. The process still answered
+`kill -0`; `list_runs` gave state `None`, liveness `unknown`; and all three operations proceeded. A
+real `retire_store` then deleted the primary and all four shards, leaving the tombstone, while the
+run's process was alive. Move and amend make the same check (`:1102`, `:2017`), read and not run.
+
+*Impact.* The check is the store layer's one protection of a store being written (module docstring,
+`stores.py:102-107`), and here it fails in the direction that loses data: it lets a person
+retire, move or fingerprint a store under a live writer, with nothing in `list` to warn them. The
+known cause is the race of
+`[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`: rare in any one
+heartbeat, but a ~36-hour run has thousands. A `status.json` lost any other way does the same.
+
+*Next step.* Count a run whose manifest names the store and whose `status.json` cannot be read as
+possibly running: refuse, saying that the status is unreadable and that the registry cannot tell
+whether the run is alive. Such a run is then where a stale one is, and is resolved by
+`[a3-v2-a-hard-killed-run-blocks-its-store]`'s route. Fixing the race removes the known cause, not
+this failure of the check. The test is the probe's case, asserting the refusal for each operation.
+Whether `list` flags an `unknown` run that has a manifest is a smaller, separate choice.
+
+*Package lines (01, `387c58f`).* `list_runs`' status read `runregistrykit/__init__.py:771` →
+`:992`; `liveness`'s answer for an empty payload `:301` → `:489`. `_running_runs_naming`'s filter
+`stores.py:1017` is unmoved; move's check `:1102` → `:1114`, amend's `:2017` → `:2029`; the module
+docstring `:102-107` is unmoved. `list`'s rows, `__main__.py:550-556`, are now `:555-566`; 01 adds
+`??` for a `foreign` run there, and `unknown` is still printed without a marker.
+
+*Package lines (02, `2bf9c72`).* `list_runs`' status read `runregistrykit/__init__.py:992` →
+`:1115`; `liveness`'s answer for an empty payload `:489` → `:585`. `stores.py` and `__main__.py` are
+not touched by 02, so their lines above stand. 02 removes the one known cause of an unreadable
+`status.json`, a handler's write sharing the heartbeat's temporary file, and every other cause (a
+disk error, a hand edit, a file truncated or lost by anything else) stands, as does this entry's
+defect in the check.
+
+*Package lines (02b, `2959b78`).* `list_runs`' status read `runregistrykit/__init__.py:1115` →
+`:1156`; `liveness`'s answer for an empty payload `:585` → `:618`. `stores.py` and `__main__.py` are
+not touched by 02b, so their lines above stand.
+
+*Package lines (02c, `35ce264`).* `list_runs`' status read `runregistrykit/__init__.py:1156` →
+`:1159`; `liveness`'s answer for an empty payload `:618` → `:619`. `stores.py` and `__main__.py` are
+not touched by 02c, so their lines above stand.
+
+*Measured at writing 03 (2026-10-18, at `0c75dd3`).* By a scratch probe on `test_host_stores`'
+fixtures, a live run (the probe's own pid) on a full store, its `status.json` replaced by each of
+thirteen forms. Missing, empty, torn, not JSON, `null`, `[]`, `{}`, state `null`, state
+`"paused"` and state `5`: `list_runs` gave liveness `unknown`, `list` no marker, and copy, move,
+fingerprint, fingerprint `--write`, retire's dry run and amend all proceeded. `[1]`, `"x"` and
+`5`: `list_runs` raised `AttributeError` (`__init__.py:1159`), so `list` and every store
+operation under the runs root raised, other stores' included, and `Run.finish` raised on the same
+files from the writer's base read (`:375`). So the check fails open on ten forms and fails with a
+traceback on three, and the named remedy fails on those three. 03's file states the rule the user
+took (L6 (a) refined, 2026-10-18).
+
+*Package lines (03, this commit).* `list_runs`' status read `runregistrykit/__init__.py:1159` →
+`:1173` (with the manifest's `:1172`); `liveness`'s answer for an empty payload `:619` → `:627`;
+the writer's base read `:375` → `:383`. `stores.py`: `_running_runs_naming`'s filter `:1017` →
+`:1023`; the module docstring `:102-107` → `:102-109`. `__main__.py`: the marker `:558` → `:565-567`,
+the stale line `:578-585` → `:587-594`.
+
+**Resolved (2026-10-18, by 03, this commit).** Under L6 (a), refined (README §6.2), as 03's §2
+states it. A run whose manifest names the store is in use unless its status says a terminal state:
+`_running_runs_naming` (`runregistrykit/stores.py:1001`) keeps every entry whose state is not in
+`TERMINAL_STATES` (`:1023`), so a status that is missing, empty, torn, not JSON, not an object, has
+no state, a `null` state, a state that is not a string, or a string the registry never writes, is in
+use as a `running` one is. `_describe_running` (`:1028`) says which, and that the registry cannot
+tell whether the run is running; the five refusals add one sentence, from `_unsure_remedy`
+(`:1063`), that a person ends such a run with `Run.finish` once they have checked. `list` marks
+such a run `!!` when it has a manifest (`__main__.py:565-567`), with one line on stderr
+(`:595-603`). A status or manifest that is JSON but not an object is read as unreadable, through
+`_json_object` (`runregistrykit/__init__.py:247`): `list_runs` (`:1137`, with the new key
+`status_readable`), `liveness` (`:627`), `Run.status()` (`:730`) and the writer's base read
+(`:383`), so `list` lists, the store operations refuse where they raised, and `Run.finish` ends the
+run. No record changes form. The log is [`logs/03-an-unreadable-status-is-in-use.md`](logs/03-an-unreadable-status-is-in-use.md).
+Pinned by `test_unreadable_status_stores.TestAnUnreadableStatusIsInUse.test_each_form_is_refused_by_each_operation`
+(the planner's probe, as a test: thirteen forms, six operations, the files untouched),
+`test_a_real_retire_is_refused_and_the_store_survives` (the measurement that deleted the primary and
+four shards), `test_a_resumed_runs_fingerprint_is_refused_by_an_unreadable_predecessor`,
+`test_the_command_refuses_for_a_torn_status`, `test_a_store_whose_runs_have_all_finished_is_not_refused`,
+`test_the_stale_remedy_is_kept_and_the_new_sentence_is_added_once` and
+`test_a_refusal_for_running_runs_alone_has_no_new_sentence`; and in the core by
+`test_unreadable_status.TestTheLister` (every form listed `unknown`, none raising; a manifest that is
+not an object read as none), `TestLiveness`, `TestTheRemedy` (`Run.finish` ends a run in every
+form), `TestTheListCommand` and `TestAnOldRecord`. Eight mutations of the rule, the reads, the
+writer and `list` each fail one or more of them (the log's §5).

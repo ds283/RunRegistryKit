@@ -21,17 +21,17 @@ worse than none, because it looks like coverage.
 `python -m runregistrykit store {show,create,adopt,copy,move,fingerprint,retire,amend}` manages a
 datastore and its `<stem>.manifest.json` sidecar (`runregistrykit.stores`). `show` is read-only.
 `create` and `adopt` write a sidecar and never open the store. `copy` and `move` move the store's
-files with `ShardedPool` and carry the sidecar, and refuse a store that any `running` run names,
-alive or stale. `fingerprint` reads the closed store read-only, compares its content fingerprint
-with the one the sidecar records, and writes it into the sidecar only with `--write`; it refuses a
-store a `running` run names, and `--listing` writes the full listing to a new file away from the
-store. `retire` deletes a closed store's own files, its shards and then its primary, through
-`ShardedPool.delete_store`, and keeps its sidecar as a tombstone that says when, why and what the
-store held; it refuses a store a `running` run names, alive or stale, and one whose recorded
-fingerprint does not match its content, and `--dry-run` reports what it would do and does nothing.
-`amend` replaces or removes one **unknown** field of the sidecar, with a required `--reason`, and
-records the field's old value in an `amend` history entry; it is the one way to change an unknown
-field, and it never touches a known one. It refuses a store a `running` run names, alive or stale.
+files with `ShardedPool` and carry the sidecar, and refuse a store that any run names whose status
+does not say it has finished. `fingerprint` reads the closed store read-only, compares its content
+fingerprint with the one the sidecar records, and writes it into the sidecar only with `--write`;
+it refuses a store such a run names, and `--listing` writes the full listing to a new file away
+from the store. `retire` deletes a closed store's own files, its shards and then its primary,
+through `ShardedPool.delete_store`, and keeps its sidecar as a tombstone that says when, why and
+what the store held; it refuses a store such a run names, and one whose recorded fingerprint does
+not match its content, and `--dry-run` reports what it would do and does nothing. `amend` replaces
+or removes one **unknown** field of the sidecar, with a required `--reason`, and records the
+field's old value in an `amend` history entry; it is the one way to change an unknown field, and it
+never touches a known one. It refuses a store such a run names.
 None of them initialises Ray. `retire` alone deletes, and only a store's own files; none deletes a
 sidecar, a run directory or any other record, and every other command refuses a tombstone.
 """
@@ -67,6 +67,12 @@ def _progress(entry) -> str:
         # its first unit; `0/?` would read as "no work done", which is more than it knows.
         return "-"
     return f"{'?' if done is None else done}/{'?' if total is None else total}"
+
+
+def _unsaid(entry) -> bool:
+    """A run with a manifest whose status does not say whether it is running (`unknown`). A
+    directory with no manifest, which predates the registry, is not one."""
+    return entry["liveness"] == "unknown" and entry["has_manifest"]
 
 
 def _host(entry) -> str:
@@ -553,15 +559,18 @@ def main(argv=None) -> int:
         f"{'':2} {'RUN':{width}}  {'STATE':9} {'PROGRESS':>9} {'AGE':>8}  PURPOSE · STAGE"
     )
     for entry in entries:
-        # `!!` a run that says it is running and is not; `??` one on another host, whose pid is
-        # not tested here, and whose row names that host
+        # `!!` a run that says it is running and is not, or whose status does not say what it is
+        # and which has a manifest; `??` one on another host, whose pid is not tested here, and
+        # whose row names that host
         marker = {"stale": "!!", "foreign": "??"}.get(entry["liveness"], "")
+        if _unsaid(entry):
+            marker = "!!"
         purpose = _purpose(entry)
         if entry["liveness"] == "foreign":
             purpose = f"on {_host(entry)} · {purpose}"
         print(
             f"{marker:2} {entry['id']:{width}}  "
-            f"{(entry['state'] or 'unknown'):9} {_progress(entry):>9} "
+            f"{str(entry['state'] or 'unknown'):9} {_progress(entry):>9} "
             f"{_age(now - entry['created_epoch']):>8}  {purpose}"
         )
 
@@ -581,6 +590,15 @@ def main(argv=None) -> int:
             f"answer kill -0, the heartbeat is older than {args.stale_after:.0f} s, or this "
             f"machine has rebooted since. Nothing here has killed or cleaned anything — go and "
             f"look.",
+            file=sys.stderr,
+        )
+    unsaid = sum(1 for entry in entries if _unsaid(entry))
+    if unsaid:
+        print(
+            f"!! {unsaid} run(s) have a manifest and a status that does not say whether the run "
+            f"is running, or that cannot be read: the registry cannot tell whether they are "
+            f"running, and the store operations count them as in use. Go and look; once you know "
+            f"one is not running, end it with Run.finish.",
             file=sys.stderr,
         )
     if counts.get("foreign"):

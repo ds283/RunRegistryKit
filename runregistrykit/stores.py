@@ -102,9 +102,11 @@ path: that is the rule for a legacy shard record's path, applied to JSON.
 **The operations** are `create_sidecar`, `adopt_sidecar`, `copy_store`, `move_store`,
 `fingerprint_store`, `retire_store` and `amend_sidecar`. Copy and move call
 `ShardedPool.copy_store` / `move_store` for the store's files, then carry the sidecar. Copy, move,
-fingerprint, retire and amend refuse a store that any `running` run names, alive or stale; that
-check is what the bare script cannot make. It is a check and not a lock: a run begun after it is
-not seen. Every operation but a retirement's completion refuses a tombstone.
+fingerprint, retire and amend refuse a store that any run names whose status does not say it has
+finished: `running`, alive, stale or on another host, or a status that cannot be read or names no
+state the registry writes; that check is what the bare script cannot make. It is a check and not
+a lock: a run begun after it is not seen. Every operation but a retirement's completion refuses a
+tombstone.
 
 `retire_store` alone deletes, and only a store's own files: the shards its primary names, read
 through the one resolver, and then the primary, through `ShardedPool.delete_store`. It keeps the
@@ -147,6 +149,7 @@ from typing import List, Optional, Tuple
 
 from . import (
     DEFAULT_STALE_AFTER,
+    TERMINAL_STATES,
     _repo_path,
     _resolve,
     find_client_root,
@@ -998,9 +1001,12 @@ def runs_naming(
 def _running_runs_naming(
     operation, primaries, store_id, runs_root, client, exclude=None
 ):
-    """Every run whose state is `running`, alive **or stale**, that names one of ``primaries`` or
-    ``store_id``, except the run ``exclude`` (a `Run`, its caller). Refuses if the runs root is not
-    a directory, since then the check cannot be made. ``client`` is the located `ClientRoot`.
+    """Every run that names one of ``primaries`` or ``store_id`` and has not finished, except the
+    run ``exclude`` (a `Run`, its caller): a run whose state is not terminal, which is `running`
+    (alive, stale or foreign), or a status that does not say, because it cannot be read, has no
+    state, or names one the registry never writes. The registry does not decide that such a run is
+    over. Refuses if the runs root is not a directory, since then the check cannot be made.
+    ``client`` is the located `ClientRoot`.
     """
     root = runs_root or client.runs_root
     if not os.path.isdir(root):
@@ -1014,16 +1020,32 @@ def _running_runs_naming(
         for entry in runs_naming(
             primaries, store_id, runs_root=root, client_root=client
         )
-        if entry["state"] == "running" and os.path.realpath(entry["path"]) != excluded
+        if entry["state"] not in TERMINAL_STATES
+        and os.path.realpath(entry["path"]) != excluded
     ]
 
 
 def _describe_running(running) -> str:
-    """Each running run, by its liveness, and by its host when it is on another one: a pid there
-    is not tested here, and the run is in use whatever it is."""
+    """Each run, by its liveness, and by its host when it is on another one: a pid there is not
+    tested here, and the run is in use whatever it is. A run whose status cannot be read, or says
+    neither `running` nor a terminal state, is described as that: the registry cannot tell whether
+    it is running."""
 
     def described(entry):
         matched = " and ".join(entry["matched_by"])
+        if not entry["status_readable"]:
+            return (
+                f"run {entry['id']}'s status cannot be read (status.json is missing, is not "
+                f"JSON, or is not a JSON object), so whether it is running cannot be told; it "
+                f"names this store by its {matched}"
+            )
+        if entry["state"] != "running":
+            state = "none" if entry["state"] is None else repr(entry["state"])
+            return (
+                f"run {entry['id']}'s status says neither running nor finished (state "
+                f"{state}), so whether it is running cannot be told; it names this store by "
+                f"its {matched}"
+            )
         if entry["liveness"] == "foreign":
             where = entry.get("host") or entry.get("host_id")
             return (
@@ -1038,18 +1060,33 @@ def _describe_running(running) -> str:
     return "; ".join(described(entry) for entry in running)
 
 
+def _unsure_remedy(running) -> str:
+    """The sentence a refusal adds, without its full stop, when any of ``running`` is not a
+    `running` run: its status does not say, and only a person can. Empty otherwise."""
+    if all(entry["state"] == "running" for entry in running):
+        return ""
+    return (
+        "A run whose status does not say whether it is running is ended by a person, with "
+        "Run.finish, once they have checked that it is not"
+    )
+
+
 def _refuse_if_in_use(operation, src, dst, store_id, runs_root, client) -> None:
-    """Refuse if any run whose state is `running`, alive **or stale**, names the source or the
-    destination. Liveness is evidence, not proof, and the registry does not decide that a run is
-    dead: a stale run is ended by a person, with `Run.finish`, before its store is moved.
+    """Refuse if any run that has not finished names the source or the destination: `running`,
+    alive **or stale**, or a status that does not say (`_running_runs_naming`). Liveness is
+    evidence, not proof, and the registry does not decide that a run is dead: a stale run is ended
+    by a person, with `Run.finish`, before its store is moved.
     """
     running = _running_runs_naming(operation, [src, dst], store_id, runs_root, client)
     if running:
         described = _describe_running(running)
+        unsure = _unsure_remedy(running)
         raise RuntimeError(
             f'Cannot {operation} "{src}" to "{dst}": {described}. A stale run is ended by a '
             f"person, with Run.finish, before its store is moved; the registry does not decide "
-            f"that a run is dead. Nothing was written"
+            f"that a run is dead. "
+            f"{unsure + '. ' if unsure else ''}"
+            f"Nothing was written"
         )
 
 
@@ -1351,10 +1388,13 @@ def fingerprint_store(
         "fingerprint", [primary], store_id, runs_root, client, exclude=taken_by
     )
     if running:
+        unsure = _unsure_remedy(running)
         raise RuntimeError(
             f'Cannot fingerprint "{primary}": {_describe_running(running)}. A fingerprint of a '
             f"store that is being written describes no instant; a stale run is ended by a "
-            f"person, with Run.finish, first. Nothing was read or written"
+            f"person, with Run.finish, first. "
+            f"{unsure + '. ' if unsure else ''}"
+            f"Nothing was read or written"
         )
 
     # 2. the client's fingerprinter
@@ -1675,10 +1715,12 @@ def retire_store(
         )
     running = _running_runs_naming("retire", [primary], store_id, runs_root, client)
     if running:
+        unsure = _unsure_remedy(running)
         raise refuse(
             f"{_describe_running(running)}. A stale run is ended by a person, with Run.finish, "
-            f"before its store is retired; the registry does not decide that a run is dead. Once "
-            f'it is ended, `python -m runregistrykit store fingerprint "{primary}" --write` records '
+            f"before its store is retired; the registry does not decide that a run is dead. "
+            f"{unsure + '. ' if unsure else ''}"
+            f'Once it is ended, `python -m runregistrykit store fingerprint "{primary}" --write` records '
             f"the fingerprint that retirement needs"
         )
 
@@ -2028,9 +2070,11 @@ def amend_sidecar(
     store_id = fields["store_id"]
     running = _running_runs_naming("amend", [primary], store_id, runs_root, client)
     if running:
+        unsure = _unsure_remedy(running)
         raise refuse(
             f"{_describe_running(running)}. A stale run is ended by a person, with Run.finish, "
             f"before its sidecar is amended; the registry does not decide that a run is dead"
+            f"{'. ' + unsure if unsure else ''}"
         )
 
     if remove:

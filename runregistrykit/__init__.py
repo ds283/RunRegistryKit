@@ -244,6 +244,14 @@ def read_json(path):
         return None
 
 
+def _json_object(raw) -> dict:
+    """What `read_json` returned for a record, as the registry reads it: the object itself if it
+    is one, and an empty one for anything else (absent, torn, not JSON, a list, a string, a
+    number, `true`). A record that is not an object says nothing, and must not stop a reader.
+    """
+    return raw if isinstance(raw, dict) else {}
+
+
 def write_json_atomic(path, payload) -> None:
     """Write via a temporary file **in the same directory** and `os.replace`, so that a reader
     either sees the previous contents or the new ones and never a half-written file."""
@@ -372,7 +380,7 @@ def _write_status(path, fields) -> dict:
                 status = copy.deepcopy(payload)
                 earlier = list(n for n in earlier if n > landed)
             else:
-                status = read_json(path) or {}
+                status = _json_object(read_json(path))
             for n in earlier:
                 status.update(book["in_flight"][n])
             status.update(fields)
@@ -597,8 +605,8 @@ def liveness(status, stale_after, now=None, *, here=None) -> str:
 
     In this order:
 
-    1. no status is `unknown`; a terminal state is **finished**; any state other than `running`
-       is `unknown`;
+    1. no status, or one that is not an object, is `unknown`; a terminal state is **finished**;
+       any state other than `running` is `unknown`;
     2. a `running` record **on another host** is **foreign**: its `host.id` is not null and is not
        ``here``'s, which includes ``here`` having no id, since a record that carries one was
        written where there was one. Its pid is not tested and its heartbeat is not weighed:
@@ -616,7 +624,7 @@ def liveness(status, stale_after, now=None, *, here=None) -> str:
     here, by pid and heartbeat, exactly as before. ``here`` is a `this_host()` dict, read afresh
     when it is not given and a record needs it.
     """
-    if not status:
+    if not isinstance(status, dict) or not status:
         return "unknown"
     if status.get("state") in TERMINAL_STATES:
         return "finished"
@@ -720,7 +728,7 @@ class Run:
     # --- status --------------------------------------------------------------------------------
 
     def status(self) -> dict:
-        return read_json(self.status_path) or {}
+        return _json_object(read_json(self.status_path))
 
     def _update(self, **fields) -> dict:
         """Merge ``fields`` into `status.json`, stamp the heartbeat, write it, and return the
@@ -1141,7 +1149,13 @@ def list_runs(
     - `host`: the manifest's `host.name`, or None;
     - `host_id`: the status's `host.id`, or None;
     - `host_recorded`: whether the status has a `host` object at all. False is a record written
-      before the field existed (or a directory with no readable status), judged here as before.
+      before the field existed (or a directory with no readable status), judged here as before;
+    - `status_readable`: whether `status.json` parsed as a JSON object. A status that is missing,
+      torn, not JSON or not an object is read as an empty one, so its run is `unknown`, and the
+      store operations count it as in use.
+
+    A `manifest.json` that parses but is not an object is read as no manifest: `has_manifest` is
+    false and every manifest field is read from an empty one.
     """
     if not root:
         root = find_client_root(client_root=client_root).runs_root
@@ -1155,29 +1169,32 @@ def list_runs(
         path = os.path.join(root, name)
         if not os.path.isdir(path):
             continue
-        manifest = read_json(os.path.join(path, "manifest.json"))
-        status = read_json(os.path.join(path, "status.json")) or {}
+        raw_manifest = read_json(os.path.join(path, "manifest.json"))
+        raw_status = read_json(os.path.join(path, "status.json"))
+        manifest = _json_object(raw_manifest)
+        status = _json_object(raw_status)
         recorded = status.get("host")
-        described = (manifest or {}).get("host")
+        described = manifest.get("host")
         entries.append(
             {
                 "id": name,
                 "path": path,
-                "has_manifest": manifest is not None,
-                "purpose": (manifest or {}).get("purpose"),
+                "has_manifest": isinstance(raw_manifest, dict),
+                "purpose": manifest.get("purpose"),
                 "state": status.get("state"),
                 "pid": status.get("pid"),
                 "units_done": status.get("units_done"),
                 "units_total": status.get("units_total")
-                or (manifest or {}).get("expected_units"),
+                or manifest.get("expected_units"),
                 "stage": status.get("stage"),
                 "liveness": liveness(status, stale_after, now=now, here=here),
-                "created_epoch": _created_epoch(path, manifest or {}),
+                "created_epoch": _created_epoch(path, manifest),
                 "host": (
                     described.get("name") if isinstance(described, dict) else None
                 ),
                 "host_id": recorded.get("id") if isinstance(recorded, dict) else None,
                 "host_recorded": isinstance(recorded, dict),
+                "status_readable": isinstance(raw_status, dict),
             }
         )
     entries.sort(key=lambda entry: entry["created_epoch"], reverse=True)
