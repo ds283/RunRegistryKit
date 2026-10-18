@@ -37,7 +37,7 @@ may be interrupted, taken in this order, one prompt each (the campaign's README 
 `[04-a-signal-inside-a-heartbeat-write-can-leave-status-json-unparseable]`, by 02 on 2026-10-17. Two more were opened by 02's review on 2026-10-17, on the bookkeeping of the
 `status.json` writer, and closed by 02b the same day. One was opened by 02b's review, the same day,
 and assigned to 02c, which fixed it at Python 3.12 and 3.13 and narrowed it to its 3.14 `with`
-point, now with no owner. One was opened at the writing of 03, on 2026-10-18, with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` the same day, and its work opened one more, with no owner; its review opened another, with no owner. One was opened at the writing of 04, the same day, with no owner. 04 closed `[a3-v2-a-hard-killed-run-blocks-its-store]` the same day, and its work opened one more, with no owner.
+point, now with no owner. One was opened at the writing of 03, on 2026-10-18, with no owner. 03 closed `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]` the same day, and its work opened one more, with no owner; its review opened another, with no owner. One was opened at the writing of 04, the same day, with no owner. 04 closed `[a3-v2-a-hard-killed-run-blocks-its-store]` the same day, and its work opened one more, assigned to 05 on 2026-10-18 at the user's request.
 
 | Issue | Owner | Hook |
 |---|---|---|
@@ -47,4 +47,4 @@ point, now with no owner. One was opened at the writing of 03, on 2026-10-18, wi
 | `[03-a-run-on-a-manifest-that-is-not-an-object-raises-where-it-is-used]` | none | `Run(path)` on a manifest that is JSON but not an object constructs, then `checkpoint_path` and `results_path` raise `AttributeError`; low impact |
 | `[03-store-show-raises-on-a-state-that-is-a-list-or-an-object]` | none | `store show` ends in a `TypeError` traceback when a run's status `state` is a JSON list or object; predates 03; low impact |
 | `[04-a-killed-process-not-yet-reaped-answers-kill-0]` | none | A killed run whose process its parent has not reaped answers `kill -0`, so `liveness` calls it `alive` and `end` will refuse it; low impact |
-| `[04-a-pid-out-of-range-makes-pid-alive-raise]` | none | A status `pid` of `2**31` or more makes `pid_alive` raise `OverflowError`, so `list`, the store operations and `end` raise on it; only a hand edit writes one; low impact |
+| `[04-a-pid-out-of-range-makes-pid-alive-raise]` | 05 | A status `pid` of `2**31` or more makes `pid_alive` raise `OverflowError`, so `list`, the store operations and `end` raise on it; only a hand edit writes one; low impact |

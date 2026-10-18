@@ -8,7 +8,7 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more (README §6.2).** Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, and 05 written, not run, with 04's work's issue assigned to it at the user's request (README §6.2).** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
@@ -45,7 +45,7 @@ tag's.
 | **L6** an unreadable status in the in-use check | 03 | **taken** 2026-10-18: (a), refined: in use unless the status says a terminal state; a non-object status or manifest read as unreadable |
 | **L7** what `end` writes | 04 | **taken** 2026-10-18: (a); `lost`, exit code `null`, an `ended` record whose keys 04's file fixes |
 | **L8** what `end` checks | 04 | **taken** 2026-10-18: (a); a live pid here refused with no override, another host or a status that does not say only with `--unverified` |
-| **L9** what `begin` refuses | 05 | put, recommended (a) |
+| **L9** what `begin` refuses | 05 | **taken** 2026-10-18: (a); every run naming the store that has not finished, no override; six existing tests' setup changes, not their assertions |
 | **L10** the release | 06 | put, recommended (a) |
 | **L11** the `with` point at Python 3.14 | 02c | **taken** 2026-10-17: (a); the window recorded in `_update`'s docstring, the issue narrowed to it, not fixed |
 
@@ -59,7 +59,7 @@ tag's.
 | 02c | [`02c-the-writers-lock.md`](02c-the-writers-lock.md) | Opus | **landed and reviewed** 2026-10-17 ([log](logs/02c-the-writers-lock.md)); CI green, run `39072902589`; L11 taken (a), the issue narrowed | `35ce264` | 328 → 329 |
 | 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
 | 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
-| 05 | `05-begin-refuses-a-second-writer.md` | Sonnet | not written | — | |
+| 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | written 2026-10-18, not run | — | |
 | 06 | `06-release-v0.2.0.md` | Opus | not written | — | |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
@@ -780,8 +780,8 @@ hard-killed child among them. **04's review is complete; check 9 holds.**
 Seven: one of the five assigned here, for 05; one found by 02b's review, narrowed by 02c
 (`35ce264`) to its Python 3.14 `with` point, with no owner; two opened by 03, with no owner: one
 at its writing and one by its work; one opened by 03's review (`ab0cad9`), with no owner; one
-opened at the writing of 04, with no owner; and one opened by 04's work (`5e20772`), with no
-owner. The last six are at the end of this section.
+opened at the writing of 04, with no owner; and one opened by 04's work (`5e20772`), assigned
+to 05 on 2026-10-18. The last six are at the end of this section.
 `[00-an-unreadable-status-hides-a-running-run-from-the-store-checks]`, which 03 closed, and
 `[a3-v2-a-hard-killed-run-blocks-its-store]`, which 04 closed, are in §4.
 The two found by 02's review were closed by 02b (`2959b78`), and are in §4. Five were assigned here from the `inherited-issues` board on 2026-10-16, when this campaign
@@ -861,6 +861,19 @@ tombstone check `:1067-1079` → `:1074-1086`, the refusal `:1073` → `:1080`; 
 the module docstring's `:108-109` is unmoved. A `lost` run is terminal, so `_running_runs_naming`
 does not return it, and the refusal 05 adds can name `end` from `_END` (`__init__.py:109`), with
 `stores._foreign_remedy` (`:1075`) and `_unsure_remedy` (`:1064`) as the store refusals do.
+
+*Measured at writing 05 (2026-10-18, at `d8f8de4`).* By a scratch probe on `RetireTestCase`, a second
+`begin` on a full store that an earlier run names, today and against a candidate of the check
+(`_running_runs_naming`, made only when the runs root exists, after the tombstone check). Today
+the second run is begun whatever the earlier one is: alive, stale, `foreign`, a torn status, a
+state `"paused"`. The candidate refuses each, leaving no run directory, and begins on a store
+whose runs are all terminal, `lost` included, on a store no run names, and under a runs root
+that does not exist yet. The suite against the candidate: six errors, each an existing test that
+builds two unfinished runs on one store through `begin` to test a store refusal's words or a
+resumed run's fingerprint; none tests `begin`. The check costs `begin` about 250 ms with 1000
+runs under the root (SGK's holds 83). SGK, read at `79434bf`, begins at most one run on a store
+per process. Its `--build --resume` after a `SIGTERM` finds `killed` and is accepted, and after a
+hard kill is refused until `end`. 05's file states the change the user took (L9 (a), 2026-10-18).
 
 ### `[02b-a-raising-handler-can-leave-the-status-lock-held]`
 
@@ -1109,6 +1122,12 @@ log §3), shows it on the killed child before its reap.
 ### `[04-a-pid-out-of-range-makes-pid-alive-raise]`
 
 **Opened:** 2026-10-18 by 04 (`5e20772`), from its work; measured. **Owner:** none.
+
+**Assigned (2026-10-18):** to prompt 05 of this campaign, at the user's request when L9 was put. With
+05's check in `begin`, one such record anywhere under a runs root makes every `begin` that names a
+results store raise `OverflowError` too (05's "At writing", measured on a candidate), so the one
+line is fixed where its reach would grow: `pid_alive` returns false for a pid outside the
+platform's range, and `float("inf")`, which `json` parses from `Infinity`, with it.
 
 *The defect.* `pid_alive` (`runregistrykit/__init__.py:403`) coerces the pid with `int()` and
 asks `os.kill(pid, 0)`, catching `ProcessLookupError`, `PermissionError` and `OSError`. A pid
