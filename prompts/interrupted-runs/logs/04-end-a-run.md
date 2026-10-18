@@ -1,7 +1,7 @@
 # Log — prompt 04: end a run
 
 **Subject:** Add the end command, which records a run whose end was never seen
-**Commit:** this commit (on `main`, after `5d8a97b`)
+**Commit:** `5e20772` (on `main`, after `5d8a97b`)
 **Date:** 2026-10-18
 **Agent:** Claude Opus 5.5, dispatched by the orchestrator with its brief and section 0 of the
 orchestration note (corrections and readings 1–20). No stop condition fired.
