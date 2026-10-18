@@ -8,7 +8,7 @@ review opened; 02c landed (`35ce264`) and reviewed, CI green (run `39072902589`)
 to its Python 3.14 `with` point; 03 landed (`ab0cad9`) and reviewed 2026-10-18, CI green (run `39083674030`), closing the issue it was written for; its review opened one more. L1–L4 (the machine decision)
 taken by the user on 2026-10-16, as recommended; L5 taken 2026-10-17, refined, and amended the same
 day; L11 taken 2026-10-17 for 02c, as recommended; L6 taken 2026-10-18 for 03, refined; L7 and L8
-taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, landed (`0bae3a3`) and reviewed the same day, pending CI; its review opened one issue.** `v0.2.0` is ready to be tagged on `0bae3a3` once CI has passed on that commit, all three jobs; no tag is made. Holds the five issues that bear on a
+taken 2026-10-18 for 04, each as recommended; 04 written 2026-10-18, landed (`5e20772`) and reviewed the same day, CI green (run `39122974980`), closing the issue it was written for; its work opened one more; L9 taken 2026-10-18 for 05, as recommended, 05 written, with 04's work's issue assigned to it at the user's request (README §6.2), and landed (`eb68583`) and reviewed the same day, CI green (run `39129061916`), closing both of its issues; L10 taken 2026-10-18 for 06, as recommended, and 06 written, landed (`0bae3a3`) and reviewed the same day, CI green (run `39143681701`), and **`v0.2.0` tagged on `0bae3a3`** (tag object `895e3c7`); its review opened one issue.** Holds the five issues that bear on a
 long job that may be interrupted, assigned here from the `inherited-issues` board on 2026-10-16:
 three open (§3), two resolved (§4), by 01 and 02. Two more, found by 02's review, were resolved by
 02b (§4). One, found by 02b's review, is open in §3: 02c fixed it at 3.12 and 3.13 and narrowed it
@@ -61,7 +61,7 @@ tag's.
 | 03 | [`03-an-unreadable-status-is-in-use.md`](03-an-unreadable-status-is-in-use.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/03-an-unreadable-status-is-in-use.md)); CI green, run `39083674030`; one issue closed, one opened by the work and one by the review | `ab0cad9` | 329 → 347 |
 | 04 | [`04-end-a-run.md`](04-end-a-run.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/04-end-a-run.md)); CI green, run `39122974980`; one issue closed, one opened by the work | `5e20772` | 347 → 378 |
 | 05 | [`05-begin-refuses-a-second-writer.md`](05-begin-refuses-a-second-writer.md) | Sonnet | **landed and reviewed** 2026-10-18 ([log](logs/05-begin-refuses-a-second-writer.md)); CI green, run `39129061916`; two issues closed, none opened | `eb68583` | 378 → 410 |
-| 06 | [`06-release-v0.2.0.md`](06-release-v0.2.0.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/06-release-v0.2.0.md)); pending CI, `v0.2.0` not tagged; one issue opened by the review | `0bae3a3` | 410 → 410 |
+| 06 | [`06-release-v0.2.0.md`](06-release-v0.2.0.md) | Opus | **landed and reviewed** 2026-10-18 ([log](logs/06-release-v0.2.0.md)); CI green, run `39143681701`; **`v0.2.0` tagged** (tag object `895e3c7`); one issue opened by the review | `0bae3a3` | 410 → 410 |
 | 07 | `07-verification-and-close-out.md` | Opus | not written | — | |
 
 The suite is 276 at `79015a7` (extraction 08's count; no file under `runregistrykit/` changed
@@ -999,6 +999,22 @@ stays true there.
 **Verdict:** 06 is accepted, **pending CI**: all three jobs green on `0bae3a3` itself, pushed
 alone; the core job's count 148; the suite 410 at both ends with one skip in each; `black` 37
 files. Then `v0.2.0` is tagged on `0bae3a3`, as the prompt's §7 says.
+
+*CI and the tag (2026-10-18).* The user said yes, and `0bae3a3` was pushed alone, `4a10efb..0bae3a3`.
+Run `39143681701` (`tests`, on the push of `0bae3a3` itself) passed all three jobs on
+`ubuntu-24.04`:
+- `core (no store layer)`, on 3.12.15, its line naming the seven core modules: `Ran 148 tests in
+  20.720s`, `OK (skipped=1)`;
+- `suite (low)`, on 3.12.15: `Ran 410 tests in 51.902s`, `OK (skipped=1)`, and `black` 37 files
+  unchanged;
+- `suite (high)`, on 3.13.16: `Ran 410 tests in 59.149s`, `OK (skipped=1)`.
+
+**06's review is complete.** At the user's yes, the annotated tag `v0.2.0` was made on `0bae3a3`
+(`git tag -a v0.2.0 0bae3a3 -m "runregistrykit 0.2.0"`) and pushed: tag object `895e3c7`, peeled
+to `0bae3a3` on `origin`. It is never moved or deleted (README §5 rule 11). A dry run of the pin a
+client writes, `runregistrykit[stores] @ git+https://github.com/ds283/RunRegistryKit@v0.2.0`, beside
+DatastoreKit's `v0.4.0`, `ray==2.55.1` and `sqlalchemy==2.0.46`, in a fresh 3.13.16 venv, resolves
+`runregistrykit` to `0bae3a3`. 07 verifies against the pin installed from GitHub.
 
 ### 1.1 Items
 
