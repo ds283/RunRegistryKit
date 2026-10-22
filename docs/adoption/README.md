@@ -4,6 +4,10 @@
 The three clients were read through `git` only, at the commits named below. Nothing of a client was
 imported, run or opened, and no store or run directory of any was read.*
 
+*Added on 2026-10-22: the section [The Q5 guard under DatastoreKit `v0.5.0`](#the-q5-guard-under-datastorekit-v050)
+at the end amends §6's recipe by one condition, for DatastoreKit `v0.5.0`. The text before it is
+unchanged and true of the DatastoreKit releases it names.*
+
 This directory holds one **adoption checklist** per client project, what the three share, and
 [`measure_client_registry.py`](measure_client_registry.py), the script that measures them. Each
 checklist says what its client must do to depend on `runregistrykit` at `v0.1.0`:
@@ -171,6 +175,9 @@ content are the planned ones: `packages` (above) and a new fingerprint's `encodi
 
 ## 6. The Q5 guard
 
+*Under DatastoreKit `v0.5.0`, `plain` needs one more condition: see
+[The Q5 guard under DatastoreKit `v0.5.0`](#the-q5-guard-under-datastorekit-v050), at the end.*
+
 A client's guard that a spec change without a format bump fails a test (SGK's Q5; its audit §3.5)
 needs nothing of this package. **It is the client's test, beside its format number**, and nothing
 of it is shipped here (U22).
@@ -336,3 +343,72 @@ The adoption notes for `v0.2.0` are in [`v0.2.0/`](v0.2.0/README.md): what the t
 share, and one note per client, each read at the commit it names. The checklists above were
 written against `v0.1.0` and are not rewritten; the notes for `v0.2.0` say what each still
 describes, with the pin `v0.2.0` in its place.
+
+---
+
+## The Q5 guard under DatastoreKit `v0.5.0`
+
+*Added on 2026-10-22, after DatastoreKit tagged `v0.5.0` (`2900d82`, its `extra-values`
+campaign). §6 above is unchanged and true of DatastoreKit `v0.4.0`. The clients were read through
+`git show` only, at the commits named; nothing of a client was imported, run or opened.*
+
+**What moved.** DatastoreKit `v0.5.0` gives `InventorySpec` a seventh field, `extra_values` (each
+further value table → its column naming the class's serial), last, with default `{}`. The first six
+fields, `Parent`, `ParentSet` and `canonical_json` are as they were at `v0.4.0`. §6's `plain` walks
+`dataclasses.fields`, so under `v0.5.0` every plain spec gains `"extra_values": {}`, **every
+class's digest moves though no spec changed**, and the guard fails naming every class. Bumping the
+format for it would move the format every fingerprint the client holds is compared at, for a
+release that changes none of its records: a store read with unchanged specs fingerprints at
+`v0.5.0` exactly as at `v0.4.0`, at the same `ENCODING_FORMAT` (1). So no bump is needed.
+
+**The amendment** is one condition in `plain`: leave out a field named `extra_values` whose value
+is empty.
+
+```python
+def plain(value):
+    """A spec as JSON: dataclasses as objects, sequences as lists, and every mapping key as
+    the JSON of the key, so that 1 ("1") and "1" ('"1"') stay apart. An empty extra_values
+    is left out, so that a spec declaring no extra table is what it was before the field."""
+    if dataclasses.is_dataclass(value):
+        return {
+            f.name: plain(getattr(value, f.name))
+            for f in dataclasses.fields(value)
+            if not (f.name == "extra_values" and len(getattr(value, f.name)) == 0)
+        }
+    if isinstance(value, Mapping):
+        return {json.dumps(k): plain(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [plain(v) for v in value]
+    return value
+```
+
+`spec_digests` and the test's one assertion are unchanged. With the condition every plain spec
+under `v0.5.0` is the one under `v0.4.0`, so **every pinned digest holds at the format it is pinned
+for**. Under `v0.4.0` the condition never applies, as no field has the name, so a client may make
+the edit before or with its pin move. A spec that comes to declare an extra table moves its digest,
+as the guard means it to, and that is a bump under the client's own rule. Only `InventorySpec` has a
+field of that name, so `Parent`, `ParentSet` and the key conversion (the breakage on a `1` → `"1"`
+key) are untouched. This is the condition DatastoreKit's `v0.5.0` adoption notes give each client
+(its `docs/adoption/secondarygwkit.md` and `champbh.md`, "Addendum: v0.5.0").
+
+**Measured on 2026-10-22**, on §6's proof inputs: the neutral store's `FACTORIES` (six specs) and a
+stand-in spec with a polymorphic `Parent.types` keyed by `int`, under DatastoreKit `v0.4.0` (the
+`venv/`'s install) and `v0.5.0` (an export of the tag, ahead on the path):
+
+| Digests | Classes that differ from §6's under `v0.4.0` |
+|---|---|
+| §6's `plain`, under `v0.4.0` | — |
+| amended `plain`, under `v0.4.0` | none of 7 |
+| §6's `plain`, under `v0.5.0` | all 7 |
+| amended `plain`, under `v0.5.0` | none of 7 |
+| amended `plain`, under `v0.5.0`, `Solution` declaring one extra table | `Solution` |
+
+The package's suite, run under `v0.5.0` the same way, passes (410 tests, one skipped). No line of the
+package changes for `v0.5.0`: its floor, `datastorekit>=0.4.0`, admits it.
+
+**The clients.** SGK and CPBH each hold §6's recipe verbatim in
+`ObjectFactories/tests/test_fingerprint_format_guard.py` (SGK `031bcb4` `:33-44`, CPBH `7055532`
+`:51-62`), and each pins DatastoreKit `v0.4.0` (`requirements.txt:17`). Each needs the one condition
+to move to `v0.5.0`, and no bump. SI has no spec guard. **Advice:** make the edit in the commit that
+moves the pin, and run the guard before and after it: under `v0.4.0` the edit changes no digest,
+and under `v0.5.0` the guard passes only with it.
