@@ -13,7 +13,7 @@ RunRegistryKit is the run registry shared by three client projects, all under
 |---|---|---|
 | SecondaryGWKit (SGK) | `SecondaryGWKit/` | `runregistrykit[stores]` at `v0.2.0`, adopted in its `rrk-v020-adoption` 01–04 (closed 2026-10-19; the `interrupted-runs` board's G1); `v0.1.0` was adopted in its `runregistry-extraction` 05–08 (closed 2026-10-16; the `extraction` board's G2). Its `RunRegistry/`, frozen at SGK `a45aefc` and the source of the import, was deleted by its 06 |
 | ChamPBH (CPBH) | `ChamPBH/` | `runregistrykit[stores]` at `v0.2.0`, adopted directly in its `rrk-adoption` 01–05 (closed 2026-10-20; the `extraction` board's G3 and the `interrupted-runs` board's G2) |
-| StochasticInstantons (SI) | `StochasticInstantons/` | none; adopts after its `dk-and-rpk-migration` campaign |
+| StochasticInstantons (SI) | `StochasticInstantons/` | `runregistrykit[stores]` at `v0.2.0`, adopted directly in its `rrk-adoption` 01–05 (closed 2026-10-25; the `extraction` board's G4 and the `interrupted-runs` board's G3) |
 
 A registry records that a long job exists: a run directory per run, with a manifest written
 first, a heartbeat, a status and a checkpoint log, and a sidecar beside each datastore saying
